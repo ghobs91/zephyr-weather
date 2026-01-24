@@ -28,7 +28,7 @@ export function AlertsScreen() {
   const themeColors = useDark ? colors.dark : colors.light;
   
   const currentLocation = locations[currentLocationIndex];
-  const alerts = currentLocation?.weather?.alertList ?? [];
+  const alerts = currentLocation?.weather?.alerts ?? [];
 
   const getSeverityColor = (severity?: AlertSeverity): string => {
     switch (severity) {
@@ -73,9 +73,9 @@ export function AlertsScreen() {
     return 'alert-circle';
   };
 
-  const renderAlert = (alert: Alert, index: number) => (
+  const renderAlert = (alert: Alert, alertIndex: number) => (
     <View
-      key={index}
+      key={alertIndex}
       style={[
         styles.alertCard,
         {
@@ -124,19 +124,19 @@ export function AlertsScreen() {
       )}
 
       <View style={styles.alertTimes}>
-        {alert.startTime && (
+        {alert.startDate && (
           <View style={styles.timeRow}>
             <Icon name="clock-start" size={16} color={themeColors.textTertiary} />
             <Text style={[styles.timeText, {color: themeColors.textTertiary}]}>
-              Starts: {format(alert.startTime, 'MMM d, HH:mm')}
+              Starts: {format(alert.startDate, 'MMM d, HH:mm')}
             </Text>
           </View>
         )}
-        {alert.endTime && (
+        {alert.endDate && (
           <View style={styles.timeRow}>
             <Icon name="clock-end" size={16} color={themeColors.textTertiary} />
             <Text style={[styles.timeText, {color: themeColors.textTertiary}]}>
-              Ends: {format(alert.endTime, 'MMM d, HH:mm')}
+              Ends: {format(alert.endDate, 'MMM d, HH:mm')}
             </Text>
           </View>
         )}
@@ -167,7 +167,7 @@ export function AlertsScreen() {
 
         {alerts.length > 0 ? (
           <View style={styles.alertsList}>
-            {alerts.map((alert, index) => renderAlert(alert, index))}
+            {alerts.map((alert: Alert, index: number) => renderAlert(alert, index))}
           </View>
         ) : (
           <View style={styles.emptyContainer}>

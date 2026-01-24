@@ -305,7 +305,7 @@ export async function fetchWeather(
     const airQuality = airQualityResponse.data;
 
     // Build current weather
-    const current: Current = forecast.current
+    const current: Current | undefined = forecast.current
       ? {
           weatherCode: forecast.current.weather_code !== undefined
             ? mapWeatherCode(forecast.current.weather_code)
@@ -448,10 +448,10 @@ export async function fetchWeather(
           : undefined,
         pollen: aqIndex !== undefined && aqIndex >= 0 && airQuality.hourly
           ? {
-              grass: airQuality.hourly.grass_pollen?.[aqIndex],
-              ragweed: airQuality.hourly.ragweed_pollen?.[aqIndex],
-              tree: (airQuality.hourly.birch_pollen?.[aqIndex] ?? 0) +
-                    (airQuality.hourly.olive_pollen?.[aqIndex] ?? 0),
+              grass: {index: airQuality.hourly.grass_pollen?.[aqIndex]},
+              ragweed: {index: airQuality.hourly.ragweed_pollen?.[aqIndex]},
+              tree: {index: (airQuality.hourly.birch_pollen?.[aqIndex] ?? 0) +
+                    (airQuality.hourly.olive_pollen?.[aqIndex] ?? 0)},
             }
           : undefined,
       } as Hourly;
