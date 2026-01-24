@@ -47,11 +47,15 @@ export interface AirQuality {
   aqi?: number;
 }
 
+export interface PollenIndex {
+  index?: number;
+}
+
 export interface Pollen {
-  grass?: number;
-  mold?: number;
-  ragweed?: number;
-  tree?: number;
+  grass?: PollenIndex;
+  mold?: PollenIndex;
+  ragweed?: PollenIndex;
+  tree?: PollenIndex;
 }
 
 export interface Precipitation {
@@ -127,6 +131,7 @@ export interface Hourly {
   wind?: Wind;
   uv?: UV;
   airQuality?: AirQuality;
+  pollen?: Pollen;
   relativeHumidity?: number;
   dewPoint?: number;
   pressure?: number;
