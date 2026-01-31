@@ -17,7 +17,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {format} from 'date-fns';
 
 import {useWeatherStore} from '../store/weatherStore';
-import {fetchWeather} from '../services/openMeteoService';
+import {fetchWeather, fetchAirQuality} from '../services/openMeteoService';
+import {fetchNWSWeather, isUSLocation} from '../services/nwsService';
 import {colors, getTemperatureColor} from '../theme/colors';
 import {WeatherCode, Location} from '../types/weather';
 import {RootStackParamList} from '../navigation/RootNavigator';
@@ -26,7 +27,6 @@ import {CurrentWeatherCard} from '../components/CurrentWeatherCard';
 import {DailyForecastCard} from '../components/DailyForecastCard';
 import {HourlyForecastCard} from '../components/HourlyForecastCard';
 import {WeatherDetailCard} from '../components/WeatherDetailCard';
-import {SunMoonCard} from '../components/SunMoonCard';
 import {AlertBanner} from '../components/AlertBanner';
 import {AirQualityCard} from '../components/AirQualityCard';
 
@@ -59,16 +59,50 @@ export function HomeScreen() {
   
   const currentLocation = locations[pageIndex];
 
+  // Sync pageIndex with currentLocationIndex when it changes from outside (e.g., LocationsScreen)
+  useEffect(() => {
+    setPageIndex(currentLocationIndex);
+  }, [currentLocationIndex]);
+
   const refreshWeather = useCallback(async () => {
     if (!currentLocation) return;
     
     try {
       setLoading(true);
-      const weather = await fetchWeather(
+      
+      // Check if location is in the US and use NWS if available
+      const useNWS = await isUSLocation(
         currentLocation.latitude,
-        currentLocation.longitude,
-        currentLocation.timezone
+        currentLocation.longitude
       );
+      
+      let weather;
+      if (useNWS) {
+        console.log('Using NWS API for US location');
+        weather = await fetchNWSWeather(
+          currentLocation.latitude,
+          currentLocation.longitude
+        );
+        
+        // Fetch air quality from Open-Meteo since NWS doesn't provide it
+        const airQuality = await fetchAirQuality(
+          currentLocation.latitude,
+          currentLocation.longitude,
+          currentLocation.timezone
+        );
+        
+        if (weather.current && airQuality) {
+          weather.current.airQuality = airQuality;
+        }
+      } else {
+        console.log('Using Open-Meteo API for international location');
+        weather = await fetchWeather(
+          currentLocation.latitude,
+          currentLocation.longitude,
+          currentLocation.timezone
+        );
+      }
+      
       updateLocationWeather(currentLocation.id, weather);
     } catch (error) {
       setError('Failed to fetch weather data');
@@ -82,17 +116,18 @@ export function HomeScreen() {
   useEffect(() => {
     // Add a default location if none exists
     if (locations.length === 0) {
-      // Default to London
+      // Default to New York
       addLocation({
         id: 'default',
-        latitude: 51.5074,
-        longitude: -0.1278,
-        timezone: 'Europe/London',
-        city: 'London',
-        country: 'United Kingdom',
-        countryCode: 'GB',
+        latitude: 40.7128,
+        longitude: -74.0060,
+        timezone: 'America/New_York',
+        city: 'New York',
+        province: 'New York',
+        country: 'United States',
+        countryCode: 'US',
         isCurrentPosition: false,
-        forecastSource: 'openmeteo',
+        forecastSource: 'nws',
       });
     }
   }, [locations.length, addLocation]);
@@ -148,43 +183,61 @@ export function HomeScreen() {
   const formatTemp = (temp?: number) => {
     if (temp === undefined) return '--';
     if (settings.temperatureUnit === 'fahrenheit') {
-      return `${Math.round(temp * 9/5 + 32)}°`;
+      return `${Math.round(temp * 9/5 + 32)}°F`;
     }
-    return `${Math.round(temp)}°`;
+    return `${Math.round(temp)}°C`;
+  };
+
+  // Format speed based on settings (input is always km/h)
+  const formatSpeed = (speedKmh?: number) => {
+    if (speedKmh === undefined) return '--';
+    switch (settings.speedUnit) {
+      case 'mph':
+        return `${Math.round(speedKmh * 0.621371)} mph`;
+      case 'ms':
+        return `${Math.round(speedKmh * 0.277778)} m/s`;
+      case 'kn':
+        return `${Math.round(speedKmh * 0.539957)} kn`;
+      default: // kmh
+        return `${Math.round(speedKmh)} km/h`;
+    }
   };
 
   const getWeatherIcon = (code?: WeatherCode, isDay: boolean = true): string => {
+    // Colorful emoji weather icons
     switch (code) {
       case WeatherCode.CLEAR:
-        return isDay ? 'weather-sunny' : 'weather-night';
+        return isDay ? '☀️' : '🌙';
       case WeatherCode.PARTLY_CLOUDY:
-        return isDay ? 'weather-partly-cloudy' : 'weather-night-partly-cloudy';
+        return isDay ? '⛅' : '🌙';
       case WeatherCode.CLOUDY:
-        return 'weather-cloudy';
+        return '☁️';
       case WeatherCode.RAIN_LIGHT:
+        return '🌦️';
       case WeatherCode.RAIN:
-        return 'weather-rainy';
+        return '🌧️';
       case WeatherCode.RAIN_HEAVY:
-        return 'weather-pouring';
+        return '⛈️';
       case WeatherCode.SNOW_LIGHT:
+        return '🌨️';
       case WeatherCode.SNOW:
-        return 'weather-snowy';
+        return '❄️';
       case WeatherCode.SNOW_HEAVY:
-        return 'weather-snowy-heavy';
+        return '❄️';
       case WeatherCode.SLEET:
-        return 'weather-snowy-rainy';
+        return '🌨️';
       case WeatherCode.HAIL:
-        return 'weather-hail';
+        return '🌨️';
       case WeatherCode.THUNDERSTORM:
-        return 'weather-lightning-rainy';
+        return '⛈️';
       case WeatherCode.FOG:
-        return 'weather-fog';
+        return '🌫️';
       case WeatherCode.HAZE:
-        return 'weather-hazy';
+        return '🌫️';
       case WeatherCode.WIND:
-        return 'weather-windy';
+        return '💨';
       default:
-        return isDay ? 'weather-sunny' : 'weather-night';
+        return isDay ? '☀️' : '🌙';
     }
   };
 
@@ -247,6 +300,7 @@ export function HomeScreen() {
         <DailyForecastCard
           dailyForecast={dailyForecast}
           formatTemp={formatTemp}
+          formatSpeed={formatSpeed}
           getWeatherIcon={getWeatherIcon}
           isDark={useDark}
           onDayPress={(index) => navigation.navigate('DailyDetail', {dayIndex: index})}
@@ -256,6 +310,7 @@ export function HomeScreen() {
         <HourlyForecastCard
           hourlyForecast={hourlyForecast}
           formatTemp={formatTemp}
+          formatSpeed={formatSpeed}
           getWeatherIcon={getWeatherIcon}
           isDark={useDark}
         />
@@ -271,8 +326,8 @@ export function HomeScreen() {
           />
           <WeatherDetailCard
             title="Wind"
-            value={`${Math.round(current?.wind?.speed ?? 0)} km/h`}
-            subtitle={current?.wind?.gusts ? `Gusts: ${Math.round(current.wind.gusts)} km/h` : undefined}
+            value={formatSpeed(current?.wind?.speed)}
+            subtitle={current?.wind?.gusts ? `Gusts: ${formatSpeed(current.wind.gusts)}` : undefined}
             icon="weather-windy"
             isDark={useDark}
           />
@@ -286,9 +341,9 @@ export function HomeScreen() {
             isDark={useDark}
           />
           <WeatherDetailCard
-            title="Visibility"
-            value={current?.visibility ? `${(current.visibility / 1000).toFixed(1)} km` : '--'}
-            icon="eye-outline"
+            title="Humidity"
+            value={current?.relativeHumidity !== undefined ? `${Math.round(current.relativeHumidity)}%` : '--'}
+            icon="water-percent"
             isDark={useDark}
           />
         </View>
@@ -301,19 +356,12 @@ export function HomeScreen() {
           />
         )}
 
-        {/* Sun & Moon */}
-        {today && (
-          <SunMoonCard
-            sun={today.sun}
-            moon={today.moon}
-            isDark={useDark}
-          />
-        )}
-
         {/* Attribution */}
         <View style={styles.attribution}>
           <Text style={[styles.attributionText, {color: themeColors.textTertiary}]}>
-            Weather data from Open-Meteo (CC BY 4.0)
+            {currentLocation.countryCode === 'US' 
+              ? 'Weather data from NOAA National Weather Service'
+              : 'Weather data from Open-Meteo (CC BY 4.0)'}
           </Text>
         </View>
 

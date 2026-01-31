@@ -10,6 +10,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useRoute, RouteProp} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {format} from 'date-fns';
+import {LineChart} from 'react-native-wagmi-charts';
 
 import {useWeatherStore} from '../store/weatherStore';
 import {colors, getTemperatureColor, getUvColor} from '../theme/colors';
@@ -141,32 +142,95 @@ export function DailyDetailScreen() {
           </View>
         </View>
 
-        {/* Temperature Chart Placeholder */}
+        {/* Temperature Chart */}
         <View style={[styles.card, {backgroundColor: themeColors.cardBackground}]}>
           <Text style={[styles.cardTitle, {color: themeColors.text}]}>
             Temperature Trend
           </Text>
-          <View style={styles.chartPlaceholder}>
-            {dayHourly.slice(0, 12).map((hour, index) => (
-              <View key={index} style={styles.chartBar}>
-                <View
-                  style={[
-                    styles.chartBarFill,
-                    {
-                      backgroundColor: getTemperatureColor(
-                        hour.temperature?.temperature ?? 15,
-                        useDark
-                      ),
-                      height: `${Math.max(20, Math.min(100, ((hour.temperature?.temperature ?? 15) + 10) * 2))}%`,
-                    },
-                  ]}
-                />
-                <Text style={[styles.chartHour, {color: themeColors.textTertiary}]}>
-                  {format(hour.date, 'HH')}
-                </Text>
+          {dayHourly.length > 0 ? (
+            <View style={styles.chartContainer}>
+              {/* Weather icons row */}
+              <View style={styles.chartIconsRow}>
+                {dayHourly.map((hour, index) => {
+                  if (index % 2 !== 0) return <View key={index} style={{width: 30}} />;
+                  return (
+                    <View key={index} style={{width: 30, alignItems: 'center'}}>
+                      <Icon
+                        name={getWeatherIcon(hour.weatherCode)}
+                        size={16}
+                        color={hour.isDaylight ? themeColors.primary : themeColors.textSecondary}
+                      />
+                    </View>
+                  );
+                })}
               </View>
-            ))}
-          </View>
+
+              {/* Interactive temperature chart */}
+              <LineChart.Provider
+                data={dayHourly.map((hour, index) => {
+                  const tempC = hour.temperature?.temperature ?? 0;
+                  const tempConverted = settings.temperatureUnit === 'fahrenheit' 
+                    ? tempC * 9/5 + 32 
+                    : tempC;
+                  return {
+                    timestamp: index,
+                    value: tempConverted,
+                  };
+                })}
+                yRange={{
+                  min: Math.min(...dayHourly.map(h => {
+                    const tempC = h.temperature?.temperature ?? 0;
+                    return settings.temperatureUnit === 'fahrenheit' ? tempC * 9/5 + 32 : tempC;
+                  })) - 2,
+                  max: Math.max(...dayHourly.map(h => {
+                    const tempC = h.temperature?.temperature ?? 0;
+                    return settings.temperatureUnit === 'fahrenheit' ? tempC * 9/5 + 32 : tempC;
+                  })) + 2,
+                }}>
+                <LineChart height={120}>
+                  <LineChart.Path color={themeColors.primary} width={2}>
+                    <LineChart.Gradient color={themeColors.primary} />
+                  </LineChart.Path>
+                  <LineChart.CursorCrosshair
+                    color={themeColors.primary}>
+                    <LineChart.Tooltip
+                      position="top"
+                      textStyle={{
+                        color: themeColors.text,
+                        fontSize: 16,
+                        fontWeight: '600',
+                      }}
+                      style={{
+                        backgroundColor: themeColors.cardBackground,
+                        padding: 8,
+                        borderRadius: 8,
+                      }}
+                    />
+                  </LineChart.CursorCrosshair>
+                </LineChart>
+              </LineChart.Provider>
+
+              {/* Hour labels */}
+              <View style={styles.chartHoursRow}>
+                {dayHourly.map((hour, index) => {
+                  if (index % 3 !== 0 && index !== dayHourly.length - 1) {
+                    return <View key={index} style={{flex: 1}} />;
+                  }
+                  return (
+                    <Text
+                      key={index}
+                      style={[styles.chartHour, {color: themeColors.textSecondary, flex: 4}]}>
+                      {format(hour.date, 'ha').toLowerCase()}
+                    </Text>
+                  );
+                })}
+              </View>
+            </View>
+          ) : (
+            <Text style={[styles.noDataText, {color: themeColors.textSecondary}]}>
+              No hourly data available
+            </Text>
+          )}
         </View>
 
         {/* Precipitation */}
@@ -190,7 +254,13 @@ export function DailyDetailScreen() {
               Total
             </Text>
             <Text style={[styles.detailValue, {color: themeColors.text}]}>
-              {day.day?.precipitation?.total?.toFixed(1) ?? 0} mm
+              {(() => {
+                const total = day.day?.precipitation?.total ?? 0;
+                if (settings.precipitationUnit === 'inch') {
+                  return `${(total / 25.4).toFixed(2)} in`;
+                }
+                return `${total.toFixed(1)} mm`;
+              })()}
             </Text>
           </View>
         </View>
@@ -206,7 +276,17 @@ export function DailyDetailScreen() {
               Speed
             </Text>
             <Text style={[styles.detailValue, {color: themeColors.text}]}>
-              {Math.round(day.day?.wind?.speed ?? 0)} km/h
+              {(() => {
+                const speed = day.day?.wind?.speed ?? 0;
+                if (settings.speedUnit === 'mph') {
+                  return `${Math.round(speed * 0.621371)} mph`;
+                } else if (settings.speedUnit === 'ms') {
+                  return `${(speed / 3.6).toFixed(1)} m/s`;
+                } else if (settings.speedUnit === 'kn') {
+                  return `${Math.round(speed * 0.539957)} kn`;
+                }
+                return `${Math.round(speed)} km/h`;
+              })()}
             </Text>
           </View>
           <View style={styles.detailRow}>
@@ -214,7 +294,17 @@ export function DailyDetailScreen() {
               Gusts
             </Text>
             <Text style={[styles.detailValue, {color: themeColors.text}]}>
-              {Math.round(day.day?.wind?.gusts ?? 0)} km/h
+              {(() => {
+                const gusts = day.day?.wind?.gusts ?? 0;
+                if (settings.speedUnit === 'mph') {
+                  return `${Math.round(gusts * 0.621371)} mph`;
+                } else if (settings.speedUnit === 'ms') {
+                  return `${(gusts / 3.6).toFixed(1)} m/s`;
+                } else if (settings.speedUnit === 'kn') {
+                  return `${Math.round(gusts * 0.539957)} kn`;
+                }
+                return `${Math.round(gusts)} km/h`;
+              })()}
             </Text>
           </View>
         </View>
@@ -253,7 +343,7 @@ export function DailyDetailScreen() {
                 Sunrise
               </Text>
               <Text style={[styles.sunMoonTime, {color: themeColors.text}]}>
-                {day.sun?.riseTime ? format(day.sun.riseTime, 'HH:mm') : '--:--'}
+                {day.sun?.riseTime ? format(new Date(day.sun.riseTime), 'h:mm a') : '--:--'}
               </Text>
             </View>
             <View style={styles.sunMoonItem}>
@@ -262,7 +352,7 @@ export function DailyDetailScreen() {
                 Sunset
               </Text>
               <Text style={[styles.sunMoonTime, {color: themeColors.text}]}>
-                {day.sun?.setTime ? format(day.sun.setTime, 'HH:mm') : '--:--'}
+                {day.sun?.setTime ? format(new Date(day.sun.setTime), 'h:mm a') : '--:--'}
               </Text>
             </View>
             <View style={styles.sunMoonItem}>
@@ -271,7 +361,13 @@ export function DailyDetailScreen() {
                 Daylight
               </Text>
               <Text style={[styles.sunMoonTime, {color: themeColors.text}]}>
-                {day.hoursOfSun?.toFixed(1) ?? '--'}h
+                {(() => {
+                  if (!day.sun?.riseTime || !day.sun?.setTime) return '--h';
+                  const rise = new Date(day.sun.riseTime);
+                  const set = new Date(day.sun.setTime);
+                  const hours = (set.getTime() - rise.getTime()) / (1000 * 60 * 60);
+                  return `${hours.toFixed(1)}h`;
+                })()}
               </Text>
             </View>
           </View>
@@ -354,26 +450,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  chartPlaceholder: {
+  chartContainer: {
+    marginTop: 16,
+  },
+  chartIconsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    height: 80,
-    marginTop: 12,
+    justifyContent: 'space-around',
+    marginBottom: 8,
   },
-  chartBar: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    height: '100%',
-  },
-  chartBarFill: {
-    width: 8,
-    borderRadius: 4,
+  chartHoursRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 8,
   },
   chartHour: {
     fontSize: 10,
-    marginTop: 4,
+    textAlign: 'center',
+  },
+  noDataText: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 12,
   },
   detailRow: {
     flexDirection: 'row',

@@ -42,15 +42,12 @@ export function CurrentWeatherCard({
             ]}>
             {formatTemp(temperature)}
           </Text>
-          <Text style={[styles.unit, {color: themeColors.textSecondary}]}>C</Text>
         </View>
         
         <View style={styles.weatherInfo}>
-          <Icon
-            name={getWeatherIcon(weatherCode)}
-            size={64}
-            color={themeColors.primary}
-          />
+          <Text style={styles.weatherIcon}>
+            {getWeatherIcon(weatherCode)}
+          </Text>
           <Text style={[styles.weatherText, {color: themeColors.text}]}>
             {weatherText || 'Unknown'}
           </Text>
@@ -92,20 +89,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   temperatureContainer: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
   },
   temperature: {
-    fontSize: 80,
+    fontSize: 72,
     fontWeight: '200',
-    lineHeight: 90,
-  },
-  unit: {
-    fontSize: 24,
-    marginTop: 12,
+    lineHeight: 80,
   },
   weatherInfo: {
     alignItems: 'center',
+  },
+  weatherIcon: {
+    fontSize: 64,
   },
   weatherText: {
     fontSize: 16,

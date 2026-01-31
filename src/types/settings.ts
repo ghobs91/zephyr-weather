@@ -23,12 +23,12 @@ export interface AppSettings {
 
 export const defaultSettings: AppSettings = {
   theme: 'system',
-  temperatureUnit: 'celsius',
-  speedUnit: 'kmh',
-  pressureUnit: 'hpa',
-  precipitationUnit: 'mm',
-  distanceUnit: 'km',
-  defaultForecastSource: 'openmeteo',
+  temperatureUnit: 'fahrenheit',
+  speedUnit: 'mph',
+  pressureUnit: 'inhg',
+  precipitationUnit: 'inch',
+  distanceUnit: 'mi',
+  defaultForecastSource: 'nws',
   refreshInterval: 60,
   showNotifications: true,
   alertNotifications: true,

@@ -11,14 +11,15 @@ import {
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {useWeatherStore} from '../store/weatherStore';
 import {colors} from '../theme/colors';
 import {Location, WeatherCode} from '../types/weather';
-import {RootStackParamList} from '../navigation/RootNavigator';
+import {RootStackParamList, MainTabParamList} from '../navigation/RootNavigator';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type NavigationProp = BottomTabNavigationProp<MainTabParamList>;
 
 export function LocationsScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -103,7 +104,7 @@ export function LocationsScreen() {
         ]}
         onPress={() => {
           setCurrentLocationIndex(index);
-          // Navigate to home tab
+          navigation.navigate('Home');
         }}
         onLongPress={() => handleDeleteLocation(item)}>
         <View style={styles.locationHeader}>

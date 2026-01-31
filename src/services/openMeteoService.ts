@@ -527,3 +527,34 @@ export async function reverseGeocode(
     return null;
   }
 }
+
+export async function fetchAirQuality(
+  latitude: number,
+  longitude: number,
+  timezone: string = 'auto'
+) {
+  try {
+    const response = await axios.get<OpenMeteoAirQualityResponse>(
+      `${OPEN_METEO_AIR_QUALITY_URL}/air-quality?latitude=${latitude}&longitude=${longitude}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,us_aqi&timezone=${timezone}`
+    );
+
+    const airQuality = response.data;
+    
+    if (airQuality.current) {
+      return {
+        pm25: airQuality.current.pm2_5,
+        pm10: airQuality.current.pm10,
+        so2: airQuality.current.sulphur_dioxide,
+        no2: airQuality.current.nitrogen_dioxide,
+        o3: airQuality.current.ozone,
+        co: airQuality.current.carbon_monoxide,
+        aqi: airQuality.current.us_aqi,
+      };
+    }
+    
+    return undefined;
+  } catch (error) {
+    console.error('Error fetching air quality:', error);
+    return undefined;
+  }
+}
