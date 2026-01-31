@@ -208,6 +208,25 @@ export function SettingsScreen() {
         
         <View style={[styles.sourceCard, {backgroundColor: themeColors.cardBackground}]}>
           <View style={styles.sourceHeader}>
+            <View style={[styles.sourceIcon, {backgroundColor: '#1E40AF'}]}>
+              <Icon name="flag-variant" size={20} color="#FFFFFF" />
+            </View>
+            <View style={styles.sourceInfo}>
+              <Text style={[styles.sourceName, {color: themeColors.text}]}>
+                NOAA National Weather Service
+              </Text>
+              <Text style={[styles.sourceDescription, {color: themeColors.textSecondary}]}>
+                Official US weather forecasts and alerts
+              </Text>
+            </View>
+          </View>
+          <Text style={[styles.sourceFeatures, {color: themeColors.textTertiary}]}>
+            US Only • Forecast • Alerts • Hourly
+          </Text>
+        </View>
+
+        <View style={[styles.sourceCard, {backgroundColor: themeColors.cardBackground}]}>
+          <View style={styles.sourceHeader}>
             <View style={[styles.sourceIcon, {backgroundColor: '#FF6B35'}]}>
               <Icon name="weather-partly-cloudy" size={20} color="#FFFFFF" />
             </View>
@@ -221,7 +240,7 @@ export function SettingsScreen() {
             </View>
           </View>
           <Text style={[styles.sourceFeatures, {color: themeColors.textTertiary}]}>
-            Forecast • Current • Air Quality • Pollen • Search
+            Global • Forecast • Current • Air Quality • Pollen • Search
           </Text>
         </View>
 
@@ -239,7 +258,7 @@ export function SettingsScreen() {
             A beautiful weather app inspired by Breezy Weather, built with React Native.
           </Text>
           <Text style={[styles.attribution, {color: themeColors.textTertiary}]}>
-            Weather data provided by Open-Meteo (CC BY 4.0)
+            Weather data provided by NOAA NWS (US) and Open-Meteo (Global)
           </Text>
         </View>
 

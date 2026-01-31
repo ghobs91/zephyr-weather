@@ -20,13 +20,14 @@
     "date-fns": "^4.1.0",
     "react": "19.0.0",
     "react-native": "0.79.0",
-    "react-native-gesture-handler": "^2.25.0",
+    "react-native-gesture-handler": "^2.30.0",
     "react-native-linear-gradient": "^2.8.3",
-    "react-native-reanimated": "^3.17.5",
+    "react-native-reanimated": "^3.19.5",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "^4.10.0",
     "react-native-svg": "^15.10.0",
     "react-native-vector-icons": "^10.2.0",
+    "react-native-wagmi-charts": "^2.8.4",
     "zustand": "^5.0.5"
   },
   "devDependencies": {

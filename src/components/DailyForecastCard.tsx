@@ -7,23 +7,25 @@ import {
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {format, isToday, isTomorrow} from 'date-fns';
+import {format, isPast, startOfDay, isToday} from 'date-fns';
 import {Daily, WeatherCode} from '../types/weather';
-import {colors, getTemperatureColor} from '../theme/colors';
+import {colors} from '../theme/colors';
 
 interface Props {
   dailyForecast: Daily[];
   formatTemp: (temp?: number) => string;
+  formatSpeed: (speedKmh?: number) => string;
   getWeatherIcon: (code?: WeatherCode, isDay?: boolean) => string;
   isDark: boolean;
   onDayPress?: (index: number) => void;
 }
 
-type TabType = 'conditions' | 'air_quality' | 'wind';
+type TabType = 'conditions' | 'wind';
 
 export function DailyForecastCard({
   dailyForecast,
   formatTemp,
+  formatSpeed,
   getWeatherIcon,
   isDark,
   onDayPress,
@@ -32,8 +34,6 @@ export function DailyForecastCard({
   const themeColors = isDark ? colors.dark : colors.light;
 
   const getDayLabel = (date: Date): string => {
-    if (isToday(date)) return 'Today';
-    if (isTomorrow(date)) return 'Tomorrow';
     return format(date, 'EEE');
   };
 
@@ -84,22 +84,6 @@ export function DailyForecastCard({
         <TouchableOpacity
           style={[
             styles.tab,
-            activeTab === 'air_quality' && {
-              backgroundColor: themeColors.primary,
-            },
-          ]}
-          onPress={() => setActiveTab('air_quality')}>
-          <Text
-            style={[
-              styles.tabText,
-              {color: activeTab === 'air_quality' ? '#FFFFFF' : themeColors.textSecondary},
-            ]}>
-            Air quality
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tab,
             activeTab === 'wind' && {
               backgroundColor: themeColors.primary,
             },
@@ -120,7 +104,11 @@ export function DailyForecastCard({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.daysContainer}>
-        {dailyForecast.slice(0, 7).map((day, index) => {
+        {dailyForecast
+          .map((day, originalIndex) => ({day, originalIndex}))
+          .filter(({day}) => !isPast(startOfDay(day.date)) || isToday(day.date))
+          .slice(0, 7)
+          .map(({day, originalIndex}) => {
           const dayTemp = day.day?.temperature?.temperature;
           const nightTemp = day.night?.temperature?.temperature;
           const precipProb = day.day?.precipitationProbability?.total;
@@ -129,20 +117,17 @@ export function DailyForecastCard({
             <TouchableOpacity
               key={day.date.toISOString()}
               style={styles.dayColumn}
-              onPress={() => onDayPress?.(index)}>
-              <Text style={[styles.dayLabel, {color: themeColors.text}]}>
+              onPress={() => onDayPress?.(originalIndex)}>
+              <Text style={[styles.dayLabel, {color: themeColors.text}]} numberOfLines={1}>
                 {getDayLabel(day.date)}
               </Text>
               <Text style={[styles.dateLabel, {color: themeColors.textSecondary}]}>
                 {getDateLabel(day.date)}
               </Text>
               
-              <Icon
-                name={getWeatherIcon(day.day?.weatherCode, true)}
-                size={28}
-                color={themeColors.primary}
-                style={styles.weatherIcon}
-              />
+              <Text style={styles.weatherIcon}>
+                {getWeatherIcon(day.day?.weatherCode, true)}
+              </Text>
 
               {activeTab === 'conditions' && (
                 <>
@@ -191,18 +176,7 @@ export function DailyForecastCard({
                     }}
                   />
                   <Text style={[styles.windText, {color: themeColors.text}]}>
-                    {Math.round(day.day?.wind?.speed ?? 0)}
-                  </Text>
-                  <Text style={[styles.windUnit, {color: themeColors.textSecondary}]}>
-                    km/h
-                  </Text>
-                </View>
-              )}
-
-              {activeTab === 'air_quality' && (
-                <View style={styles.aqiContainer}>
-                  <Text style={[styles.aqiText, {color: themeColors.text}]}>
-                    {day.airQuality?.aqi ?? '--'}
+                    {formatSpeed(day.day?.wind?.speed)}
                   </Text>
                 </View>
               )}
@@ -251,11 +225,11 @@ const styles = StyleSheet.create({
   },
   daysContainer: {
     paddingVertical: 8,
-    gap: 16,
+    gap: 8,
   },
   dayColumn: {
     alignItems: 'center',
-    width: 64,
+    width: 70,
   },
   dayLabel: {
     fontSize: 14,
@@ -266,6 +240,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   weatherIcon: {
+    fontSize: 28,
     marginVertical: 8,
   },
   tempBarContainer: {
@@ -304,19 +279,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   windText: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginTop: 4,
-  },
-  windUnit: {
-    fontSize: 10,
-  },
-  aqiContainer: {
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  aqiText: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '500',
   },
 });

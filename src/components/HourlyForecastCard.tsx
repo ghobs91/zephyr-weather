@@ -7,22 +7,24 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {format, isToday, isSameHour} from 'date-fns';
+import {format, isSameHour} from 'date-fns';
 import {Hourly, WeatherCode} from '../types/weather';
-import {colors, getTemperatureColor} from '../theme/colors';
+import {colors} from '../theme/colors';
 
 interface Props {
   hourlyForecast: Hourly[];
   formatTemp: (temp?: number) => string;
+  formatSpeed: (speedKmh?: number) => string;
   getWeatherIcon: (code?: WeatherCode, isDay?: boolean) => string;
   isDark: boolean;
 }
 
-type TabType = 'conditions' | 'air_quality' | 'wind';
+type TabType = 'conditions' | 'wind';
 
 export function HourlyForecastCard({
   hourlyForecast,
   formatTemp,
+  formatSpeed,
   getWeatherIcon,
   isDark,
 }: Props) {
@@ -35,19 +37,6 @@ export function HourlyForecastCard({
   const filteredHours = hourlyForecast
     .filter(hour => hour.date >= now)
     .slice(0, 24);
-
-  // Get temperature range for chart
-  const temps = filteredHours
-    .map(h => h.temperature?.temperature)
-    .filter((t): t is number => t !== undefined);
-  const minTemp = Math.min(...temps);
-  const maxTemp = Math.max(...temps);
-  const tempRange = maxTemp - minTemp || 1;
-
-  const getTempPosition = (temp?: number): number => {
-    if (temp === undefined) return 50;
-    return 100 - ((temp - minTemp) / tempRange) * 100;
-  };
 
   return (
     <View style={[styles.container, {backgroundColor: themeColors.cardBackground}]}>
@@ -70,20 +59,6 @@ export function HourlyForecastCard({
               {color: activeTab === 'conditions' ? '#FFFFFF' : themeColors.textSecondary},
             ]}>
             Conditions
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === 'air_quality' && {backgroundColor: themeColors.primary},
-          ]}
-          onPress={() => setActiveTab('air_quality')}>
-          <Text
-            style={[
-              styles.tabText,
-              {color: activeTab === 'air_quality' ? '#FFFFFF' : themeColors.textSecondary},
-            ]}>
-            Air quality
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -121,37 +96,12 @@ export function HourlyForecastCard({
                 {isNow ? 'Now' : format(hour.date, 'HH:mm')}
               </Text>
 
-              <Icon
-                name={getWeatherIcon(hour.weatherCode, hour.isDaylight)}
-                size={24}
-                color={themeColors.primary}
-                style={styles.weatherIcon}
-              />
+              <Text style={styles.weatherIcon}>
+                {getWeatherIcon(hour.weatherCode, hour.isDaylight)}
+              </Text>
 
               {activeTab === 'conditions' && (
                 <>
-                  <View style={styles.chartContainer}>
-                    <View
-                      style={[
-                        styles.tempDot,
-                        {
-                          backgroundColor: temp !== undefined
-                            ? getTemperatureColor(temp, isDark)
-                            : themeColors.primary,
-                          top: `${getTempPosition(temp)}%`,
-                        },
-                      ]}
-                    />
-                    {index < filteredHours.length - 1 && (
-                      <View
-                        style={[
-                          styles.chartLine,
-                          {backgroundColor: themeColors.surfaceVariant},
-                        ]}
-                      />
-                    )}
-                  </View>
-
                   <Text style={[styles.tempText, {color: themeColors.text}]}>
                     {formatTemp(temp)}
                   </Text>
@@ -178,15 +128,7 @@ export function HourlyForecastCard({
                     }}
                   />
                   <Text style={[styles.windText, {color: themeColors.text}]}>
-                    {Math.round(hour.wind?.speed ?? 0)}
-                  </Text>
-                </View>
-              )}
-
-              {activeTab === 'air_quality' && (
-                <View style={styles.aqiInfo}>
-                  <Text style={[styles.aqiText, {color: themeColors.text}]}>
-                    {hour.airQuality?.aqi ?? '--'}
+                    {formatSpeed(hour.wind?.speed)}
                   </Text>
                 </View>
               )}
@@ -252,32 +194,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   weatherIcon: {
-    marginVertical: 8,
-  },
-  chartContainer: {
-    height: 60,
-    width: '100%',
-    position: 'relative',
-    alignItems: 'center',
-  },
-  tempDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    position: 'absolute',
-    zIndex: 1,
-  },
-  chartLine: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    right: 0,
-    height: 2,
+    fontSize: 24,
+    marginVertical: 4,
   },
   tempText: {
     fontSize: 14,
     fontWeight: '500',
-    marginTop: 4,
+    marginTop: 2,
   },
   precipContainer: {
     flexDirection: 'row',
@@ -296,14 +219,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     marginTop: 2,
-  },
-  aqiInfo: {
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  aqiText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
   normalRange: {
     flexDirection: 'row',
