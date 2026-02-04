@@ -5,17 +5,18 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {format, isPast, startOfDay, isToday} from 'date-fns';
 import {Daily, WeatherCode} from '../types/weather';
 import {colors} from '../theme/colors';
+import {getWeatherIconSource} from '../utils/weatherIcons';
 
 interface Props {
   dailyForecast: Daily[];
   formatTemp: (temp?: number) => string;
   formatSpeed: (speedKmh?: number) => string;
-  getWeatherIcon: (code?: WeatherCode, isDay?: boolean) => string;
   isDark: boolean;
   onDayPress?: (index: number) => void;
 }
@@ -26,7 +27,6 @@ export function DailyForecastCard({
   dailyForecast,
   formatTemp,
   formatSpeed,
-  getWeatherIcon,
   isDark,
   onDayPress,
 }: Props) {
@@ -125,9 +125,11 @@ export function DailyForecastCard({
                 {getDateLabel(day.date)}
               </Text>
               
-              <Text style={styles.weatherIcon}>
-                {getWeatherIcon(day.day?.weatherCode, true)}
-              </Text>
+              <Image
+                source={getWeatherIconSource(day.day?.weatherCode, true)}
+                style={styles.weatherIcon}
+                resizeMode="contain"
+              />
 
               {activeTab === 'conditions' && (
                 <>
@@ -240,7 +242,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   weatherIcon: {
-    fontSize: 28,
+    width: 32,
+    height: 32,
     marginVertical: 8,
   },
   tempBarContainer: {

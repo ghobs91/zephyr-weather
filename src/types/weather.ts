@@ -174,6 +174,7 @@ export interface Normals {
 export interface Current {
   weatherCode?: WeatherCode;
   weatherText?: string;
+  isDaylight?: boolean;
   temperature?: Temperature;
   wind?: Wind;
   uv?: UV;
