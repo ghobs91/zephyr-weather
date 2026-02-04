@@ -203,44 +203,6 @@ export function HomeScreen() {
     }
   };
 
-  const getWeatherIcon = (code?: WeatherCode, isDay: boolean = true): string => {
-    // Colorful emoji weather icons
-    switch (code) {
-      case WeatherCode.CLEAR:
-        return isDay ? '☀️' : '🌙';
-      case WeatherCode.PARTLY_CLOUDY:
-        return isDay ? '⛅' : '🌙';
-      case WeatherCode.CLOUDY:
-        return '☁️';
-      case WeatherCode.RAIN_LIGHT:
-        return '🌦️';
-      case WeatherCode.RAIN:
-        return '🌧️';
-      case WeatherCode.RAIN_HEAVY:
-        return '⛈️';
-      case WeatherCode.SNOW_LIGHT:
-        return '🌨️';
-      case WeatherCode.SNOW:
-        return '❄️';
-      case WeatherCode.SNOW_HEAVY:
-        return '❄️';
-      case WeatherCode.SLEET:
-        return '🌨️';
-      case WeatherCode.HAIL:
-        return '🌨️';
-      case WeatherCode.THUNDERSTORM:
-        return '⛈️';
-      case WeatherCode.FOG:
-        return '🌫️';
-      case WeatherCode.HAZE:
-        return '🌫️';
-      case WeatherCode.WIND:
-        return '💨';
-      default:
-        return isDay ? '☀️' : '🌙';
-    }
-  };
-
   return (
     <View style={[styles.container, {backgroundColor: themeColors.background}]}>
       <ScrollView
@@ -292,7 +254,7 @@ export function HomeScreen() {
           current={current}
           today={today}
           formatTemp={formatTemp}
-          getWeatherIcon={getWeatherIcon}
+          isDaylight={current?.isDaylight}
           isDark={useDark}
         />
 
@@ -301,7 +263,6 @@ export function HomeScreen() {
           dailyForecast={dailyForecast}
           formatTemp={formatTemp}
           formatSpeed={formatSpeed}
-          getWeatherIcon={getWeatherIcon}
           isDark={useDark}
           onDayPress={(index) => navigation.navigate('DailyDetail', {dayIndex: index})}
         />
@@ -311,7 +272,6 @@ export function HomeScreen() {
           hourlyForecast={hourlyForecast}
           formatTemp={formatTemp}
           formatSpeed={formatSpeed}
-          getWeatherIcon={getWeatherIcon}
           isDark={useDark}
         />
 

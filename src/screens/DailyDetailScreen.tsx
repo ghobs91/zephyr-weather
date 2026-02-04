@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   useColorScheme,
+  Image,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useRoute, RouteProp} from '@react-navigation/native';
@@ -16,6 +17,7 @@ import {useWeatherStore} from '../store/weatherStore';
 import {colors, getTemperatureColor, getUvColor} from '../theme/colors';
 import {WeatherCode, Daily} from '../types/weather';
 import {RootStackParamList} from '../navigation/RootNavigator';
+import {getWeatherIconSource} from '../utils/weatherIcons';
 
 type DailyDetailRouteProp = RouteProp<RootStackParamList, 'DailyDetail'>;
 
@@ -41,23 +43,6 @@ export function DailyDetailScreen() {
       return `${Math.round(temp * 9/5 + 32)}°`;
     }
     return `${Math.round(temp)}°`;
-  };
-
-  const getWeatherIcon = (code?: WeatherCode): string => {
-    switch (code) {
-      case WeatherCode.CLEAR: return 'weather-sunny';
-      case WeatherCode.PARTLY_CLOUDY: return 'weather-partly-cloudy';
-      case WeatherCode.CLOUDY: return 'weather-cloudy';
-      case WeatherCode.RAIN_LIGHT:
-      case WeatherCode.RAIN: return 'weather-rainy';
-      case WeatherCode.RAIN_HEAVY: return 'weather-pouring';
-      case WeatherCode.SNOW_LIGHT:
-      case WeatherCode.SNOW: return 'weather-snowy';
-      case WeatherCode.SNOW_HEAVY: return 'weather-snowy-heavy';
-      case WeatherCode.THUNDERSTORM: return 'weather-lightning-rainy';
-      case WeatherCode.FOG: return 'weather-fog';
-      default: return 'weather-sunny';
-    }
   };
 
   if (!day) {
@@ -111,10 +96,10 @@ export function DailyDetailScreen() {
                 </Text>
               )}
               <View style={styles.weatherRow}>
-                <Icon
-                  name={getWeatherIcon(day.day?.weatherCode)}
-                  size={32}
-                  color={themeColors.primary}
+                <Image
+                  source={getWeatherIconSource(day.day?.weatherCode, true)}
+                  style={styles.weatherIcon}
+                  resizeMode="contain"
                 />
                 <Text style={[styles.weatherText, {color: themeColors.text}]}>
                   {day.day?.weatherText || 'Unknown'}
@@ -136,7 +121,11 @@ export function DailyDetailScreen() {
                 </Text>
               )}
               <View style={styles.weatherRow}>
-                <Icon name="weather-night" size={32} color={themeColors.textSecondary} />
+                <Image
+                  source={getWeatherIconSource(day.night?.weatherCode, false)}
+                  style={styles.weatherIcon}
+                  resizeMode="contain"
+                />
               </View>
             </View>
           </View>
@@ -155,10 +144,10 @@ export function DailyDetailScreen() {
                   if (index % 2 !== 0) return <View key={index} style={{width: 30}} />;
                   return (
                     <View key={index} style={{width: 30, alignItems: 'center'}}>
-                      <Icon
-                        name={getWeatherIcon(hour.weatherCode)}
-                        size={16}
-                        color={hour.isDaylight ? themeColors.primary : themeColors.textSecondary}
+                      <Image
+                        source={getWeatherIconSource(hour.weatherCode, hour.isDaylight)}
+                        style={{width: 16, height: 16}}
+                        resizeMode="contain"
                       />
                     </View>
                   );
@@ -431,6 +420,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginTop: 12,
+  },
+  weatherIcon: {
+    width: 32,
+    height: 32,
   },
   weatherText: {
     fontSize: 14,

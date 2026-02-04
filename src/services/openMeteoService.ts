@@ -313,6 +313,7 @@ export async function fetchWeather(
           weatherText: forecast.current.weather_code !== undefined
             ? getWeatherDescription(mapWeatherCode(forecast.current.weather_code))
             : undefined,
+          isDaylight: forecast.current.is_day === 1,
           temperature: {
             temperature: forecast.current.temperature_2m,
             apparent: forecast.current.apparent_temperature,

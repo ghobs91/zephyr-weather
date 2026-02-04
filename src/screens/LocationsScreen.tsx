@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   useColorScheme,
   Alert,
+  Image,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
@@ -18,6 +19,7 @@ import {useWeatherStore} from '../store/weatherStore';
 import {colors} from '../theme/colors';
 import {Location, WeatherCode} from '../types/weather';
 import {RootStackParamList, MainTabParamList} from '../navigation/RootNavigator';
+import {getWeatherIconSource} from '../utils/weatherIcons';
 
 type NavigationProp = BottomTabNavigationProp<MainTabParamList>;
 
@@ -37,31 +39,6 @@ export function LocationsScreen() {
   const theme = settings.theme;
   const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
   const themeColors = useDark ? colors.dark : colors.light;
-
-  const getWeatherIcon = (code?: WeatherCode): string => {
-    switch (code) {
-      case WeatherCode.CLEAR:
-        return 'weather-sunny';
-      case WeatherCode.PARTLY_CLOUDY:
-        return 'weather-partly-cloudy';
-      case WeatherCode.CLOUDY:
-        return 'weather-cloudy';
-      case WeatherCode.RAIN_LIGHT:
-      case WeatherCode.RAIN:
-        return 'weather-rainy';
-      case WeatherCode.RAIN_HEAVY:
-        return 'weather-pouring';
-      case WeatherCode.SNOW_LIGHT:
-      case WeatherCode.SNOW:
-        return 'weather-snowy';
-      case WeatherCode.THUNDERSTORM:
-        return 'weather-lightning-rainy';
-      case WeatherCode.FOG:
-        return 'weather-fog';
-      default:
-        return 'weather-sunny';
-    }
-  };
 
   const formatTemp = (temp?: number): string => {
     if (temp === undefined) return '--°';
@@ -125,10 +102,10 @@ export function LocationsScreen() {
           {current ? (
             <>
               <View style={styles.currentWeather}>
-                <Icon
-                  name={getWeatherIcon(current.weatherCode)}
-                  size={40}
-                  color={themeColors.primary}
+                <Image
+                  source={getWeatherIconSource(current.weatherCode, current.isDaylight)}
+                  style={styles.weatherIcon}
+                  resizeMode="contain"
                 />
                 <Text style={[styles.temperature, {color: themeColors.text}]}>
                   {formatTemp(current.temperature?.temperature)}
@@ -245,6 +222,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+  weatherIcon: {
+    width: 40,
+    height: 40,
   },
   temperature: {
     fontSize: 36,

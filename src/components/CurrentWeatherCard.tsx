@@ -1,14 +1,15 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, Image} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Current, Daily, WeatherCode} from '../types/weather';
 import {colors, getTemperatureColor} from '../theme/colors';
+import {getWeatherIconSource} from '../utils/weatherIcons';
 
 interface Props {
   current?: Current;
   today?: Daily;
   formatTemp: (temp?: number) => string;
-  getWeatherIcon: (code?: WeatherCode, isDay?: boolean) => string;
+  isDaylight?: boolean;
   isDark: boolean;
 }
 
@@ -16,7 +17,7 @@ export function CurrentWeatherCard({
   current,
   today,
   formatTemp,
-  getWeatherIcon,
+  isDaylight = true,
   isDark,
 }: Props) {
   const themeColors = isDark ? colors.dark : colors.light;
@@ -45,9 +46,11 @@ export function CurrentWeatherCard({
         </View>
         
         <View style={styles.weatherInfo}>
-          <Text style={styles.weatherIcon}>
-            {getWeatherIcon(weatherCode)}
-          </Text>
+          <Image
+            source={getWeatherIconSource(weatherCode, isDaylight)}
+            style={styles.weatherIcon}
+            resizeMode="contain"
+          />
           <Text style={[styles.weatherText, {color: themeColors.text}]}>
             {weatherText || 'Unknown'}
           </Text>
@@ -100,7 +103,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   weatherIcon: {
-    fontSize: 64,
+    width: 100,
+    height: 100,
   },
   weatherText: {
     fontSize: 16,

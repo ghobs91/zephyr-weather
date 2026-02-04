@@ -5,17 +5,18 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {format, isSameHour} from 'date-fns';
 import {Hourly, WeatherCode} from '../types/weather';
 import {colors} from '../theme/colors';
+import {getWeatherIconSource} from '../utils/weatherIcons';
 
 interface Props {
   hourlyForecast: Hourly[];
   formatTemp: (temp?: number) => string;
   formatSpeed: (speedKmh?: number) => string;
-  getWeatherIcon: (code?: WeatherCode, isDay?: boolean) => string;
   isDark: boolean;
 }
 
@@ -25,7 +26,6 @@ export function HourlyForecastCard({
   hourlyForecast,
   formatTemp,
   formatSpeed,
-  getWeatherIcon,
   isDark,
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>('conditions');
@@ -96,9 +96,11 @@ export function HourlyForecastCard({
                 {isNow ? 'Now' : format(hour.date, 'HH:mm')}
               </Text>
 
-              <Text style={styles.weatherIcon}>
-                {getWeatherIcon(hour.weatherCode, hour.isDaylight)}
-              </Text>
+              <Image
+                source={getWeatherIconSource(hour.weatherCode, hour.isDaylight)}
+                style={styles.weatherIcon}
+                resizeMode="contain"
+              />
 
               {activeTab === 'conditions' && (
                 <>
@@ -194,7 +196,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   weatherIcon: {
-    fontSize: 24,
+    width: 28,
+    height: 28,
     marginVertical: 4,
   },
   tempText: {
