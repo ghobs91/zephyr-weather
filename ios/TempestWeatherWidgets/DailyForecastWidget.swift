@@ -57,13 +57,13 @@ struct DailyForecastWidgetView: View {
     var body: some View {
         if family == .systemMedium {
             // Compact horizontal layout for medium widget
-            VStack(spacing: 3) {
-                ForEach(Array(entry.weatherData.daily.prefix(5).enumerated()), id: \.offset) { index, day in
-                    DayRow(day: day, minTemp: minTemp, maxTemp: maxTemp)
+            VStack(spacing: 4) {
+                ForEach(Array(entry.weatherData.daily.prefix(4).enumerated()), id: \.offset) { index, day in
+                    DayRow(day: day, minTemp: minTemp, maxTemp: maxTemp, temperatureUnit: entry.weatherData.temperatureUnit ?? "fahrenheit")
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .containerBackground(for: .widget) {
                 LinearGradient(
@@ -77,13 +77,13 @@ struct DailyForecastWidgetView: View {
             }
         } else {
             // Vertical column layout for large widget
-            HStack(spacing: 4) {
+            HStack(spacing: 3) {
                 ForEach(Array(entry.weatherData.daily.prefix(7).enumerated()), id: \.offset) { index, day in
-                    DayColumn(day: day, minTemp: minTemp, maxTemp: maxTemp)
+                    DayColumn(day: day, minTemp: minTemp, maxTemp: maxTemp, temperatureUnit: entry.weatherData.temperatureUnit ?? "fahrenheit")
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 16)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 14)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .containerBackground(for: .widget) {
                 LinearGradient(
@@ -103,26 +103,27 @@ struct DayRow: View {
     let day: WeatherData.DailyForecast
     let minTemp: Double
     let maxTemp: Double
+    let temperatureUnit: String
     
     var body: some View {
         HStack(spacing: 8) {
             // Day name
             Text(dayName(day.date))
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.white)
-                .frame(width: 36, alignment: .leading)
+                .frame(width: 40, alignment: .leading)
             
             // Weather icon
             Image(weatherIconAsset(day.dayWeatherCode))
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 28, height: 28)
+                .frame(width: 30, height: 30)
             
             // Low temp (grayed out)
             Text("\(formatTempNumber(day.nightTemp))")
-                .font(.system(size: 13, weight: .regular))
+                .font(.system(size: 14, weight: .regular))
                 .foregroundColor(.white.opacity(0.5))
-                .frame(width: 24, alignment: .trailing)
+                .frame(width: 26, alignment: .trailing)
             
             // Temperature bar
             HorizontalTemperatureBar(
@@ -134,11 +135,11 @@ struct DayRow: View {
             
             // High temp
             Text("\(formatTempNumber(day.dayTemp))")
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(.white)
-                .frame(width: 24, alignment: .trailing)
+                .frame(width: 26, alignment: .trailing)
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 3)
     }
     
     func dayName(_ date: Date) -> String {
@@ -149,7 +150,13 @@ struct DayRow: View {
     
     func formatTempNumber(_ temp: Double?) -> String {
         guard let temp = temp else { return "--" }
-        return "\(Int(round(temp)))"
+        let isFahrenheit = temperatureUnit == "fahrenheit"
+        let displayTemp = isFahrenheit ? celsiusToFahrenheit(temp) : temp
+        return "\(Int(round(displayTemp)))"
+    }
+    
+    func celsiusToFahrenheit(_ celsius: Double) -> Double {
+        return celsius * 9 / 5 + 32
     }
     
     func weatherIconAsset(_ code: String?) -> String {
@@ -192,12 +199,12 @@ struct HorizontalTemperatureBar: View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
                 // Background bar
-                RoundedRectangle(cornerRadius: 2)
+                RoundedRectangle(cornerRadius: 3)
                     .fill(Color.white.opacity(0.15))
-                    .frame(height: 4)
+                    .frame(height: 6)
                 
                 // Filled portion with gradient
-                RoundedRectangle(cornerRadius: 2)
+                RoundedRectangle(cornerRadius: 3)
                     .fill(
                         LinearGradient(
                             gradient: Gradient(colors: [temperatureColor(lowTemp), temperatureColor(highTemp)]),
@@ -207,12 +214,12 @@ struct HorizontalTemperatureBar: View {
                     )
                     .frame(
                         width: geometry.size.width * (highPercent - lowPercent),
-                        height: 4
+                        height: 6
                     )
                     .offset(x: geometry.size.width * lowPercent)
             }
         }
-        .frame(height: 4)
+        .frame(height: 6)
     }
     
     func temperatureColor(_ temp: Double) -> Color {
@@ -236,24 +243,25 @@ struct DayColumn: View {
     let day: WeatherData.DailyForecast
     let minTemp: Double
     let maxTemp: Double
+    let temperatureUnit: String
     
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 6) {
             // Day name
             Text(dayName(day.date))
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 13, weight: .bold))
                 .foregroundColor(.white)
             
             // Weather icon
             Image(weatherIconAsset(day.dayWeatherCode))
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 36, height: 36)
-                .padding(.vertical, 4)
+                .frame(width: 38, height: 38)
+                .padding(.vertical, 2)
             
             // High temp
             Text(formatTemp(day.dayTemp))
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 15, weight: .bold))
                 .foregroundColor(.white)
             
             // Temperature bar
@@ -263,26 +271,26 @@ struct DayColumn: View {
                 minTemp: minTemp,
                 maxTemp: maxTemp
             )
-            .frame(height: 40)
+            .frame(height: 50)
             
             // Low temp
             Text(formatTemp(day.nightTemp))
-                .font(.system(size: 12))
+                .font(.system(size: 13, weight: .medium))
                 .foregroundColor(.white.opacity(0.7))
             
             // Precipitation
             if let precip = day.precipProbability, precip > 0 {
                 HStack(spacing: 2) {
                     Image(systemName: "drop.fill")
-                        .font(.system(size: 9))
+                        .font(.system(size: 8))
                         .foregroundColor(.blue.opacity(0.8))
                     Text("\(Int(precip))%")
-                        .font(.system(size: 10))
+                        .font(.system(size: 9, weight: .medium))
                         .foregroundColor(.blue.opacity(0.8))
                 }
             } else {
                 Text(" ")
-                    .font(.system(size: 10))
+                    .font(.system(size: 9))
             }
         }
         .frame(maxWidth: .infinity)
@@ -296,7 +304,13 @@ struct DayColumn: View {
     
     func formatTemp(_ temp: Double?) -> String {
         guard let temp = temp else { return "--°" }
-        return "\(Int(round(temp)))°"
+        let isFahrenheit = temperatureUnit == "fahrenheit"
+        let displayTemp = isFahrenheit ? celsiusToFahrenheit(temp) : temp
+        return "\(Int(round(displayTemp)))°"
+    }
+    
+    func celsiusToFahrenheit(_ celsius: Double) -> Double {
+        return celsius * 9 / 5 + 32
     }
     
     func weatherIconAsset(_ code: String?) -> String {
@@ -339,12 +353,12 @@ struct TemperatureBar: View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
                 // Background bar
-                RoundedRectangle(cornerRadius: 3)
+                RoundedRectangle(cornerRadius: 4)
                     .fill(Color.white.opacity(0.2))
-                    .frame(width: 6)
+                    .frame(width: 8)
                 
                 // Filled portion with gradient
-                RoundedRectangle(cornerRadius: 3)
+                RoundedRectangle(cornerRadius: 4)
                     .fill(
                         LinearGradient(
                             gradient: Gradient(colors: [temperatureColor(lowTemp), temperatureColor(highTemp)]),
@@ -353,7 +367,7 @@ struct TemperatureBar: View {
                         )
                     )
                     .frame(
-                        width: 6,
+                        width: 8,
                         height: geometry.size.height * (highPercent - lowPercent)
                     )
                     .offset(y: -geometry.size.height * lowPercent)

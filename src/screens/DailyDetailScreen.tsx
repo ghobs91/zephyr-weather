@@ -6,6 +6,7 @@ import {
   ScrollView,
   useColorScheme,
   Image,
+  useWindowDimensions,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useRoute, RouteProp} from '@react-navigation/native';
@@ -25,6 +26,7 @@ export function DailyDetailScreen() {
   const route = useRoute<DailyDetailRouteProp>();
   const insets = useSafeAreaInsets();
   const isDarkMode = useColorScheme() === 'dark';
+  const {width: screenWidth} = useWindowDimensions();
   
   const {dayIndex} = route.params;
   const {locations, currentLocationIndex, settings} = useWeatherStore();
@@ -64,6 +66,10 @@ export function DailyDetailScreen() {
   const dayHourly = hourlyForecast.filter(
     h => h.date >= dayStart && h.date <= dayEnd
   );
+
+  // Calculate chart width based on screen width minus padding
+  // Card padding (16) + content padding (16) on both sides = 64 total
+  const chartWidth = screenWidth - 64;
 
   return (
     <View style={[styles.container, {backgroundColor: themeColors.background}]}>
@@ -140,18 +146,15 @@ export function DailyDetailScreen() {
             <View style={styles.chartContainer}>
               {/* Weather icons row */}
               <View style={styles.chartIconsRow}>
-                {dayHourly.map((hour, index) => {
-                  if (index % 2 !== 0) return <View key={index} style={{width: 30}} />;
-                  return (
-                    <View key={index} style={{width: 30, alignItems: 'center'}}>
-                      <Image
-                        source={getWeatherIconSource(hour.weatherCode, hour.isDaylight)}
-                        style={{width: 16, height: 16}}
-                        resizeMode="contain"
-                      />
-                    </View>
-                  );
-                })}
+                {dayHourly.filter((_, i) => i % 3 === 0 || i === dayHourly.length - 1).map((hour, index) => (
+                  <View key={index} style={{alignItems: 'center'}}>
+                    <Image
+                      source={getWeatherIconSource(hour.weatherCode, hour.isDaylight)}
+                      style={{width: 16, height: 16}}
+                      resizeMode="contain"
+                    />
+                  </View>
+                ))}
               </View>
 
               {/* Interactive temperature chart */}
@@ -176,7 +179,7 @@ export function DailyDetailScreen() {
                     return settings.temperatureUnit === 'fahrenheit' ? tempC * 9/5 + 32 : tempC;
                   })) + 2,
                 }}>
-                <LineChart height={120}>
+                <LineChart height={120} width={chartWidth}>
                   <LineChart.Path color={themeColors.primary} width={2}>
                     <LineChart.Gradient color={themeColors.primary} />
                   </LineChart.Path>
@@ -194,6 +197,10 @@ export function DailyDetailScreen() {
                         padding: 8,
                         borderRadius: 8,
                       }}
+                      formatValue={(value) => {
+                        const unit = settings.temperatureUnit === 'fahrenheit' ? 'F' : 'C';
+                        return `${Math.round(value)}°${unit}`;
+                      }}
                     />
                   </LineChart.CursorCrosshair>
                 </LineChart>
@@ -201,18 +208,13 @@ export function DailyDetailScreen() {
 
               {/* Hour labels */}
               <View style={styles.chartHoursRow}>
-                {dayHourly.map((hour, index) => {
-                  if (index % 3 !== 0 && index !== dayHourly.length - 1) {
-                    return <View key={index} style={{flex: 1}} />;
-                  }
-                  return (
-                    <Text
-                      key={index}
-                      style={[styles.chartHour, {color: themeColors.textSecondary, flex: 4}]}>
-                      {format(hour.date, 'ha').toLowerCase()}
-                    </Text>
-                  );
-                })}
+                {dayHourly.filter((_, i) => i % 3 === 0 || i === dayHourly.length - 1).map((hour, index) => (
+                  <Text
+                    key={index}
+                    style={[styles.chartHour, {color: themeColors.textSecondary}]}>
+                    {format(hour.date, 'ha').toLowerCase()}
+                  </Text>
+                ))}
               </View>
             </View>
           ) : (
@@ -445,16 +447,20 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     marginTop: 16,
+    width: '100%',
+    alignSelf: 'center',
   },
   chartIconsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     marginBottom: 8,
+    paddingHorizontal: 4,
   },
   chartHoursRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     marginTop: 8,
+    paddingHorizontal: 4,
   },
   chartHour: {
     fontSize: 10,

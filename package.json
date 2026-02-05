@@ -25,6 +25,7 @@
     "react-native-reanimated": "^3.19.5",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "^4.10.0",
+    "react-native-shared-group-preferences": "^1.1.24",
     "react-native-svg": "^15.10.0",
     "react-native-vector-icons": "^10.2.0",
     "react-native-wagmi-charts": "^2.8.4",

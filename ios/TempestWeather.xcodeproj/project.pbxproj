@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -54,6 +54,7 @@
 		83F605082FB215543873F93E /* Pods-TempestWeather.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TempestWeather.debug.xcconfig"; path = "Target Support Files/Pods-TempestWeather/Pods-TempestWeather.debug.xcconfig"; sourceTree = "<group>"; };
 		AC0BB7693FBB4CB9001E3DE1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = TempestWeather/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		C1C69B95F8C01AC4DF740367 /* libPods-TempestWeather.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TempestWeather.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C86BFB922F3366BE001AFED0 /* TempestWeather.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = TempestWeather.entitlements; path = TempestWeather/TempestWeather.entitlements; sourceTree = "<group>"; };
 		C8BD99902F335CFC00EE55C4 /* TempestWeatherWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TempestWeatherWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C8BD99912F335CFC00EE55C4 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		C8BD99932F335CFC00EE55C4 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -62,7 +63,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		C8BD99A72F335CFE00EE55C4 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		C8BD99A72F335CFE00EE55C4 /* Exceptions for "TempestWeatherWidgets" folder in "TempestWeatherWidgetsExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -72,7 +73,18 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		C8BD99952F335CFC00EE55C4 /* TempestWeatherWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (C8BD99A72F335CFE00EE55C4 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = TempestWeatherWidgets; sourceTree = "<group>"; };
+		C8BD99952F335CFC00EE55C4 /* TempestWeatherWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C8BD99A72F335CFE00EE55C4 /* Exceptions for "TempestWeatherWidgets" folder in "TempestWeatherWidgetsExtension" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = TempestWeatherWidgets;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +111,7 @@
 		13B07FAE1A68108700A75B9A /* TempestWeather */ = {
 			isa = PBXGroup;
 			children = (
+				C86BFB922F3366BE001AFED0 /* TempestWeather.entitlements */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -204,8 +217,6 @@
 				C8BD99952F335CFC00EE55C4 /* TempestWeatherWidgets */,
 			);
 			name = TempestWeatherWidgetsExtension;
-			packageProductDependencies = (
-			);
 			productName = TempestWeatherWidgetsExtension;
 			productReference = C8BD99902F335CFC00EE55C4 /* TempestWeatherWidgetsExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -291,13 +302,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TempestWeather/Pods-TempestWeather-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TempestWeather/Pods-TempestWeather-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -334,13 +341,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TempestWeather/Pods-TempestWeather-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TempestWeather/Pods-TempestWeather-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -383,6 +386,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = TempestWeather/TempestWeather.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XTXZ3CYRPX;
@@ -412,6 +416,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = TempestWeather/TempestWeather.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XTXZ3CYRPX;
@@ -501,7 +506,10 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -569,7 +577,10 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;

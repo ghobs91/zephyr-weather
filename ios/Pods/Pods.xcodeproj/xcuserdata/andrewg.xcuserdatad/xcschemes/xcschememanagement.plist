@@ -88,40 +88,47 @@
 			<key>orderHint</key>
 			<integer>81</integer>
 		</dict>
-		<key>RNReanimated.xcscheme</key>
+		<key>RNReactNativeSharedGroupPreferences.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
 			<key>orderHint</key>
 			<integer>82</integer>
 		</dict>
-		<key>RNSVG-RNSVGFilters.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-			<key>orderHint</key>
-			<integer>85</integer>
-		</dict>
-		<key>RNSVG.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-			<key>orderHint</key>
-			<integer>84</integer>
-		</dict>
-		<key>RNScreens.xcscheme</key>
+		<key>RNReanimated.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
 			<key>orderHint</key>
 			<integer>83</integer>
 		</dict>
-		<key>RNVectorIcons.xcscheme</key>
+		<key>RNSVG-RNSVGFilters.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
 			<key>orderHint</key>
 			<integer>86</integer>
+		</dict>
+		<key>RNSVG.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+			<key>orderHint</key>
+			<integer>85</integer>
+		</dict>
+		<key>RNScreens.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+			<key>orderHint</key>
+			<integer>84</integer>
+		</dict>
+		<key>RNVectorIcons.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+			<key>orderHint</key>
+			<integer>87</integer>
 		</dict>
 		<key>React-Core-React-Core_privacy.xcscheme</key>
 		<dict>
@@ -548,14 +555,14 @@
 			<key>isShown</key>
 			<false/>
 			<key>orderHint</key>
-			<integer>87</integer>
+			<integer>88</integer>
 		</dict>
 		<key>Yoga.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
 			<key>orderHint</key>
-			<integer>88</integer>
+			<integer>89</integer>
 		</dict>
 		<key>boost-boost_privacy.xcscheme</key>
 		<dict>

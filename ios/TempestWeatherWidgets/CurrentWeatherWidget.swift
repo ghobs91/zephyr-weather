@@ -41,7 +41,55 @@ struct CurrentWeatherWidgetView: View {
     @Environment(\.widgetFamily) var family
     
     var body: some View {
-        ZStack {
+        if family == .systemSmall {
+            smallWidgetView
+        } else {
+            mediumWidgetView
+        }
+    }
+    
+    var smallWidgetView: some View {
+        VStack(spacing: 8) {
+            // Weather Icon
+            Image(weatherIconAsset(entry.weatherData.current?.weatherCode))
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 60, height: 60)
+            
+            // Current Temperature
+            Text(formatTemp(entry.weatherData.current?.temperature))
+                .font(.system(size: 44, weight: .thin))
+                .foregroundColor(temperatureColor(entry.weatherData.current?.temperature))
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
+            
+            // Weather condition
+            Text(entry.weatherData.current?.weatherText ?? "Unknown")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.white.opacity(0.9))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            
+            // Day/Night temps
+            if let today = entry.weatherData.daily.first {
+                HStack(spacing: 4) {
+                    Text(formatTemp(today.dayTemp))
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.8))
+                    Text("•")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.5))
+                    Text(formatTemp(today.nightTemp))
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.6))
+                }
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .containerBackground(for: .widget) {
             LinearGradient(
                 gradient: Gradient(colors: [
                     Color(red: 0.15, green: 0.2, blue: 0.3),
@@ -50,76 +98,93 @@ struct CurrentWeatherWidgetView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            
-            VStack(spacing: 0) {
-                HStack(alignment: .top, spacing: 0) {
-                    // Temperature
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(formatTemp(entry.weatherData.current?.temperature))
-                            .font(.system(size: family == .systemMedium ? 56 : 72, weight: .thin))
-                            .foregroundColor(temperatureColor(entry.weatherData.current?.temperature))
-                            .minimumScaleFactor(0.5)
-                    }
-                    
-                    Spacer()
-                    
-                    // Weather Icon and Condition
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Image(weatherIconAsset(entry.weatherData.current?.weatherCode))
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: family == .systemMedium ? 60 : 80, height: family == .systemMedium ? 60 : 80)
-                        
-                        Text(entry.weatherData.current?.weatherText ?? "Unknown")
-                            .font(.system(size: family == .systemMedium ? 13 : 16, weight: .regular))
-                            .foregroundColor(.white.opacity(0.9))
-                            .lineLimit(2)
-                            .multilineTextAlignment(.trailing)
-                    }
-                }
-                .padding(.horizontal, family == .systemMedium ? 12 : 16)
-                .padding(.top, family == .systemMedium ? 12 : 16)
+        }
+    }
+    
+    var mediumWidgetView: some View {
+        HStack(spacing: 16) {
+            // Left side - Temperature
+            VStack(alignment: .leading, spacing: 4) {
+                Text(formatTemp(entry.weatherData.current?.temperature))
+                    .font(.system(size: 56, weight: .thin))
+                    .foregroundColor(temperatureColor(entry.weatherData.current?.temperature))
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
                 
-                Spacer()
-                
-                // Day/Night temps
                 if let today = entry.weatherData.daily.first {
-                    HStack(spacing: 4) {
-                        Text("Day: \(formatTemp(today.dayTemp)) • Night: \(formatTemp(today.nightTemp))")
-                            .font(.system(size: family == .systemMedium ? 12 : 14, weight: .regular))
-                            .foregroundColor(.white.opacity(0.7))
-                    }
-                    .padding(.horizontal, family == .systemMedium ? 12 : 16)
-                    .padding(.bottom, family == .systemMedium ? 12 : 16)
+                    Text("\(formatTemp(today.dayTemp)) • \(formatTemp(today.nightTemp))")
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundColor(.white.opacity(0.7))
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
                 }
             }
+            
+            Spacer(minLength: 8)
+            
+            // Right side - Icon and Condition
+            VStack(alignment: .trailing, spacing: 6) {
+                Image(weatherIconAsset(entry.weatherData.current?.weatherCode))
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 70, height: 70)
+                
+                Text(entry.weatherData.current?.weatherText ?? "Unknown")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(.white.opacity(0.9))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                    .multilineTextAlignment(.trailing)
+            }
         }
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .containerBackground(for: .widget) {
-            Color.clear
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.15, green: 0.2, blue: 0.3),
+                    Color(red: 0.1, green: 0.15, blue: 0.25)
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
         }
     }
     
     func formatTemp(_ temp: Double?) -> String {
         guard let temp = temp else { return "--°" }
-        return "\(Int(round(temp)))°F"
+        
+        let isFahrenheit = entry.weatherData.temperatureUnit == "fahrenheit"
+        let displayTemp = isFahrenheit ? celsiusToFahrenheit(temp) : temp
+        let unit = isFahrenheit ? "°F" : "°C"
+        
+        return "\(Int(round(displayTemp)))\(unit)"
+    }
+    
+    func celsiusToFahrenheit(_ celsius: Double) -> Double {
+        return celsius * 9 / 5 + 32
     }
     
     func temperatureColor(_ temp: Double?) -> Color {
         guard let temp = temp else { return .white }
         
-        if temp >= 90 {
+        // Temperature color based on Fahrenheit scale
+        let isFahrenheit = entry.weatherData.temperatureUnit == "fahrenheit"
+        let tempF = isFahrenheit ? celsiusToFahrenheit(temp) : temp
+        
+        if tempF >= 90 {
             return Color(red: 1.0, green: 0.3, blue: 0.3)
-        } else if temp >= 80 {
+        } else if tempF >= 80 {
             return Color(red: 1.0, green: 0.6, blue: 0.2)
-        } else if temp >= 70 {
+        } else if tempF >= 70 {
             return Color(red: 1.0, green: 0.8, blue: 0.3)
-        } else if temp >= 60 {
+        } else if tempF >= 60 {
             return Color(red: 0.5, green: 0.8, blue: 0.5)
-        } else if temp >= 50 {
+        } else if tempF >= 50 {
             return Color(red: 0.4, green: 0.7, blue: 1.0)
-        } else if temp >= 40 {
+        } else if tempF >= 40 {
             return Color(red: 0.5, green: 0.7, blue: 1.0)
-        } else if temp >= 32 {
+        } else if tempF >= 32 {
             return Color(red: 0.6, green: 0.8, blue: 1.0)
         } else {
             return Color(red: 0.7, green: 0.85, blue: 1.0)

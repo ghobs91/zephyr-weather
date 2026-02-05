@@ -57,6 +57,7 @@ struct WeatherData: Codable {
     let daily: [DailyForecast]
     let hourly: [HourlyForecast]
     let locationName: String?
+    let temperatureUnit: String?
     
     struct CurrentWeather: Codable {
         let temperature: Double?
@@ -91,20 +92,22 @@ class WeatherDataManager {
     static let shared = WeatherDataManager()
     
     private let appGroupIdentifier = "group.com.tempestweather.shared"
+    private let weatherDataKey = "weatherData"
     
     func loadWeatherData() -> WeatherData? {
-        guard let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) else {
+        guard let userDefaults = UserDefaults(suiteName: appGroupIdentifier) else {
             return nil
         }
         
-        let fileURL = containerURL.appendingPathComponent("weatherData.json")
+        guard let jsonString = userDefaults.string(forKey: weatherDataKey) else {
+            return nil
+        }
         
-        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+        guard let data = jsonString.data(using: .utf8) else {
             return nil
         }
         
         do {
-            let data = try Data(contentsOf: fileURL)
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             return try decoder.decode(WeatherData.self, from: data)
@@ -156,7 +159,8 @@ class WeatherDataManager {
             ),
             daily: daily,
             hourly: hourly,
-            locationName: "San Francisco"
+            locationName: "San Francisco",
+            temperatureUnit: "fahrenheit"
         )
     }
 }

@@ -3,6 +3,7 @@ import {persist, createJSONStorage} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Location, Weather} from '../types/weather';
 import {AppSettings, defaultSettings} from '../types/settings';
+import {updateWidgetData} from '../utils/widgetManager';
 
 interface WeatherState {
   locations: Location[];
@@ -69,18 +70,48 @@ export const useWeatherStore = create<WeatherState>()(
         return {locations: newLocations};
       }),
       
-      setCurrentLocationIndex: (index) => set({currentLocationIndex: index}),
+      setCurrentLocationIndex: (index) => set((state) => {
+        const newLocation = state.locations[index];
+        if (newLocation?.weather) {
+          updateWidgetData(newLocation, state.settings).catch(err =>
+            console.error('Failed to update widget:', err)
+          );
+        }
+        return {currentLocationIndex: index};
+      }),
       
-      updateLocationWeather: (locationId, weather) => set((state) => ({
-        locations: state.locations.map((l) =>
+      updateLocationWeather: (locationId, weather) => set((state) => {
+        const updatedLocations = state.locations.map((l) =>
           l.id === locationId ? {...l, weather} : l
-        ),
-        lastRefresh: new Date(),
-      })),
+        );
+        
+        // Update widget if this is the current location
+        const currentLocation = updatedLocations[state.currentLocationIndex];
+        if (currentLocation?.id === locationId && currentLocation.weather) {
+          updateWidgetData(currentLocation, state.settings).catch(err => 
+            console.error('Failed to update widget:', err)
+          );
+        }
+        
+        return {
+          locations: updatedLocations,
+          lastRefresh: new Date(),
+        };
+      }),
       
-      updateSettings: (updates) => set((state) => ({
-        settings: {...state.settings, ...updates},
-      })),
+      updateSettings: (updates) => set((state) => {
+        const newSettings = {...state.settings, ...updates};
+        
+        // Update widget with new settings if there's a current location
+        const currentLocation = state.locations[state.currentLocationIndex];
+        if (currentLocation?.weather) {
+          updateWidgetData(currentLocation, newSettings).catch(err => 
+            console.error('Failed to update widget:', err)
+          );
+        }
+        
+        return {settings: newSettings};
+      }),
       
       resetSettings: () => set({settings: defaultSettings}),
       

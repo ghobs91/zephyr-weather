@@ -1708,6 +1708,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNReactNativeSharedGroupPreferences (1.1.24):
+    - React
   - RNReanimated (3.19.5):
     - DoubleConversion
     - glog
@@ -1963,6 +1965,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNReactNativeSharedGroupPreferences (from `../node_modules/react-native-shared-group-preferences`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
@@ -2123,6 +2126,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
+  RNReactNativeSharedGroupPreferences:
+    :path: "../node_modules/react-native-shared-group-preferences"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
@@ -2209,6 +2214,7 @@ SPEC CHECKSUMS:
   ReactCommon: c07346679f14c0b62ad02b20e18e984da3b575ce
   RNCAsyncStorage: 23e56519cc41d3bade3c8d4479f7760cb1c11996
   RNGestureHandler: ac511c25b45005c374af1681306c938ca7a52a05
+  RNReactNativeSharedGroupPreferences: 29092869fc2e40d5baca5e15d82fa5c24a668977
   RNReanimated: cbdcac0b2485408ce2f37cbbc1bc82753fc72f0f
   RNScreens: 4561eef339c3ebe8176b27e01af7ac494780f678
   RNSVG: 565234ef21c053be08de03f012503c446bfcf755
