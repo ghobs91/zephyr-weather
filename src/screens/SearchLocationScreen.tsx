@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -42,15 +42,17 @@ export function SearchLocationScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   const theme = settings.theme;
   const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
   const themeColors = useDark ? colors.dark : colors.light;
 
-  const handleSearch = async (text: string) => {
-    setQuery(text);
-    
-    if (text.length < 2) {
+  // Debounced search function
+  const performSearch = useCallback(async (searchText: string) => {
+    if (searchText.length < 2) {
       setResults([]);
+      setIsLoading(false);
       return;
     }
 
@@ -58,7 +60,7 @@ export function SearchLocationScreen() {
     setError(null);
 
     try {
-      const searchResults = await searchLocations(text);
+      const searchResults = await searchLocations(searchText);
       setResults(searchResults);
     } catch (err) {
       setError('Failed to search locations');
@@ -66,9 +68,41 @@ export function SearchLocationScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const handleSelectLocation = (result: SearchResult) => {
+  const handleSearch = useCallback((text: string) => {
+    setQuery(text);
+    
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (text.length < 2) {
+      setResults([]);
+      setIsLoading(false);
+      return;
+    }
+
+    // Show loading immediately
+    setIsLoading(true);
+
+    // Debounce the actual search by 300ms
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch(text);
+    }, 300);
+  }, [performSearch]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleSelectLocation = useCallback((result: SearchResult) => {
     Keyboard.dismiss();
     
     // Check if location already exists
@@ -97,9 +131,9 @@ export function SearchLocationScreen() {
 
     addLocation(newLocation);
     navigation.goBack();
-  };
+  }, [addLocation, locations, navigation]);
 
-  const renderResult = ({item}: {item: SearchResult}) => (
+  const renderResult = useCallback(({item}: {item: SearchResult}) => (
     <TouchableOpacity
       style={[styles.resultItem, {borderBottomColor: themeColors.border}]}
       onPress={() => handleSelectLocation(item)}>
@@ -114,7 +148,7 @@ export function SearchLocationScreen() {
       </View>
       <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
     </TouchableOpacity>
-  );
+  ), [themeColors, handleSelectLocation]);
 
   return (
     <View style={[styles.container, {backgroundColor: themeColors.background}]}>
@@ -129,6 +163,8 @@ export function SearchLocationScreen() {
           onChangeText={handleSearch}
           autoFocus
           returnKeyType="search"
+          autoCorrect={false}
+          autoCapitalize="words"
         />
         {query.length > 0 && (
           <TouchableOpacity onPress={() => handleSearch('')}>
@@ -157,6 +193,7 @@ export function SearchLocationScreen() {
         keyExtractor={(item) => `${item.id}`}
         renderItem={renderResult}
         contentContainerStyle={styles.resultsList}
+        keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
           !isLoading && query.length >= 2 ? (
             <View style={styles.emptyContainer}>
