@@ -3,7 +3,7 @@ import {persist, createJSONStorage} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Location, Weather} from '../types/weather';
 import {AppSettings, defaultSettings} from '../types/settings';
-import {updateWidgetData} from '../utils/widgetManager';
+import {updateWidgetData, updateAllLocationsWeatherData} from '../utils/widgetManager';
 
 interface WeatherState {
   locations: Location[];
@@ -43,30 +43,58 @@ export const useWeatherStore = create<WeatherState>()(
       error: null,
       lastRefresh: null,
       
-      setLocations: (locations) => set({locations}),
+      setLocations: (locations) => {
+        // Update all locations weather data for widgets
+        const state = get();
+        updateAllLocationsWeatherData(locations, state.settings).catch(err =>
+          console.error('Failed to update all locations:', err)
+        );
+        set({locations});
+      },
       
-      addLocation: (location) => set((state) => ({
-        locations: [...state.locations, location],
-      })),
+      addLocation: (location) => set((state) => {
+        const newLocations = [...state.locations, location];
+        // Update all locations list for widgets
+        updateAllLocationsWeatherData(newLocations, state.settings).catch(err =>
+          console.error('Failed to update all locations:', err)
+        );
+        return {locations: newLocations};
+      }),
       
-      removeLocation: (id) => set((state) => ({
-        locations: state.locations.filter((l) => l.id !== id),
-        currentLocationIndex: Math.min(
-          state.currentLocationIndex,
-          Math.max(0, state.locations.length - 2)
-        ),
-      })),
+      removeLocation: (id) => set((state) => {
+        const newLocations = state.locations.filter((l) => l.id !== id);
+        // Update all locations list for widgets
+        updateAllLocationsWeatherData(newLocations, state.settings).catch(err =>
+          console.error('Failed to update all locations:', err)
+        );
+        return {
+          locations: newLocations,
+          currentLocationIndex: Math.min(
+            state.currentLocationIndex,
+            Math.max(0, newLocations.length - 1)
+          ),
+        };
+      }),
       
-      updateLocation: (id, updates) => set((state) => ({
-        locations: state.locations.map((l) =>
+      updateLocation: (id, updates) => set((state) => {
+        const newLocations = state.locations.map((l) =>
           l.id === id ? {...l, ...updates} : l
-        ),
-      })),
+        );
+        // Update all locations weather data for widgets
+        updateAllLocationsWeatherData(newLocations, state.settings).catch(err =>
+          console.error('Failed to update all locations:', err)
+        );
+        return {locations: newLocations};
+      }),
       
       reorderLocations: (fromIndex, toIndex) => set((state) => {
         const newLocations = [...state.locations];
         const [removed] = newLocations.splice(fromIndex, 1);
         newLocations.splice(toIndex, 0, removed);
+        // Update all locations list for widgets
+        updateAllLocationsWeatherData(newLocations, state.settings).catch(err =>
+          console.error('Failed to update all locations:', err)
+        );
         return {locations: newLocations};
       }),
       
@@ -85,13 +113,10 @@ export const useWeatherStore = create<WeatherState>()(
           l.id === locationId ? {...l, weather} : l
         );
         
-        // Update widget if this is the current location
-        const currentLocation = updatedLocations[state.currentLocationIndex];
-        if (currentLocation?.id === locationId && currentLocation.weather) {
-          updateWidgetData(currentLocation, state.settings).catch(err => 
-            console.error('Failed to update widget:', err)
-          );
-        }
+        // Update all locations weather data for widgets
+        updateAllLocationsWeatherData(updatedLocations, state.settings).catch(err => 
+          console.error('Failed to update all locations:', err)
+        );
         
         return {
           locations: updatedLocations,
@@ -102,18 +127,21 @@ export const useWeatherStore = create<WeatherState>()(
       updateSettings: (updates) => set((state) => {
         const newSettings = {...state.settings, ...updates};
         
-        // Update widget with new settings if there's a current location
-        const currentLocation = state.locations[state.currentLocationIndex];
-        if (currentLocation?.weather) {
-          updateWidgetData(currentLocation, newSettings).catch(err => 
-            console.error('Failed to update widget:', err)
-          );
-        }
+        // Update all locations weather data with new settings
+        updateAllLocationsWeatherData(state.locations, newSettings).catch(err => 
+          console.error('Failed to update all locations:', err)
+        );
         
         return {settings: newSettings};
       }),
       
-      resetSettings: () => set({settings: defaultSettings}),
+      resetSettings: () => set((state) => {
+        // Update all locations weather data with default settings
+        updateAllLocationsWeatherData(state.locations, defaultSettings).catch(err => 
+          console.error('Failed to update all locations:', err)
+        );
+        return {settings: defaultSettings};
+      }),
       
       setLoading: (loading) => set({isLoading: loading}),
       

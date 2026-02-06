@@ -6,34 +6,34 @@
 import WidgetKit
 import SwiftUI
 
-struct CurrentWeatherProvider: TimelineProvider {
+struct CurrentWeatherProvider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> CurrentWeatherEntry {
         CurrentWeatherEntry(
             date: Date(),
-            weatherData: WeatherDataManager.shared.getMockWeatherData()
+            weatherData: WeatherDataManager.shared.getMockWeatherData(),
+            configuration: ConfigurationAppIntent()
         )
     }
     
-    func getSnapshot(in context: Context, completion: @escaping (CurrentWeatherEntry) -> Void) {
-        let data = WeatherDataManager.shared.loadWeatherData() ?? WeatherDataManager.shared.getMockWeatherData()
-        let entry = CurrentWeatherEntry(date: Date(), weatherData: data)
-        completion(entry)
+    func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> CurrentWeatherEntry {
+        let data = WeatherDataManager.shared.loadWeatherData(for: configuration.location?.id) ?? WeatherDataManager.shared.getMockWeatherData()
+        return CurrentWeatherEntry(date: Date(), weatherData: data, configuration: configuration)
     }
     
-    func getTimeline(in context: Context, completion: @escaping (Timeline<CurrentWeatherEntry>) -> Void) {
-        let data = WeatherDataManager.shared.loadWeatherData() ?? WeatherDataManager.shared.getMockWeatherData()
-        let entry = CurrentWeatherEntry(date: Date(), weatherData: data)
+    func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<CurrentWeatherEntry> {
+        let data = WeatherDataManager.shared.loadWeatherData(for: configuration.location?.id) ?? WeatherDataManager.shared.getMockWeatherData()
+        let entry = CurrentWeatherEntry(date: Date(), weatherData: data, configuration: configuration)
         
         // Update every 15 minutes
         let nextUpdate = Calendar.current.date(byAdding: .minute, value: 15, to: Date())!
-        let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
-        completion(timeline)
+        return Timeline(entries: [entry], policy: .after(nextUpdate))
     }
 }
 
 struct CurrentWeatherEntry: TimelineEntry {
     let date: Date
     let weatherData: WeatherData
+    let configuration: ConfigurationAppIntent
 }
 
 struct CurrentWeatherWidgetView: View {
@@ -221,11 +221,11 @@ struct CurrentWeatherWidget: Widget {
     let kind: String = "CurrentWeatherWidget"
     
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: CurrentWeatherProvider()) { entry in
+        AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: CurrentWeatherProvider()) { entry in
             CurrentWeatherWidgetView(entry: entry)
         }
         .configurationDisplayName("Current Weather")
-        .description("Shows current temperature and conditions")
+        .description("Shows current temperature and conditions for a selected location")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
