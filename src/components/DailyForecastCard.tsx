@@ -107,6 +107,7 @@ export function DailyForecastCard({
         {dailyForecast
           .map((day, originalIndex) => ({day, originalIndex}))
           .filter(({day}) => !isPast(startOfDay(day.date)) || isToday(day.date))
+          .filter(({day}) => day.night?.temperature?.temperature !== undefined)
           .slice(0, 7)
           .map(({day, originalIndex}) => {
           const dayTemp = day.day?.temperature?.temperature;
@@ -137,7 +138,6 @@ export function DailyForecastCard({
                     <Text style={[styles.tempLabel, {color: themeColors.text}]}>
                       {formatTemp(dayTemp)}
                     </Text>
-                    
                     <View style={[styles.tempBar, {backgroundColor: themeColors.surfaceVariant}]}>
                       <View
                         style={[

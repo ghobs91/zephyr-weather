@@ -249,7 +249,7 @@ export function SettingsScreen() {
         
         <View style={[styles.aboutCard, {backgroundColor: themeColors.cardBackground}]}>
           <Text style={[styles.appName, {color: themeColors.text}]}>
-            Tempest Weather
+            Zephyr Weather
           </Text>
           <Text style={[styles.appVersion, {color: themeColors.textSecondary}]}>
             Version 1.0.0

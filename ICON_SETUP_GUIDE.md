@@ -27,7 +27,7 @@ npx react-native set-icon --path ./app-icon.png
 ## Manual Icon Placement
 
 ### iOS Icons
-Place these files in: `ios/TempestWeather/Images.xcassets/AppIcon.appiconset/`
+Place these files in: `ios/ZephyrWeather/Images.xcassets/AppIcon.appiconset/`
 
 | Filename | Size |
 |----------|------|

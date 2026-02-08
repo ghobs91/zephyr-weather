@@ -155,7 +155,7 @@ export const useWeatherStore = create<WeatherState>()(
       },
     }),
     {
-      name: 'tempest-weather-storage',
+      name: 'zephyr-weather-storage',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         locations: state.locations.map((l) => ({...l, weather: undefined})),

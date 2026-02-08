@@ -9,7 +9,7 @@ You have **3 easy options** to add your 4-season weather icon:
 3. Upload your icon
 4. Download the generated package
 5. Copy files to:
-   - iOS files → `ios/TempestWeather/Images.xcassets/AppIcon.appiconset/`
+   - iOS files → `ios/ZephyrWeather/Images.xcassets/AppIcon.appiconset/`
    - Android files → `android/app/src/main/res/mipmap-*/`
 
 ## ⚡ Option 2: Use Our Script (5 minutes)

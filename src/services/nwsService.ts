@@ -12,7 +12,7 @@ import {
 import {getSunTimes, getDaylightDuration} from '../utils/sunCalc';
 
 const NWS_API_BASE_URL = 'https://api.weather.gov';
-const USER_AGENT = 'TempestWeather/1.0 (tempestweather.app, support@tempestweather.app)';
+const USER_AGENT = 'ZephyrWeather/1.0 (zephyrweather.app, support@zephyrweather.app)';
 
 interface NWSPointResponse {
   properties: {

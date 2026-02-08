@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'ZephyrWeather' in project 'ZephyrWeather'
+➜ Explicit dependency on target 'ZephyrWeatherWidgetsExtension' in project 'ZephyrWeather'
+Target 'ZephyrWeatherWidgetsExtension' in project 'ZephyrWeather' (no dependencies)
