@@ -1,0 +1,69 @@
+{
+  "" : {
+    "diagnostics" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/ZephyrWeatherWidgetsExtension-primary.dia",
+    "emit-module-dependencies" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/ZephyrWeatherWidgetsExtension-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/ZephyrWeatherWidgetsExtension-primary-emit-module.dia",
+    "pch" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/ZephyrWeatherWidgetsExtension-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/ZephyrWeatherWidgetsExtension-primary.swiftdeps"
+  },
+  "/Users/andrewg/Projects/tempest-weather/ios/ZephyrWeatherWidgets/AppIntent.swift" : {
+    "const-values" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/AppIntent.swiftconstvalues",
+    "dependencies" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/AppIntent.d",
+    "diagnostics" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/AppIntent.dia",
+    "index-unit-output-path" : "/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/AppIntent.o",
+    "llvm-bc" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/AppIntent.bc",
+    "object" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/AppIntent.o",
+    "swift-dependencies" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/AppIntent.swiftdeps",
+    "swiftmodule" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/AppIntent~partial.swiftmodule"
+  },
+  "/Users/andrewg/Projects/tempest-weather/ios/ZephyrWeatherWidgets/CurrentWeatherWidget.swift" : {
+    "const-values" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/CurrentWeatherWidget.swiftconstvalues",
+    "dependencies" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/CurrentWeatherWidget.d",
+    "diagnostics" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/CurrentWeatherWidget.dia",
+    "index-unit-output-path" : "/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/CurrentWeatherWidget.o",
+    "llvm-bc" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/CurrentWeatherWidget.bc",
+    "object" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/CurrentWeatherWidget.o",
+    "swift-dependencies" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/CurrentWeatherWidget.swiftdeps",
+    "swiftmodule" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/CurrentWeatherWidget~partial.swiftmodule"
+  },
+  "/Users/andrewg/Projects/tempest-weather/ios/ZephyrWeatherWidgets/DailyForecastWidget.swift" : {
+    "const-values" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/DailyForecastWidget.swiftconstvalues",
+    "dependencies" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/DailyForecastWidget.d",
+    "diagnostics" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/DailyForecastWidget.dia",
+    "index-unit-output-path" : "/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/DailyForecastWidget.o",
+    "llvm-bc" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/DailyForecastWidget.bc",
+    "object" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/DailyForecastWidget.o",
+    "swift-dependencies" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/DailyForecastWidget.swiftdeps",
+    "swiftmodule" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/DailyForecastWidget~partial.swiftmodule"
+  },
+  "/Users/andrewg/Projects/tempest-weather/ios/ZephyrWeatherWidgets/WeatherData.swift" : {
+    "const-values" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/WeatherData.swiftconstvalues",
+    "dependencies" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/WeatherData.d",
+    "diagnostics" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/WeatherData.dia",
+    "index-unit-output-path" : "/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/WeatherData.o",
+    "llvm-bc" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/WeatherData.bc",
+    "object" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/WeatherData.o",
+    "swift-dependencies" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/WeatherData.swiftdeps",
+    "swiftmodule" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/WeatherData~partial.swiftmodule"
+  },
+  "/Users/andrewg/Projects/tempest-weather/ios/ZephyrWeatherWidgets/ZephyrWeatherWidgetsBundle.swift" : {
+    "const-values" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/ZephyrWeatherWidgetsBundle.swiftconstvalues",
+    "dependencies" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/ZephyrWeatherWidgetsBundle.d",
+    "diagnostics" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/ZephyrWeatherWidgetsBundle.dia",
+    "index-unit-output-path" : "/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/ZephyrWeatherWidgetsBundle.o",
+    "llvm-bc" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/ZephyrWeatherWidgetsBundle.bc",
+    "object" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/ZephyrWeatherWidgetsBundle.o",
+    "swift-dependencies" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/ZephyrWeatherWidgetsBundle.swiftdeps",
+    "swiftmodule" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/ZephyrWeatherWidgetsBundle~partial.swiftmodule"
+  },
+  "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/andrewg/Projects/tempest-weather/ios/build/Build/Intermediates.noindex/ZephyrWeather.build/Debug-iphonesimulator/ZephyrWeatherWidgetsExtension.build/Objects-normal/x86_64/GeneratedAssetSymbols~partial.swiftmodule"
+  }
+}

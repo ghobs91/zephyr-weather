@@ -1,4 +1,4 @@
-# Tempest Weather
+# Zephyr Weather
 
 A beautiful, feature-rich weather app for iOS built with React Native, inspired by [Breezy Weather](https://github.com/breezy-weather/breezy-weather).
 
@@ -103,8 +103,8 @@ src/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/tempest-weather.git
-cd tempest-weather
+git clone https://github.com/yourusername/zephyr-weather.git
+cd zephyr-weather
 ```
 
 2. Install dependencies:

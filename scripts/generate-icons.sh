@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# App Icon Generator Script for Tempest Weather
+# App Icon Generator Script for Zephyr Weather
 # This script requires ImageMagick to be installed
 # Install via: brew install imagemagick
 
@@ -30,7 +30,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 echo -e "${GREEN}Generating iOS icons...${NC}"
 
 # iOS Icons
-IOS_DIR="$PROJECT_ROOT/ios/TempestWeather/Images.xcassets/AppIcon.appiconset"
+IOS_DIR="$PROJECT_ROOT/ios/ZephyrWeather/Images.xcassets/AppIcon.appiconset"
 
 convert "$SOURCE_ICON" -resize 20x20 "$IOS_DIR/Icon-App-20x20@1x.png"
 convert "$SOURCE_ICON" -resize 40x40 "$IOS_DIR/Icon-App-20x20@2x.png"

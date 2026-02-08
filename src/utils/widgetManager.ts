@@ -3,7 +3,7 @@ import SharedGroupPreferences from 'react-native-shared-group-preferences';
 import {Weather, WeatherCode, Location} from '../types/weather';
 import {AppSettings, TemperatureUnit} from '../types/settings';
 
-const APP_GROUP_IDENTIFIER = 'group.com.tempestweather.shared';
+const APP_GROUP_IDENTIFIER = 'group.com.zephyrweather.shared';
 const WEATHER_DATA_KEY = 'weatherData';
 const LOCATIONS_LIST_KEY = 'locations';
 

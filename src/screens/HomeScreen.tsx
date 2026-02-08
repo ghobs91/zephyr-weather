@@ -279,8 +279,8 @@ export function HomeScreen() {
         <View style={styles.detailsGrid}>
           <WeatherDetailCard
             title="Precipitation"
-            value={`${current?.relativeHumidity ?? 0}%`}
-            subtitle="Humidity"
+            value={`${Math.round(today?.day?.precipitationProbability?.total ?? 0)}%`}
+            subtitle="Chance of rain"
             icon="water-percent"
             isDark={useDark}
           />

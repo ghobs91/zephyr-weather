@@ -1,0 +1,5 @@
+ extern const unsigned char ZephyrWeatherVersionString[];
+ extern const double ZephyrWeatherVersionNumber;
+
+ const unsigned char ZephyrWeatherVersionString[] __attribute__ ((used)) = "@(#)PROGRAM:ZephyrWeather  PROJECT:ZephyrWeather-2" "\n";
+ const double ZephyrWeatherVersionNumber __attribute__ ((used)) = (double)2.;
