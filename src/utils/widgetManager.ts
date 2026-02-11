@@ -172,7 +172,7 @@ function createWidgetWeatherData(location: Location, settings?: AppSettings): Wi
       precipProbability: hour.precipitationProbability?.total ?? null,
       isDaylight: hour.isDaylight ?? null,
     })),
-    locationName: location.city,
+    locationName: location.city ?? 'Unknown Location',
     temperatureUnit: settings?.temperatureUnit ?? 'fahrenheit',
   };
 }

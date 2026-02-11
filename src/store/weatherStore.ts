@@ -54,11 +54,15 @@ export const useWeatherStore = create<WeatherState>()(
       
       addLocation: (location) => set((state) => {
         const newLocations = [...state.locations, location];
+        const newLocationIndex = newLocations.length - 1;
         // Update all locations list for widgets
         updateAllLocationsWeatherData(newLocations, state.settings).catch(err =>
           console.error('Failed to update all locations:', err)
         );
-        return {locations: newLocations};
+        return {
+          locations: newLocations,
+          currentLocationIndex: newLocationIndex,
+        };
       }),
       
       removeLocation: (id) => set((state) => {

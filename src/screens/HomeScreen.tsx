@@ -22,6 +22,7 @@ import {fetchNWSWeather, isUSLocation} from '../services/nwsService';
 import {colors, getTemperatureColor} from '../theme/colors';
 import {WeatherCode, Location} from '../types/weather';
 import {RootStackParamList} from '../navigation/RootNavigator';
+import {isMacOS, useTabletLayout} from '../utils/platformDetect';
 
 import {CurrentWeatherCard} from '../components/CurrentWeatherCard';
 import {DailyForecastCard} from '../components/DailyForecastCard';
@@ -58,6 +59,10 @@ export function HomeScreen() {
   const themeColors = useDark ? colors.dark : colors.light;
   
   const currentLocation = locations[pageIndex];
+  const isDesktop = isMacOS();
+  const isTablet = useTabletLayout();
+  
+  console.log('[HomeScreen] isDesktop:', isDesktop, 'isTablet:', isTablet);
 
   // Sync pageIndex with currentLocationIndex when it changes from outside (e.g., LocationsScreen)
   useEffect(() => {
@@ -209,7 +214,13 @@ export function HomeScreen() {
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
-          {paddingTop: insets.top},
+          {
+            paddingTop: isDesktop ? 20 : isTablet ? 20 : insets.top,
+            paddingHorizontal: isDesktop ? 32 : isTablet ? 24 : 16,
+            maxWidth: isDesktop ? 900 : isTablet ? 1200 : undefined,
+            alignSelf: (isDesktop || isTablet) ? 'center' : undefined,
+            width: (isDesktop || isTablet) ? '100%' : undefined,
+          },
         ]}
         refreshControl={
           <RefreshControl
@@ -220,25 +231,51 @@ export function HomeScreen() {
         }
         showsVerticalScrollIndicator={false}>
         
-        {/* Location Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.locationHeader}
-            onPress={() => navigation.navigate('SearchLocation')}>
-            <Icon name="menu" size={24} color={themeColors.text} />
-            <Text style={[styles.locationName, {color: themeColors.text}]}>
-              {currentLocation.city || 'Unknown Location'}
-            </Text>
-            <Icon name="pencil" size={20} color={themeColors.textSecondary} />
-          </TouchableOpacity>
-          
-          {weather?.base?.refreshTime && (
-            <Text style={[styles.updateTime, {color: themeColors.textSecondary}]}>
-              <Icon name="clock-outline" size={12} color={themeColors.textSecondary} />{' '}
-              {format(new Date(weather.base.refreshTime), 'HH:mm')}
-            </Text>
-          )}
-        </View>
+        {/* Location Header - Hide on macOS desktop layout */}
+        {!isDesktop && (
+          <>
+            <View style={styles.header}>
+              <TouchableOpacity
+                style={styles.locationHeader}
+                onPress={() => navigation.navigate('SearchLocation')}>
+                <Icon name="menu" size={24} color={themeColors.text} />
+                <Text style={[styles.locationName, {color: themeColors.text}]}>
+                  {currentLocation.city || 'Unknown Location'}
+                </Text>
+                <Icon name="pencil" size={20} color={themeColors.textSecondary} />
+              </TouchableOpacity>
+              
+              {weather?.base?.refreshTime && (
+                <Text style={[styles.updateTime, {color: themeColors.textSecondary}]}>
+                  <Icon name="clock-outline" size={12} color={themeColors.textSecondary} />{' '}
+                  {format(new Date(weather.base.refreshTime), 'HH:mm')}
+                </Text>
+              )}
+            </View>
+          </>
+        )}
+
+        {/* macOS: Show location name and HOME badge at top */}
+        {isDesktop && (
+          <View style={styles.macHeader}>
+            <View>
+              <Text style={[styles.macLocationName, {color: themeColors.text}]}>
+                {currentLocation.city || 'Unknown Location'}
+              </Text>
+              {currentLocation.isCurrentPosition && (
+                <View style={styles.homeBadge}>
+                  <Icon name="map-marker" size={12} color={themeColors.textSecondary} />
+                  <Text style={[styles.homeBadgeText, {color: themeColors.textSecondary}]}>Current Location</Text>
+                </View>
+              )}
+            </View>
+            {weather?.base?.refreshTime && (
+              <Text style={[styles.macUpdateTime, {color: themeColors.textSecondary}]}>
+                Updated {format(new Date(weather.base.refreshTime), 'h:mm a')}
+              </Text>
+            )}
+          </View>
+        )}
 
         {/* Alert Banner */}
         {alerts.length > 0 && (
@@ -275,38 +312,71 @@ export function HomeScreen() {
           isDark={useDark}
         />
 
-        {/* Weather Details Grid */}
-        <View style={styles.detailsGrid}>
-          <WeatherDetailCard
-            title="Precipitation"
-            value={`${Math.round(today?.day?.precipitationProbability?.total ?? 0)}%`}
-            subtitle="Chance of rain"
-            icon="water-percent"
-            isDark={useDark}
-          />
-          <WeatherDetailCard
-            title="Wind"
-            value={formatSpeed(current?.wind?.speed)}
-            subtitle={current?.wind?.gusts ? `Gusts: ${formatSpeed(current.wind.gusts)}` : undefined}
-            icon="weather-windy"
-            isDark={useDark}
-          />
-        </View>
+        {/* Weather Details Grid - Use 4 columns on tablet, 2 on phone */}
+        {isTablet ? (
+          <View style={styles.detailsGridTablet}>
+            <WeatherDetailCard
+              title="Precipitation"
+              value={`${Math.round(today?.day?.precipitationProbability?.total ?? 0)}%`}
+              subtitle="Chance of rain"
+              icon="water-percent"
+              isDark={useDark}
+            />
+            <WeatherDetailCard
+              title="Wind"
+              value={formatSpeed(current?.wind?.speed)}
+              subtitle={current?.wind?.gusts ? `Gusts: ${formatSpeed(current.wind.gusts)}` : undefined}
+              icon="weather-windy"
+              isDark={useDark}
+            />
+            <WeatherDetailCard
+              title="Pressure"
+              value={`${Math.round(current?.pressure ?? 0)} hPa`}
+              icon="gauge"
+              isDark={useDark}
+            />
+            <WeatherDetailCard
+              title="Humidity"
+              value={current?.relativeHumidity !== undefined ? `${Math.round(current.relativeHumidity)}%` : '--'}
+              icon="water-percent"
+              isDark={useDark}
+            />
+          </View>
+        ) : (
+          <>
+            <View style={styles.detailsGrid}>
+              <WeatherDetailCard
+                title="Precipitation"
+                value={`${Math.round(today?.day?.precipitationProbability?.total ?? 0)}%`}
+                subtitle="Chance of rain"
+                icon="water-percent"
+                isDark={useDark}
+              />
+              <WeatherDetailCard
+                title="Wind"
+                value={formatSpeed(current?.wind?.speed)}
+                subtitle={current?.wind?.gusts ? `Gusts: ${formatSpeed(current.wind.gusts)}` : undefined}
+                icon="weather-windy"
+                isDark={useDark}
+              />
+            </View>
 
-        <View style={styles.detailsGrid}>
-          <WeatherDetailCard
-            title="Pressure"
-            value={`${Math.round(current?.pressure ?? 0)} hPa`}
-            icon="gauge"
-            isDark={useDark}
-          />
-          <WeatherDetailCard
-            title="Humidity"
-            value={current?.relativeHumidity !== undefined ? `${Math.round(current.relativeHumidity)}%` : '--'}
-            icon="water-percent"
-            isDark={useDark}
-          />
-        </View>
+            <View style={styles.detailsGrid}>
+              <WeatherDetailCard
+                title="Pressure"
+                value={`${Math.round(current?.pressure ?? 0)} hPa`}
+                icon="gauge"
+                isDark={useDark}
+              />
+              <WeatherDetailCard
+                title="Humidity"
+                value={current?.relativeHumidity !== undefined ? `${Math.round(current.relativeHumidity)}%` : '--'}
+                icon="water-percent"
+                isDark={useDark}
+              />
+            </View>
+          </>
+        )}
 
         {/* Air Quality */}
         {current?.airQuality && (
@@ -339,7 +409,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingBottom: 32,
   },
   header: {
     marginBottom: 16,
@@ -387,6 +457,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  macHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  macLocationName: {
+    fontSize: 32,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  homeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  homeBadgeText: {
+    fontSize: 13,
+    fontWeight: '400',
+  },
+  macUpdateTime: {
+    fontSize: 14,
+    marginTop: 8,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -397,6 +492,12 @@ const styles = StyleSheet.create({
   },
   detailsGrid: {
     flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  detailsGridTablet: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
     marginBottom: 12,
   },

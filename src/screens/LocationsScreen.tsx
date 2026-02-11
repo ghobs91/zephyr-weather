@@ -10,7 +10,7 @@ import {
   Image,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, CompositeNavigationProp} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -21,7 +21,10 @@ import {Location, WeatherCode} from '../types/weather';
 import {RootStackParamList, MainTabParamList} from '../navigation/RootNavigator';
 import {getWeatherIconSource} from '../utils/weatherIcons';
 
-type NavigationProp = BottomTabNavigationProp<MainTabParamList>;
+type NavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<MainTabParamList>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
 
 export function LocationsScreen() {
   const navigation = useNavigation<NavigationProp>();

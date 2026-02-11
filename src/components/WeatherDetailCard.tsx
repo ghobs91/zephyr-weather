@@ -43,6 +43,8 @@ export function WeatherDetailCard({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    minWidth: 150,
+    maxWidth: 300,
     borderRadius: 16,
     padding: 16,
     shadowColor: '#000',

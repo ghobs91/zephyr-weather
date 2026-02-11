@@ -197,10 +197,6 @@ export function DailyDetailScreen() {
                         padding: 8,
                         borderRadius: 8,
                       }}
-                      formatValue={(value) => {
-                        const unit = settings.temperatureUnit === 'fahrenheit' ? 'F' : 'C';
-                        return `${Math.round(value)}°${unit}`;
-                      }}
                     />
                   </LineChart.CursorCrosshair>
                 </LineChart>

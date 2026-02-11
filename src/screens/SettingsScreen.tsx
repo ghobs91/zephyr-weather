@@ -22,7 +22,11 @@ import {
   DistanceUnit,
 } from '../types/settings';
 
-export function SettingsScreen() {
+interface SettingsScreenProps {
+  onClose?: () => void;
+}
+
+export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
   const insets = useSafeAreaInsets();
   const isDarkMode = useColorScheme() === 'dark';
   
@@ -97,10 +101,18 @@ export function SettingsScreen() {
 
   return (
     <View style={[styles.container, {backgroundColor: themeColors.background}]}>
+      {onClose && (
+        <View style={[styles.modalHeader, {paddingTop: insets.top + 8, backgroundColor: themeColors.surface}]}>
+          <Text style={[styles.modalTitle, {color: themeColors.text}]}>Settings</Text>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Icon name="close" size={24} color={themeColors.text} />
+          </TouchableOpacity>
+        </View>
+      )}
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[styles.content, {paddingTop: insets.top + 16}]}>
-        <Text style={[styles.title, {color: themeColors.text}]}>Settings</Text>
+        contentContainerStyle={[styles.content, {paddingTop: onClose ? 16 : insets.top + 16}]}>
+        {!onClose && <Text style={[styles.title, {color: themeColors.text}]}>Settings</Text>}
 
         {/* Appearance Section */}
         {renderSectionHeader('Appearance', 'palette')}
@@ -392,5 +404,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 12,
     textAlign: 'center',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  closeButton: {
+    padding: 4,
   },
 });

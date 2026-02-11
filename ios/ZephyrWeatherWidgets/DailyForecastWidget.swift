@@ -75,6 +75,26 @@ struct DailyForecastWidgetView: View {
                     endPoint: .bottomTrailing
                 )
             }
+        } else if family == .systemExtraLarge {
+            // Extra large layout for macOS - show full week with details
+            HStack(spacing: 6) {
+                ForEach(Array(entry.weatherData.daily.prefix(7).enumerated()), id: \.offset) { index, day in
+                    DayColumn(day: day, minTemp: minTemp, maxTemp: maxTemp, temperatureUnit: entry.weatherData.temperatureUnit ?? "fahrenheit")
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 18)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .containerBackground(for: .widget) {
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(red: 0.2, green: 0.25, blue: 0.35),
+                        Color(red: 0.15, green: 0.2, blue: 0.3)
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
         } else {
             // Vertical column layout for large widget
             HStack(spacing: 3) {
@@ -402,6 +422,16 @@ struct DailyForecastWidget: Widget {
         }
         .configurationDisplayName("Daily Forecast")
         .description("Shows 5-7 day weather forecast for a selected location")
-        .supportedFamilies([.systemMedium, .systemLarge])
+        .supportedFamilies(supportedFamilies)
+    }
+    
+    private var supportedFamilies: [WidgetFamily] {
+        var families: [WidgetFamily] = [.systemMedium, .systemLarge]
+        #if targetEnvironment(macCatalyst) || os(macOS)
+        if #available(macCatalyst 17.0, macOS 14.0, *) {
+            families.append(.systemExtraLarge)
+        }
+        #endif
+        return families
     }
 }

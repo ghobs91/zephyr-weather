@@ -9,8 +9,33 @@
   self.moduleName = @"ZephyrWeather";
   self.initialProps = @{};
 
-  return [super application:application didFinishLaunchingWithOptions:launchOptions];
+  BOOL result = [super application:application didFinishLaunchingWithOptions:launchOptions];
+
+#if TARGET_OS_MACCATALYST
+  // Configure macOS window
+  if (self.window != nil) {
+    [self configureMacWindow];
+  }
+#endif
+
+  return result;
 }
+
+#if TARGET_OS_MACCATALYST
+- (void)configureMacWindow
+{
+  // Set minimum window size for macOS
+  if (@available(macCatalyst 13.0, *)) {
+    UIWindowScene *windowScene = (UIWindowScene *)self.window.windowScene;
+    if (windowScene != nil) {
+      windowScene.sizeRestrictions.minimumSize = CGSizeMake(400, 600);
+      windowScene.sizeRestrictions.maximumSize = CGSizeMake(1200, 900);
+      // Set a good default title
+      windowScene.title = @"Zephyr Weather";
+    }
+  }
+}
+#endif
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {

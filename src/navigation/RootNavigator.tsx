@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useColorScheme} from 'react-native';
 
 import {HomeScreen} from '../screens/HomeScreen';
+import {MacOSHomeScreen} from '../screens/MacOSHomeScreen';
 import {LocationsScreen} from '../screens/LocationsScreen';
 import {SearchLocationScreen} from '../screens/SearchLocationScreen';
 import {SettingsScreen} from '../screens/SettingsScreen';
@@ -12,6 +13,7 @@ import {DailyDetailScreen} from '../screens/DailyDetailScreen';
 import {AlertsScreen} from '../screens/AlertsScreen';
 import {useWeatherStore} from '../store/weatherStore';
 import {colors} from '../theme/colors';
+import {isMacOS} from '../utils/platformDetect';
 
 export type RootStackParamList = {
   MainTabs: undefined;
@@ -87,6 +89,9 @@ export function RootNavigator() {
   const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
   
   const themeColors = useDark ? colors.dark : colors.light;
+  const isDesktop = isMacOS();
+
+  console.log('[RootNavigator] isDesktop:', isDesktop, '- Using:', isDesktop ? 'MacOSHomeScreen' : 'MainTabs');
 
   return (
     <Stack.Navigator
@@ -101,7 +106,7 @@ export function RootNavigator() {
       }}>
       <Stack.Screen
         name="MainTabs"
-        component={MainTabs}
+        component={isDesktop ? MacOSHomeScreen : MainTabs}
         options={{headerShown: false}}
       />
       <Stack.Screen

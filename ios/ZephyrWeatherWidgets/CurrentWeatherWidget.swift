@@ -43,6 +43,8 @@ struct CurrentWeatherWidgetView: View {
     var body: some View {
         if family == .systemSmall {
             smallWidgetView
+        } else if family == .systemLarge {
+            largeWidgetView
         } else {
             mediumWidgetView
         }
@@ -151,6 +153,134 @@ struct CurrentWeatherWidgetView: View {
         }
     }
     
+    var largeWidgetView: some View {
+        VStack(spacing: 12) {
+            // Top section - Current conditions
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(formatTemp(entry.weatherData.current?.temperature))
+                        .font(.system(size: 64, weight: .thin))
+                        .foregroundColor(temperatureColor(entry.weatherData.current?.temperature))
+                        .minimumScaleFactor(0.5)
+                        .lineLimit(1)
+                    
+                    Text(entry.weatherData.current?.weatherText ?? "Unknown")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white.opacity(0.9))
+                        .lineLimit(2)
+                    
+                    if let today = entry.weatherData.daily.first {
+                        Text("H: \(formatTemp(today.dayTemp))  L: \(formatTemp(today.nightTemp))")
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                }
+                
+                Spacer()
+                
+                Image(weatherIconAsset(entry.weatherData.current?.weatherCode))
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 90, height: 90)
+            }
+            
+            Divider()
+                .background(Color.white.opacity(0.2))
+            
+            // Details grid
+            HStack(spacing: 16) {
+                if let humidity = entry.weatherData.current?.humidity {
+                    VStack(spacing: 4) {
+                        Image(systemName: "humidity.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.blue.opacity(0.8))
+                        Text("\(Int(humidity))%")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                        Text("Humidity")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                
+                if let windSpeed = entry.weatherData.current?.windSpeed {
+                    VStack(spacing: 4) {
+                        Image(systemName: "wind")
+                            .font(.system(size: 16))
+                            .foregroundColor(.cyan.opacity(0.8))
+                        Text("\(Int(windSpeed)) km/h")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                        Text("Wind")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                
+                if let feelsLike = entry.weatherData.current?.feelsLike {
+                    VStack(spacing: 4) {
+                        Image(systemName: "thermometer.medium")
+                            .font(.system(size: 16))
+                            .foregroundColor(.orange.opacity(0.8))
+                        Text(formatTemp(feelsLike))
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                        Text("Feels Like")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            
+            Divider()
+                .background(Color.white.opacity(0.2))
+            
+            // Upcoming hours
+            if !entry.weatherData.hourly.isEmpty {
+                HStack(spacing: 0) {
+                    ForEach(Array(entry.weatherData.hourly.prefix(6).enumerated()), id: \.offset) { index, hour in
+                        VStack(spacing: 4) {
+                            Text(hourLabel(hour.date))
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.white.opacity(0.7))
+                            
+                            Image(weatherIconAsset(hour.weatherCode))
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 24, height: 24)
+                            
+                            Text(formatTemp(hour.temperature))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .containerBackground(for: .widget) {
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.15, green: 0.2, blue: 0.3),
+                    Color(red: 0.1, green: 0.15, blue: 0.25)
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+    
+    func hourLabel(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "ha"
+        return formatter.string(from: date)
+    }
+    
     func formatTemp(_ temp: Double?) -> String {
         guard let temp = temp else { return "--°" }
         
@@ -226,6 +356,16 @@ struct CurrentWeatherWidget: Widget {
         }
         .configurationDisplayName("Current Weather")
         .description("Shows current temperature and conditions for a selected location")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies(supportedFamilies)
+    }
+    
+    private var supportedFamilies: [WidgetFamily] {
+        var families: [WidgetFamily] = [.systemSmall, .systemMedium]
+        #if targetEnvironment(macCatalyst) || os(macOS)
+        if #available(macCatalyst 17.0, macOS 14.0, *) {
+            families.append(.systemLarge)
+        }
+        #endif
+        return families
     }
 }
