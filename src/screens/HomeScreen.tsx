@@ -6,7 +6,6 @@ import {
   ScrollView,
   RefreshControl,
   useColorScheme,
-  Dimensions,
   TouchableOpacity,
   Platform,
 } from 'react-native';
@@ -22,7 +21,7 @@ import {fetchNWSWeather, isUSLocation} from '../services/nwsService';
 import {colors, getTemperatureColor} from '../theme/colors';
 import {WeatherCode, Location} from '../types/weather';
 import {RootStackParamList} from '../navigation/RootNavigator';
-import {isMacOS, useTabletLayout} from '../utils/platformDetect';
+import {useResponsiveLayout} from '../utils/platformDetect';
 
 import {CurrentWeatherCard} from '../components/CurrentWeatherCard';
 import {DailyForecastCard} from '../components/DailyForecastCard';
@@ -30,8 +29,6 @@ import {HourlyForecastCard} from '../components/HourlyForecastCard';
 import {WeatherDetailCard} from '../components/WeatherDetailCard';
 import {AlertBanner} from '../components/AlertBanner';
 import {AirQualityCard} from '../components/AirQualityCard';
-
-const {width} = Dimensions.get('window');
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -59,10 +56,8 @@ export function HomeScreen() {
   const themeColors = useDark ? colors.dark : colors.light;
   
   const currentLocation = locations[pageIndex];
-  const isDesktop = isMacOS();
-  const isTablet = useTabletLayout();
-  
-  console.log('[HomeScreen] isDesktop:', isDesktop, 'isTablet:', isTablet);
+  const layout = useResponsiveLayout();
+  const {isDesktop, isWideScreen, contentPadding, maxContentWidth, detailColumns} = layout;
 
   // Sync pageIndex with currentLocationIndex when it changes from outside (e.g., LocationsScreen)
   useEffect(() => {
@@ -212,16 +207,7 @@ export function HomeScreen() {
     <View style={[styles.container, {backgroundColor: themeColors.background}]}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingTop: isDesktop ? 20 : isTablet ? 20 : insets.top,
-            paddingHorizontal: isDesktop ? 32 : isTablet ? 24 : 16,
-            maxWidth: isDesktop ? 900 : isTablet ? 1200 : undefined,
-            alignSelf: (isDesktop || isTablet) ? 'center' : undefined,
-            width: (isDesktop || isTablet) ? '100%' : undefined,
-          },
-        ]}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -230,6 +216,16 @@ export function HomeScreen() {
           />
         }
         showsVerticalScrollIndicator={false}>
+        <View style={[
+          styles.contentContainer,
+          {
+            paddingTop: isDesktop ? 20 : isWideScreen ? 20 : insets.top,
+            paddingHorizontal: contentPadding,
+            maxWidth: maxContentWidth,
+            alignSelf: maxContentWidth ? 'center' : undefined,
+            width: maxContentWidth ? '100%' : undefined,
+          },
+        ]}>
         
         {/* Location Header - Hide on macOS desktop layout */}
         {!isDesktop && (
@@ -312,71 +308,35 @@ export function HomeScreen() {
           isDark={useDark}
         />
 
-        {/* Weather Details Grid - Use 4 columns on tablet, 2 on phone */}
-        {isTablet ? (
-          <View style={styles.detailsGridTablet}>
-            <WeatherDetailCard
-              title="Precipitation"
-              value={`${Math.round(today?.day?.precipitationProbability?.total ?? 0)}%`}
-              subtitle="Chance of rain"
-              icon="water-percent"
-              isDark={useDark}
-            />
-            <WeatherDetailCard
-              title="Wind"
-              value={formatSpeed(current?.wind?.speed)}
-              subtitle={current?.wind?.gusts ? `Gusts: ${formatSpeed(current.wind.gusts)}` : undefined}
-              icon="weather-windy"
-              isDark={useDark}
-            />
-            <WeatherDetailCard
-              title="Pressure"
-              value={`${Math.round(current?.pressure ?? 0)} hPa`}
-              icon="gauge"
-              isDark={useDark}
-            />
-            <WeatherDetailCard
-              title="Humidity"
-              value={current?.relativeHumidity !== undefined ? `${Math.round(current.relativeHumidity)}%` : '--'}
-              icon="water-percent"
-              isDark={useDark}
-            />
-          </View>
-        ) : (
-          <>
-            <View style={styles.detailsGrid}>
-              <WeatherDetailCard
-                title="Precipitation"
-                value={`${Math.round(today?.day?.precipitationProbability?.total ?? 0)}%`}
-                subtitle="Chance of rain"
-                icon="water-percent"
-                isDark={useDark}
-              />
-              <WeatherDetailCard
-                title="Wind"
-                value={formatSpeed(current?.wind?.speed)}
-                subtitle={current?.wind?.gusts ? `Gusts: ${formatSpeed(current.wind.gusts)}` : undefined}
-                icon="weather-windy"
-                isDark={useDark}
-              />
-            </View>
-
-            <View style={styles.detailsGrid}>
-              <WeatherDetailCard
-                title="Pressure"
-                value={`${Math.round(current?.pressure ?? 0)} hPa`}
-                icon="gauge"
-                isDark={useDark}
-              />
-              <WeatherDetailCard
-                title="Humidity"
-                value={current?.relativeHumidity !== undefined ? `${Math.round(current.relativeHumidity)}%` : '--'}
-                icon="water-percent"
-                isDark={useDark}
-              />
-            </View>
-          </>
-        )}
+        {/* Weather Details Grid - adapts columns based on available width */}
+        <View style={[styles.detailsGrid, detailColumns === 4 && styles.detailsGridWide]}>
+          <WeatherDetailCard
+            title="Precipitation"
+            value={`${Math.round(today?.day?.precipitationProbability?.total ?? 0)}%`}
+            subtitle="Chance of rain"
+            icon="water-percent"
+            isDark={useDark}
+          />
+          <WeatherDetailCard
+            title="Wind"
+            value={formatSpeed(current?.wind?.speed)}
+            subtitle={current?.wind?.gusts ? `Gusts: ${formatSpeed(current.wind.gusts)}` : undefined}
+            icon="weather-windy"
+            isDark={useDark}
+          />
+          <WeatherDetailCard
+            title="Pressure"
+            value={`${Math.round(current?.pressure ?? 0)} hPa`}
+            icon="gauge"
+            isDark={useDark}
+          />
+          <WeatherDetailCard
+            title="Humidity"
+            value={current?.relativeHumidity !== undefined ? `${Math.round(current.relativeHumidity)}%` : '--'}
+            icon="water-percent"
+            isDark={useDark}
+          />
+        </View>
 
         {/* Air Quality */}
         {current?.airQuality && (
@@ -396,6 +356,7 @@ export function HomeScreen() {
         </View>
 
         <View style={{height: insets.bottom + 16}} />
+        </View>
       </ScrollView>
     </View>
   );
@@ -409,6 +370,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    flexGrow: 1,
+  },
+  contentContainer: {
     paddingBottom: 32,
   },
   header: {
@@ -492,14 +456,12 @@ const styles = StyleSheet.create({
   },
   detailsGrid: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  detailsGridTablet: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
     marginBottom: 12,
+  },
+  detailsGridWide: {
+    // On wider screens all 4 cards fit in one row
   },
   attribution: {
     alignItems: 'center',

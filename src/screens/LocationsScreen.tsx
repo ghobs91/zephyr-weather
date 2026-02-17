@@ -20,6 +20,7 @@ import {colors} from '../theme/colors';
 import {Location, WeatherCode} from '../types/weather';
 import {RootStackParamList, MainTabParamList} from '../navigation/RootNavigator';
 import {getWeatherIconSource} from '../utils/weatherIcons';
+import {useResponsiveLayout} from '../utils/platformDetect';
 
 type NavigationProp = CompositeNavigationProp<
   BottomTabNavigationProp<MainTabParamList>,
@@ -42,6 +43,7 @@ export function LocationsScreen() {
   const theme = settings.theme;
   const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
   const themeColors = useDark ? colors.dark : colors.light;
+  const layout = useResponsiveLayout();
 
   const formatTemp = (temp?: number): string => {
     if (temp === undefined) return '--°';
@@ -73,7 +75,16 @@ export function LocationsScreen() {
     const today = weather?.dailyForecast?.[0];
 
     return (
-      <TouchableOpacity
+      <View style={[
+        styles.itemWrapper,
+        {
+          paddingHorizontal: layout.contentPadding,
+          maxWidth: layout.maxContentWidth,
+          alignSelf: layout.maxContentWidth ? 'center' : undefined,
+          width: layout.maxContentWidth ? '100%' : undefined,
+        },
+      ]}>
+        <TouchableOpacity
         style={[
           styles.locationCard,
           {
@@ -132,6 +143,7 @@ export function LocationsScreen() {
           )}
         </View>
       </TouchableOpacity>
+      </View>
     );
   };
 
@@ -152,7 +164,16 @@ export function LocationsScreen() {
         renderItem={renderLocation}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
+          <View style={[
+            styles.emptyWrapper,
+            {
+              paddingHorizontal: layout.contentPadding,
+              maxWidth: layout.maxContentWidth,
+              alignSelf: layout.maxContentWidth ? 'center' : undefined,
+              width: layout.maxContentWidth ? '100%' : undefined,
+            },
+          ]}>
+            <View style={styles.emptyContainer}>
             <Icon name="map-marker-off" size={64} color={themeColors.textSecondary} />
             <Text style={[styles.emptyText, {color: themeColors.text}]}>
               No locations yet
@@ -160,6 +181,7 @@ export function LocationsScreen() {
             <Text style={[styles.emptySubtext, {color: themeColors.textSecondary}]}>
               Tap the + button to add a location
             </Text>
+            </View>
           </View>
         }
       />
@@ -192,8 +214,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    padding: 16,
-    gap: 12,
+    paddingVertical: 16,
+  },
+  itemWrapper: {
+    marginBottom: 12,
+  },
+  emptyWrapper: {
+    flex: 1,
   },
   locationCard: {
     borderRadius: 16,

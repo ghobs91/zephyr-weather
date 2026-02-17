@@ -15,6 +15,7 @@ import {format} from 'date-fns';
 import {useWeatherStore} from '../store/weatherStore';
 import {colors} from '../theme/colors';
 import {Alert, AlertSeverity} from '../types/weather';
+import {useResponsiveLayout} from '../utils/platformDetect';
 
 export function AlertsScreen() {
   const navigation = useNavigation();
@@ -22,6 +23,7 @@ export function AlertsScreen() {
   const isDarkMode = useColorScheme() === 'dark';
   
   const {locations, currentLocationIndex, settings} = useWeatherStore();
+  const layout = useResponsiveLayout();
   
   const theme = settings.theme;
   const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
@@ -154,7 +156,17 @@ export function AlertsScreen() {
     <View style={[styles.container, {backgroundColor: themeColors.background}]}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[styles.content, {paddingTop: insets.top + 16}]}>
+        contentContainerStyle={styles.scrollContent}>
+        <View style={[
+          styles.innerContent,
+          {
+            paddingTop: insets.top + 16,
+            paddingHorizontal: layout.contentPadding,
+            maxWidth: layout.maxContentWidth,
+            alignSelf: layout.maxContentWidth ? 'center' : undefined,
+            width: layout.maxContentWidth ? '100%' : undefined,
+          },
+        ]}>
         
         <View style={styles.header}>
           <TouchableOpacity
@@ -182,6 +194,7 @@ export function AlertsScreen() {
         )}
 
         <View style={{height: insets.bottom + 24}} />
+        </View>
       </ScrollView>
     </View>
   );
@@ -194,8 +207,11 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  content: {
-    paddingHorizontal: 16,
+  scrollContent: {
+    flexGrow: 1,
+  },
+  innerContent: {
+    paddingBottom: 16,
   },
   header: {
     flexDirection: 'row',

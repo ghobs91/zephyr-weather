@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {useWeatherStore} from '../store/weatherStore';
 import {colors} from '../theme/colors';
+import {useResponsiveLayout} from '../utils/platformDetect';
 import {
   ThemeMode,
   TemperatureUnit,
@@ -29,6 +30,7 @@ interface SettingsScreenProps {
 export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
   const insets = useSafeAreaInsets();
   const isDarkMode = useColorScheme() === 'dark';
+  const layout = useResponsiveLayout();
   
   const {settings, updateSettings} = useWeatherStore();
   
@@ -111,7 +113,17 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
       )}
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[styles.content, {paddingTop: onClose ? 16 : insets.top + 16}]}>
+        contentContainerStyle={styles.scrollContent}>
+        <View style={[
+          styles.innerContent,
+          {
+            paddingTop: onClose ? 16 : insets.top + 16,
+            paddingHorizontal: layout.contentPadding,
+            maxWidth: layout.maxContentWidth,
+            alignSelf: layout.maxContentWidth ? 'center' : undefined,
+            width: layout.maxContentWidth ? '100%' : undefined,
+          },
+        ]}>
         {!onClose && <Text style={[styles.title, {color: themeColors.text}]}>Settings</Text>}
 
         {/* Appearance Section */}
@@ -275,6 +287,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
         </View>
 
         <View style={{height: insets.bottom + 24}} />
+        </View>
       </ScrollView>
     </View>
   );
@@ -287,8 +300,11 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  content: {
-    paddingHorizontal: 16,
+  scrollContent: {
+    flexGrow: 1,
+  },
+  innerContent: {
+    paddingBottom: 16,
   },
   title: {
     fontSize: 28,

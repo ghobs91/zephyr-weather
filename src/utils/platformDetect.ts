@@ -1,84 +1,116 @@
-import {Platform, Dimensions} from 'react-native';
+import {Platform, useWindowDimensions} from 'react-native';
 
 /**
- * Detect if running on macOS via Mac Catalyst
- * Check Platform interface idiom and window dimensions
+ * Detect if running on macOS via Mac Catalyst.
+ * This is a device-level check that doesn't change at runtime.
  */
 export function isMacOS(): boolean {
   if (Platform.OS !== 'ios') {
     return false;
   }
-  
-  // Check if running on Mac Catalyst
   // @ts-ignore - isMacCatalyst is not in TypeScript definitions
-  const isCatalyst = Platform.isMacCatalyst === true;
-  
-  // Log for debugging
-  const {width, height} = Dimensions.get('window');
-  console.log('[Platform Detection]', {
-    isCatalyst,
-    width,
-    height,
-    // @ts-ignore
-    constants: Platform.constants,
-  });
-  
-  if (isCatalyst) {
-    return true;
-  }
-  
-  // Fallback: Check window dimensions
-  // Mac Catalyst windows are typically wider and have different aspect ratios
-  return width >= 900 && height >= 600;
+  return Platform.isMacCatalyst === true;
 }
 
 /**
- * Detect if running on iPad
+ * Detect if running on iPad.
+ * This is a device-level check that doesn't change at runtime.
  */
 export function isIPad(): boolean {
   if (Platform.OS !== 'ios') {
     return false;
   }
-  
-  // Check if it's iPad via isPad property
   // @ts-ignore - isPad is not in TypeScript definitions
-  if (Platform.isPad === true) {
-    return true;
-  }
-  
-  // Fallback: Check screen dimensions
-  // iPads are typically 768px or wider
-  const {width, height} = Dimensions.get('window');
-  const minDimension = Math.min(width, height);
-  const maxDimension = Math.max(width, height);
-  
-  return minDimension >= 768 && maxDimension >= 1024;
+  return Platform.isPad === true;
+}
+
+/** Responsive layout breakpoints */
+export interface ResponsiveLayout {
+  /** Window width in points */
+  windowWidth: number;
+  /** Window height in points */
+  windowHeight: number;
+  /** True when device is macOS Catalyst */
+  isDesktop: boolean;
+  /** True for iPad or wide-screen (>= 600pt wide) */
+  isWideScreen: boolean;
+  /** True when the window is wide enough for multi-column layout (>= 700pt) */
+  isMultiColumn: boolean;
+  /** Horizontal padding for the main content area */
+  contentPadding: number;
+  /** Maximum width for the main content column (undefined = full width) */
+  maxContentWidth: number | undefined;
+  /** Number of detail-card columns (2 on compact, 4 on wide) */
+  detailColumns: number;
 }
 
 /**
- * Detect if device is a tablet (iPad or large Android tablet)
+ * Reactive hook that returns layout metrics based on the current window size.
+ * Updates automatically on rotation, multitasking resize, etc.
  */
-export function isTablet(): boolean {
-  if (Platform.OS === 'ios') {
-    return isIPad();
+export function useResponsiveLayout(): ResponsiveLayout {
+  const {width, height} = useWindowDimensions();
+  const isDesktop = isMacOS();
+
+  // Wide-screen: iPad in any orientation, large Android tablet, or macOS
+  const isWideScreen = isDesktop || width >= 600;
+  // Multi-column: enough room for a sidebar + content
+  const isMultiColumn = isDesktop || width >= 700;
+
+  let contentPadding: number;
+  let maxContentWidth: number | undefined;
+  let detailColumns: number;
+
+  if (isDesktop) {
+    contentPadding = 32;
+    maxContentWidth = 900;
+    detailColumns = 4;
+  } else if (width >= 1024) {
+    // Very wide iPad (landscape full-screen, etc.)
+    contentPadding = 40;
+    maxContentWidth = 800;
+    detailColumns = 4;
+  } else if (width >= 700) {
+    // iPad portrait or slide-over landscape
+    contentPadding = 28;
+    maxContentWidth = 700;
+    detailColumns = 4;
+  } else if (width >= 600) {
+    // Narrow iPad split-view or large phone landscape
+    contentPadding = 24;
+    maxContentWidth = 600;
+    detailColumns = 2;
+  } else {
+    // Phone portrait
+    contentPadding = 16;
+    maxContentWidth = undefined; // full width
+    detailColumns = 2;
   }
-  
-  // For Android, check screen dimensions
-  const {width, height} = Dimensions.get('window');
-  const minDimension = Math.min(width, height);
-  return minDimension >= 600; // 600dp is typical tablet breakpoint
+
+  return {
+    windowWidth: width,
+    windowHeight: height,
+    isDesktop,
+    isWideScreen,
+    isMultiColumn,
+    contentPadding,
+    maxContentWidth,
+    detailColumns,
+  };
 }
 
 /**
- * Get whether to use desktop/sidebar layout
+ * @deprecated Use useResponsiveLayout().isDesktop instead
  */
 export function useDesktopLayout(): boolean {
   return isMacOS();
 }
 
 /**
- * Get whether to use tablet-optimized layout
+ * @deprecated Use useResponsiveLayout().isWideScreen instead
  */
 export function useTabletLayout(): boolean {
-  return isTablet() && !isMacOS();
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const {width} = useWindowDimensions();
+  return !isMacOS() && (isIPad() || width >= 600);
 }

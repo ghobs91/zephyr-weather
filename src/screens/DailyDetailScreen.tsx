@@ -19,6 +19,7 @@ import {colors, getTemperatureColor, getUvColor} from '../theme/colors';
 import {WeatherCode, Daily} from '../types/weather';
 import {RootStackParamList} from '../navigation/RootNavigator';
 import {getWeatherIconSource} from '../utils/weatherIcons';
+import {useResponsiveLayout} from '../utils/platformDetect';
 
 type DailyDetailRouteProp = RouteProp<RootStackParamList, 'DailyDetail'>;
 
@@ -27,6 +28,7 @@ export function DailyDetailScreen() {
   const insets = useSafeAreaInsets();
   const isDarkMode = useColorScheme() === 'dark';
   const {width: screenWidth} = useWindowDimensions();
+  const layout = useResponsiveLayout();
   
   const {dayIndex} = route.params;
   const {locations, currentLocationIndex, settings} = useWeatherStore();
@@ -67,16 +69,29 @@ export function DailyDetailScreen() {
     h => h.date >= dayStart && h.date <= dayEnd
   );
 
-  // Calculate chart width based on screen width minus padding
-  // Card padding (16) + content padding (16) on both sides = 64 total
-  const chartWidth = screenWidth - 64;
+  // Calculate chart width based on content width minus card padding
+  // Use maxContentWidth if defined, otherwise fall back to screen width
+  const effectiveWidth = layout.maxContentWidth
+    ? Math.min(screenWidth, layout.maxContentWidth)
+    : screenWidth;
+  // Card padding (16) + content padding on both sides
+  const chartWidth = effectiveWidth - layout.contentPadding * 2 - 32;
 
   return (
     <View style={[styles.container, {backgroundColor: themeColors.background}]}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
+        <View style={[
+          styles.innerContent,
+          {
+            paddingHorizontal: layout.contentPadding,
+            maxWidth: layout.maxContentWidth,
+            alignSelf: layout.maxContentWidth ? 'center' : undefined,
+            width: layout.maxContentWidth ? '100%' : undefined,
+          },
+        ]}>
         
         {/* Date Header */}
         <View style={styles.dateHeader}>
@@ -361,6 +376,7 @@ export function DailyDetailScreen() {
         </View>
 
         <View style={{height: insets.bottom + 24}} />
+        </View>
       </ScrollView>
     </View>
   );
@@ -373,8 +389,11 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  content: {
-    padding: 16,
+  scrollContent: {
+    flexGrow: 1,
+  },
+  innerContent: {
+    paddingVertical: 16,
   },
   errorText: {
     fontSize: 16,

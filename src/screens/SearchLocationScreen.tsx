@@ -18,6 +18,7 @@ import {useWeatherStore} from '../store/weatherStore';
 import {searchLocations} from '../services/openMeteoService';
 import {colors} from '../theme/colors';
 import {Location} from '../types/weather';
+import {useResponsiveLayout} from '../utils/platformDetect';
 
 interface SearchResult {
   id: number;
@@ -47,6 +48,7 @@ export function SearchLocationScreen() {
   const theme = settings.theme;
   const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
   const themeColors = useDark ? colors.dark : colors.light;
+  const layout = useResponsiveLayout();
 
   // Debounced search function
   const performSearch = useCallback(async (searchText: string) => {
@@ -134,7 +136,16 @@ export function SearchLocationScreen() {
   }, [addLocation, locations, navigation]);
 
   const renderResult = useCallback(({item}: {item: SearchResult}) => (
-    <TouchableOpacity
+    <View style={[
+      styles.resultWrapper,
+      {
+        paddingHorizontal: layout.contentPadding,
+        maxWidth: layout.maxContentWidth,
+        alignSelf: layout.maxContentWidth ? 'center' : undefined,
+        width: layout.maxContentWidth ? '100%' : undefined,
+      },
+    ]}>
+      <TouchableOpacity
       style={[styles.resultItem, {borderBottomColor: themeColors.border}]}
       onPress={() => handleSelectLocation(item)}>
       <Icon name="map-marker" size={24} color={themeColors.textSecondary} />
@@ -148,10 +159,20 @@ export function SearchLocationScreen() {
       </View>
       <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
     </TouchableOpacity>
-  ), [themeColors, handleSelectLocation]);
+    </View>
+  ), [themeColors, handleSelectLocation, layout]);
 
   return (
     <View style={[styles.container, {backgroundColor: themeColors.background}]}>
+      <View style={[
+        styles.innerContainer,
+        {
+          maxWidth: layout.maxContentWidth,
+          alignSelf: layout.maxContentWidth ? 'center' : undefined,
+          width: layout.maxContentWidth ? '100%' : undefined,
+          paddingHorizontal: layout.contentPadding,
+        },
+      ]}>
       {/* Search Input */}
       <View style={[styles.searchContainer, {backgroundColor: themeColors.surface}]}>
         <Icon name="magnify" size={24} color={themeColors.textSecondary} />
@@ -175,15 +196,35 @@ export function SearchLocationScreen() {
 
       {/* Error Message */}
       {error && (
+        <View style={[
+          styles.messageWrapper,
+          {
+            paddingHorizontal: layout.contentPadding,
+            maxWidth: layout.maxContentWidth,
+            alignSelf: layout.maxContentWidth ? 'center' : undefined,
+            width: layout.maxContentWidth ? '100%' : undefined,
+          },
+        ]}>
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, {color: themeColors.error}]}>{error}</Text>
+        </View>
         </View>
       )}
 
       {/* Loading Indicator */}
       {isLoading && (
+        <View style={[
+          styles.messageWrapper,
+          {
+            paddingHorizontal: layout.contentPadding,
+            maxWidth: layout.maxContentWidth,
+            alignSelf: layout.maxContentWidth ? 'center' : undefined,
+            width: layout.maxContentWidth ? '100%' : undefined,
+          },
+        ]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={themeColors.primary} />
+        </View>
         </View>
       )}
 
@@ -196,17 +237,36 @@ export function SearchLocationScreen() {
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
           !isLoading && query.length >= 2 ? (
+            <View style={[
+              styles.messageWrapper,
+              {
+                paddingHorizontal: layout.contentPadding,
+                maxWidth: layout.maxContentWidth,
+                alignSelf: layout.maxContentWidth ? 'center' : undefined,
+                width: layout.maxContentWidth ? '100%' : undefined,
+              },
+            ]}>
             <View style={styles.emptyContainer}>
               <Icon name="map-search" size={48} color={themeColors.textSecondary} />
               <Text style={[styles.emptyText, {color: themeColors.textSecondary}]}>
                 No locations found
               </Text>
             </View>
+            </View>
           ) : null
         }
       />
 
       {/* Current Location Button */}
+      <View style={[
+        styles.buttonWrapper,
+        {
+          paddingHorizontal: layout.contentPadding,
+          maxWidth: layout.maxContentWidth,
+          alignSelf: layout.maxContentWidth ? 'center' : undefined,
+          width: layout.maxContentWidth ? '100%' : undefined,
+        },
+      ]}>
       <TouchableOpacity
         style={[styles.currentLocationButton, {backgroundColor: themeColors.primary}]}
         onPress={() => {
@@ -216,8 +276,10 @@ export function SearchLocationScreen() {
         <Icon name="crosshairs-gps" size={24} color="#FFFFFF" />
         <Text style={styles.currentLocationText}>Use current location</Text>
       </TouchableOpacity>
+      </View>
 
       <View style={{height: insets.bottom}} />
+      </View>
     </View>
   );
 }
@@ -226,10 +288,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  innerContainer: {
+    flex: 1,
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    margin: 16,
+    marginVertical: 16,
     paddingHorizontal: 16,
     borderRadius: 12,
     height: 48,
@@ -241,7 +306,6 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   errorContainer: {
-    paddingHorizontal: 16,
     paddingBottom: 8,
   },
   errorText: {
@@ -252,7 +316,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resultsList: {
-    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  resultWrapper: {
+    // Centering wrapper for each result
+  },
+  messageWrapper: {
+    // Centering wrapper for messages
+  },
+  buttonWrapper: {
+    // Centering wrapper for button
   },
   resultItem: {
     flexDirection: 'row',
@@ -284,7 +357,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    margin: 16,
+    marginVertical: 16,
     padding: 16,
     borderRadius: 12,
     gap: 12,

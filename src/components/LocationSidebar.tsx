@@ -6,6 +6,8 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
+  Alert,
+  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {format} from 'date-fns';
@@ -32,6 +34,7 @@ export function LocationSidebar({
     locations,
     currentLocationIndex,
     settings,
+    removeLocation,
   } = useWeatherStore();
 
   const formatTemp = (temp?: number): string => {
@@ -40,6 +43,28 @@ export function LocationSidebar({
       return `${Math.round(temp * 9/5 + 32)}°`;
     }
     return `${Math.round(temp)}°`;
+  };
+
+  const handleDeleteLocation = (item: Location, index: number) => {
+    const locationName = item.city || 'this location';
+    Alert.alert(
+      'Delete Location',
+      `Are you sure you want to delete ${locationName}?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            removeLocation(item.id);
+          },
+        },
+      ],
+      {cancelable: true}
+    );
   };
 
   const renderLocation = ({item, index}: {item: Location; index: number}) => {
@@ -58,7 +83,8 @@ export function LocationSidebar({
               : 'transparent',
           },
         ]}
-        onPress={() => onLocationSelect(index)}>
+        onPress={() => onLocationSelect(index)}
+        onLongPress={() => handleDeleteLocation(item, index)}>
         <View style={styles.locationHeader}>
           <View style={styles.locationTitleRow}>
             <Text style={[styles.locationName, {color: themeColors.text}]} numberOfLines={1}>
@@ -155,7 +181,7 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'macos' ? 68 : 16,
     paddingBottom: 12,
   },
   searchBar: {
