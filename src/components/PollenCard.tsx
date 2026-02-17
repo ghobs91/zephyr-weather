@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   title: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
   },
   pollenGrid: {

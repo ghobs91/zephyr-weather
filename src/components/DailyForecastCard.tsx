@@ -19,6 +19,7 @@ interface Props {
   formatSpeed: (speedKmh?: number) => string;
   isDark: boolean;
   onDayPress?: (index: number) => void;
+  verticalLayout?: boolean;
 }
 
 type TabType = 'conditions' | 'wind';
@@ -29,6 +30,7 @@ export function DailyForecastCard({
   formatSpeed,
   isDark,
   onDayPress,
+  verticalLayout = false,
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>('conditions');
   const themeColors = isDark ? colors.dark : colors.light;
@@ -100,92 +102,178 @@ export function DailyForecastCard({
       </View>
 
       {/* Daily List */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.daysContainer}>
-        {dailyForecast
-          .map((day, originalIndex) => ({day, originalIndex}))
-          .filter(({day}) => !isPast(startOfDay(day.date)) || isToday(day.date))
-          .filter(({day}) => day.night?.temperature?.temperature !== undefined)
-          .slice(0, 7)
-          .map(({day, originalIndex}) => {
-          const dayTemp = day.day?.temperature?.temperature;
-          const nightTemp = day.night?.temperature?.temperature;
-          const precipProb = day.day?.precipitationProbability?.total;
+      {verticalLayout ? (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.daysContainerVertical}>
+          {dailyForecast
+            .map((day, originalIndex) => ({day, originalIndex}))
+            .filter(({day}) => !isPast(startOfDay(day.date)) || isToday(day.date))
+            .filter(({day}) => day.night?.temperature?.temperature !== undefined)
+            .slice(0, 7)
+            .map(({day, originalIndex}) => {
+            const dayTemp = day.day?.temperature?.temperature;
+            const nightTemp = day.night?.temperature?.temperature;
+            const precipProb = day.day?.precipitationProbability?.total;
 
-          return (
-            <TouchableOpacity
-              key={day.date.toISOString()}
-              style={styles.dayColumn}
-              onPress={() => onDayPress?.(originalIndex)}>
-              <Text style={[styles.dayLabel, {color: themeColors.text}]} numberOfLines={1}>
-                {getDayLabel(day.date)}
-              </Text>
-              <Text style={[styles.dateLabel, {color: themeColors.textSecondary}]}>
-                {getDateLabel(day.date)}
-              </Text>
-              
-              <Image
-                source={getWeatherIconSource(day.day?.weatherCode, true)}
-                style={styles.weatherIcon}
-                resizeMode="contain"
-              />
-
-              {activeTab === 'conditions' && (
-                <>
-                  <View style={styles.tempBarContainer}>
-                    <Text style={[styles.tempLabel, {color: themeColors.text}]}>
-                      {formatTemp(dayTemp)}
-                    </Text>
-                    <View style={[styles.tempBar, {backgroundColor: themeColors.surfaceVariant}]}>
-                      <View
-                        style={[
-                          styles.tempBarFill,
-                          {
-                            backgroundColor: themeColors.primary,
-                            bottom: `${getBarPosition(nightTemp)}%`,
-                            height: `${getBarPosition(dayTemp) - getBarPosition(nightTemp)}%`,
-                          },
-                        ]}
-                      />
-                    </View>
-                    
-                    <Text style={[styles.tempLabel, {color: themeColors.textSecondary}]}>
-                      {formatTemp(nightTemp)}
-                    </Text>
-                  </View>
-
-                  {precipProb !== undefined && precipProb > 0 && (
-                    <View style={styles.precipContainer}>
-                      <Icon name="water" size={12} color={themeColors.rain} />
-                      <Text style={[styles.precipText, {color: themeColors.rain}]}>
-                        {Math.round(precipProb)}%
-                      </Text>
-                    </View>
-                  )}
-                </>
-              )}
-
-              {activeTab === 'wind' && (
-                <View style={styles.windContainer}>
-                  <Icon
-                    name="navigation"
-                    size={16}
-                    color={themeColors.textSecondary}
-                    style={{
-                      transform: [{rotate: `${(day.day?.wind?.direction ?? 0) + 180}deg`}],
-                    }}
-                  />
-                  <Text style={[styles.windText, {color: themeColors.text}]}>
-                    {formatSpeed(day.day?.wind?.speed)}
+            return (
+              <TouchableOpacity
+                key={day.date.toISOString()}
+                style={styles.dayRow}
+                onPress={() => onDayPress?.(originalIndex)}>
+                <View style={styles.dayRowLeft}>
+                  <Text style={[styles.dayLabel, {color: themeColors.text}]} numberOfLines={1}>
+                    {getDayLabel(day.date)}
+                  </Text>
+                  <Text style={[styles.dateLabel, {color: themeColors.textSecondary}]}>
+                    {getDateLabel(day.date)}
                   </Text>
                 </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+                
+                <Image
+                  source={getWeatherIconSource(day.day?.weatherCode, true)}
+                  style={styles.weatherIcon}
+                  resizeMode="contain"
+                />
+
+                {activeTab === 'conditions' ? (
+                  <View style={styles.dayRowRight}>
+                    <View style={styles.tempRow}>
+                      <Text style={[styles.tempLabel, {color: themeColors.text}]}>
+                        {formatTemp(dayTemp)}
+                      </Text>
+                      <View style={[styles.tempBarHorizontal, {backgroundColor: themeColors.surfaceVariant}]}>
+                        <View
+                          style={[
+                            styles.tempBarFillHorizontal,
+                            {
+                              backgroundColor: themeColors.primary,
+                              left: `${getBarPosition(nightTemp)}%`,
+                              width: `${getBarPosition(dayTemp) - getBarPosition(nightTemp)}%`,
+                            },
+                          ]}
+                        />
+                      </View>
+                      <Text style={[styles.tempLabel, {color: themeColors.textSecondary}]}>
+                        {formatTemp(nightTemp)}
+                      </Text>
+                    </View>
+                    {precipProb !== undefined && precipProb > 0 && (
+                      <View style={styles.precipContainer}>
+                        <Icon name="water" size={12} color={themeColors.rain} />
+                        <Text style={[styles.precipText, {color: themeColors.rain}]}>
+                          {Math.round(precipProb)}%
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                ) : (
+                  <View style={styles.windContainerRow}>
+                    <Icon
+                      name="navigation"
+                      size={16}
+                      color={themeColors.textSecondary}
+                      style={{
+                        transform: [{rotate: `${(day.day?.wind?.direction ?? 0) + 180}deg`}],
+                      }}
+                    />
+                    <Text style={[styles.windText, {color: themeColors.text}]}>
+                      {formatSpeed(day.day?.wind?.speed)}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.daysContainer}>
+          {dailyForecast
+            .map((day, originalIndex) => ({day, originalIndex}))
+            .filter(({day}) => !isPast(startOfDay(day.date)) || isToday(day.date))
+            .filter(({day}) => day.night?.temperature?.temperature !== undefined)
+            .slice(0, 7)
+            .map(({day, originalIndex}) => {
+            const dayTemp = day.day?.temperature?.temperature;
+            const nightTemp = day.night?.temperature?.temperature;
+            const precipProb = day.day?.precipitationProbability?.total;
+
+            return (
+              <TouchableOpacity
+                key={day.date.toISOString()}
+                style={styles.dayColumn}
+                onPress={() => onDayPress?.(originalIndex)}>
+                <Text style={[styles.dayLabel, {color: themeColors.text}]} numberOfLines={1}>
+                  {getDayLabel(day.date)}
+                </Text>
+                <Text style={[styles.dateLabel, {color: themeColors.textSecondary}]}>
+                  {getDateLabel(day.date)}
+                </Text>
+                
+                <Image
+                  source={getWeatherIconSource(day.day?.weatherCode, true)}
+                  style={styles.weatherIcon}
+                  resizeMode="contain"
+                />
+
+                {activeTab === 'conditions' && (
+                  <>
+                    <View style={styles.tempBarContainer}>
+                      <Text style={[styles.tempLabel, {color: themeColors.text}]}>
+                        {formatTemp(dayTemp)}
+                      </Text>
+                      <View style={[styles.tempBar, {backgroundColor: themeColors.surfaceVariant}]}>
+                        <View
+                          style={[
+                            styles.tempBarFill,
+                            {
+                              backgroundColor: themeColors.primary,
+                              bottom: `${getBarPosition(nightTemp)}%`,
+                              height: `${getBarPosition(dayTemp) - getBarPosition(nightTemp)}%`,
+                            },
+                          ]}
+                        />
+                      </View>
+                      
+                      <Text style={[styles.tempLabel, {color: themeColors.textSecondary}]}>
+                        {formatTemp(nightTemp)}
+                      </Text>
+                    </View>
+
+                    {precipProb !== undefined && precipProb > 0 && (
+                      <View style={styles.precipContainer}>
+                        <Icon name="water" size={12} color={themeColors.rain} />
+                        <Text style={[styles.precipText, {color: themeColors.rain}]}>
+                          {Math.round(precipProb)}%
+                        </Text>
+                      </View>
+                    )}
+                  </>
+                )}
+
+                {activeTab === 'wind' && (
+                  <View style={styles.windContainer}>
+                    <Icon
+                      name="navigation"
+                      size={16}
+                      color={themeColors.textSecondary}
+                      style={{
+                        transform: [{rotate: `${(day.day?.wind?.direction ?? 0) + 180}deg`}],
+                      }}
+                    />
+                    <Text style={[styles.windText, {color: themeColors.text}]}>
+                      {formatSpeed(day.day?.wind?.speed)}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -208,7 +296,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   title: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
   },
   tabContainer: {
@@ -222,10 +310,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
   },
   daysContainer: {
+    paddingVertical: 8,
+    gap: 8,
+  },
+  daysContainerVertical: {
     paddingVertical: 8,
     gap: 8,
   },
@@ -233,12 +325,48 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 70,
   },
+  dayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 8,
+  },
+  dayRowLeft: {
+    width: 70,
+  },
+  dayRowRight: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  tempRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  tempBarHorizontal: {
+    width: 140,
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  tempBarFillHorizontal: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    borderRadius: 3,
+  },
+  windContainerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   dayLabel: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
-  dateLabel: {
-    fontSize: 12,
+  daySubLabel: {
+    fontSize: 13,
     marginTop: 2,
   },
   weatherIcon: {
@@ -252,7 +380,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   tempLabel: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
   },
   tempBar: {
@@ -275,7 +403,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   precipText: {
-    fontSize: 11,
+    fontSize: 12,
   },
   windContainer: {
     alignItems: 'center',

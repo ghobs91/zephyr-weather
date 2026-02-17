@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {format} from 'date-fns';
 
 import {useWeatherStore} from '../store/weatherStore';
 import {Location} from '../types/weather';
+import {isMacOS} from '../utils/platformDetect';
+import {formatTime} from '../utils/timeFormat';
 
 interface LocationSidebarProps {
   isDark: boolean;
@@ -92,7 +92,7 @@ export function LocationSidebar({
             </Text>
           </View>
           <Text style={[styles.locationTime, {color: themeColors.textSecondary}]}>
-            {format(new Date(), 'h:mm a')}
+            {formatTime(new Date(), settings.timeFormat)}
           </Text>
         </View>
 
@@ -129,46 +129,102 @@ export function LocationSidebar({
 
   return (
     <View style={[styles.container, {backgroundColor: isDark ? '#1c1c1e' : '#f2f2f7'}]}>
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <TouchableOpacity 
-          style={[styles.searchBar, {backgroundColor: isDark ? '#2c2c2e' : '#e5e5ea'}]}
-          onPress={onSearchPress}>
-          <Icon name="magnify" size={18} color={themeColors.textSecondary} />
-          <Text style={[styles.searchPlaceholder, {color: themeColors.textSecondary}]}>
-            Search
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {isMacOS() ? (
+        // macOS: Floating container style
+        <>
+          <View style={styles.macOSFloatingContainer}>
+            <View style={[
+              styles.macOSCard,
+              {backgroundColor: isDark ? 'rgba(58, 58, 60, 0.95)' : 'rgba(255, 255, 255, 0.95)'},
+            ]}>
+              {/* Search Bar */}
+              <View style={styles.macOSSearchContainer}>
+                <TouchableOpacity 
+                  style={[styles.searchBar, {backgroundColor: isDark ? 'rgba(118, 118, 128, 0.24)' : 'rgba(0, 0, 0, 0.06)'}]}
+                  onPress={onSearchPress}>
+                  <Icon name="magnify" size={16} color={themeColors.textSecondary} />
+                  <Text style={[styles.searchPlaceholder, {color: themeColors.textSecondary}]}>
+                    Search
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-      {/* Locations List */}
-      <FlatList
-        data={locations}
-        keyExtractor={(item) => item.id}
-        renderItem={renderLocation}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Icon name="map-marker-off" size={40} color={themeColors.textSecondary} />
-            <Text style={[styles.emptyText, {color: themeColors.textSecondary}]}>
-              No locations
-            </Text>
+              {/* Locations List */}
+              <FlatList
+                data={locations}
+                keyExtractor={(item) => item.id}
+                renderItem={renderLocation}
+                contentContainerStyle={styles.macOSListContent}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    <Icon name="map-marker-off" size={40} color={themeColors.textSecondary} />
+                    <Text style={[styles.emptyText, {color: themeColors.textSecondary}]}>
+                      No locations
+                    </Text>
+                  </View>
+                }
+              />
+            </View>
           </View>
-        }
-      />
 
-      {/* Settings Button */}
-      <View style={[styles.footer, {borderTopColor: isDark ? '#2c2c2e' : '#e5e5ea'}]}>
-        <TouchableOpacity
-          style={styles.settingsButton}
-          onPress={onSettingsPress}>
-          <Icon name="cog-outline" size={22} color={themeColors.textSecondary} />
-          <Text style={[styles.settingsText, {color: themeColors.textSecondary}]}>
-            Settings
-          </Text>
-        </TouchableOpacity>
-      </View>
+          {/* Settings Button - Outside the card */}
+          <View style={[styles.footer, {borderTopColor: 'transparent'}]}>
+            <TouchableOpacity
+              style={styles.settingsButton}
+              onPress={onSettingsPress}>
+              <Icon name="cog-outline" size={20} color={themeColors.textSecondary} />
+              <Text style={[styles.settingsText, {color: themeColors.textSecondary}]}>
+                Settings
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      ) : (
+        // iOS/Mobile: Original layout
+        <>
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <TouchableOpacity 
+              style={[styles.searchBar, {backgroundColor: isDark ? '#2c2c2e' : '#e5e5ea'}]}
+              onPress={onSearchPress}>
+              <Icon name="magnify" size={18} color={themeColors.textSecondary} />
+              <Text style={[styles.searchPlaceholder, {color: themeColors.textSecondary}]}>
+                Search
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Locations List */}
+          <FlatList
+            data={locations}
+            keyExtractor={(item) => item.id}
+            renderItem={renderLocation}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Icon name="map-marker-off" size={40} color={themeColors.textSecondary} />
+                <Text style={[styles.emptyText, {color: themeColors.textSecondary}]}>
+                  No locations
+                </Text>
+              </View>
+            }
+          />
+
+          {/* Settings Button */}
+          <View style={[styles.footer, {borderTopColor: isDark ? '#2c2c2e' : '#e5e5ea'}]}>
+            <TouchableOpacity
+              style={styles.settingsButton}
+              onPress={onSettingsPress}>
+              <Icon name="cog-outline" size={22} color={themeColors.textSecondary} />
+              <Text style={[styles.settingsText, {color: themeColors.textSecondary}]}>
+                Settings
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -179,17 +235,41 @@ const styles = StyleSheet.create({
     borderRightWidth: StyleSheet.hairlineWidth,
     borderRightColor: 'rgba(0,0,0,0.1)',
   },
+  macOSFloatingContainer: {
+    flex: 1,
+    paddingTop: 48,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+  },
+  macOSCard: {
+    flex: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  macOSSearchContainer: {
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  macOSListContent: {
+    paddingBottom: 8,
+  },
   searchContainer: {
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'macos' ? 68 : 16,
+    paddingTop: 16,
     paddingBottom: 12,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
     gap: 8,
   },
   searchPlaceholder: {
@@ -200,11 +280,11 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   locationItem: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 10,
-    marginHorizontal: 12,
-    marginVertical: 3,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 8,
+    marginHorizontal: 8,
+    marginVertical: 2,
   },
   locationHeader: {
     marginBottom: 8,
@@ -238,7 +318,7 @@ const styles = StyleSheet.create({
     letterSpacing: -2,
   },
   condition: {
-    fontSize: 14,
+    fontSize: 15,
     marginBottom: 4,
   },
   tempRange: {
@@ -246,7 +326,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tempRangeText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
   },
   emptyContainer: {

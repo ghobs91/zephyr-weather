@@ -1,17 +1,19 @@
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {format} from 'date-fns';
 import {Sun, Moon, MoonPhase} from '../types/weather';
 import {colors} from '../theme/colors';
+import {TimeFormat} from '../types/settings';
+import {formatTime} from '../utils/timeFormat';
 
 interface Props {
   sun?: Sun;
   moon?: Moon;
+  timeFormat: TimeFormat;
   isDark: boolean;
 }
 
-export function SunMoonCard({sun, moon, isDark}: Props) {
+export function SunMoonCard({sun, moon, timeFormat, isDark}: Props) {
   const themeColors = isDark ? colors.dark : colors.light;
 
   const getMoonPhaseIcon = (phase?: MoonPhase): string => {
@@ -60,11 +62,6 @@ export function SunMoonCard({sun, moon, isDark}: Props) {
     }
   };
 
-  const formatTime = (date?: Date): string => {
-    if (!date) return '--:--';
-    return format(date, 'HH:mm');
-  };
-
   return (
     <View style={[styles.container, {backgroundColor: themeColors.cardBackground}]}>
       <View style={styles.row}>
@@ -83,10 +80,10 @@ export function SunMoonCard({sun, moon, isDark}: Props) {
 
           <View style={styles.timesRow}>
             <Text style={[styles.timeText, {color: themeColors.textSecondary}]}>
-              {formatTime(sun?.riseTime)}
+              {formatTime(sun?.riseTime, timeFormat)}
             </Text>
             <Text style={[styles.timeText, {color: themeColors.textSecondary}]}>
-              {formatTime(sun?.setTime)}
+              {formatTime(sun?.setTime, timeFormat)}
             </Text>
           </View>
         </View>
@@ -108,10 +105,10 @@ export function SunMoonCard({sun, moon, isDark}: Props) {
 
           <View style={styles.timesRow}>
             <Text style={[styles.timeText, {color: themeColors.textSecondary}]}>
-              {formatTime(moon?.riseTime)}
+              {formatTime(moon?.riseTime, timeFormat)}
             </Text>
             <Text style={[styles.timeText, {color: themeColors.textSecondary}]}>
-              {formatTime(moon?.setTime)}
+              {formatTime(moon?.setTime, timeFormat)}
             </Text>
           </View>
 
@@ -151,7 +148,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   cardTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
   sunVisualization: {

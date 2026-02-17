@@ -21,6 +21,7 @@ import {
   PressureUnit,
   PrecipitationUnit,
   DistanceUnit,
+  TimeFormat,
 } from '../types/settings';
 
 interface SettingsScreenProps {
@@ -138,6 +139,17 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
             {label: 'Dark', value: 'dark'},
           ],
           (value) => updateSettings({theme: value as ThemeMode})
+        )}
+
+        {renderOptionRow(
+          'Time Format',
+          settings.timeFormat,
+          [
+            {label: 'Auto', value: 'auto'},
+            {label: '12h', value: '12h'},
+            {label: '24h', value: '24h'},
+          ],
+          (value) => updateSettings({timeFormat: value as TimeFormat})
         )}
 
         {/* Units Section */}

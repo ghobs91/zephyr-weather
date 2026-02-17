@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
   },
   mainContent: {
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   aqiLabel: {
-    fontSize: 10,
+    fontSize: 11,
     marginTop: 2,
   },
   pollutantsGrid: {

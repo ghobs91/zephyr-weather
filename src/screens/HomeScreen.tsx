@@ -13,7 +13,6 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {format} from 'date-fns';
 
 import {useWeatherStore} from '../store/weatherStore';
 import {fetchWeather, fetchAirQuality} from '../services/openMeteoService';
@@ -22,6 +21,7 @@ import {colors, getTemperatureColor} from '../theme/colors';
 import {WeatherCode, Location} from '../types/weather';
 import {RootStackParamList} from '../navigation/RootNavigator';
 import {useResponsiveLayout} from '../utils/platformDetect';
+import {formatTime} from '../utils/timeFormat';
 
 import {CurrentWeatherCard} from '../components/CurrentWeatherCard';
 import {DailyForecastCard} from '../components/DailyForecastCard';
@@ -244,7 +244,7 @@ export function HomeScreen() {
               {weather?.base?.refreshTime && (
                 <Text style={[styles.updateTime, {color: themeColors.textSecondary}]}>
                   <Icon name="clock-outline" size={12} color={themeColors.textSecondary} />{' '}
-                  {format(new Date(weather.base.refreshTime), 'HH:mm')}
+                  {formatTime(new Date(weather.base.refreshTime), settings.timeFormat)}
                 </Text>
               )}
             </View>
@@ -267,7 +267,7 @@ export function HomeScreen() {
             </View>
             {weather?.base?.refreshTime && (
               <Text style={[styles.macUpdateTime, {color: themeColors.textSecondary}]}>
-                Updated {format(new Date(weather.base.refreshTime), 'h:mm a')}
+                Updated {formatTime(new Date(weather.base.refreshTime), settings.timeFormat)}
               </Text>
             )}
           </View>
@@ -291,59 +291,122 @@ export function HomeScreen() {
           isDark={useDark}
         />
 
-        {/* Daily Forecast */}
-        <DailyForecastCard
-          dailyForecast={dailyForecast}
-          formatTemp={formatTemp}
-          formatSpeed={formatSpeed}
-          isDark={useDark}
-          onDayPress={(index) => navigation.navigate('DailyDetail', {dayIndex: index})}
-        />
+        {isDesktop ? (
+          <>
+            {/* macOS layout: Hourly on top, then two-column row with air quality in right column */}
+            <HourlyForecastCard
+              hourlyForecast={hourlyForecast}
+              formatTemp={formatTemp}
+              formatSpeed={formatSpeed}
+              timeFormat={settings.timeFormat}
+              isDark={useDark}
+            />
 
-        {/* Hourly Forecast */}
-        <HourlyForecastCard
-          hourlyForecast={hourlyForecast}
-          formatTemp={formatTemp}
-          formatSpeed={formatSpeed}
-          isDark={useDark}
-        />
+            <View style={styles.macTwoColumn}>
+              <View style={styles.macLeftColumn}>
+                <DailyForecastCard
+                  dailyForecast={dailyForecast}
+                  formatTemp={formatTemp}
+                  formatSpeed={formatSpeed}
+                  isDark={useDark}
+                  onDayPress={(index) => navigation.navigate('DailyDetail', {dayIndex: index})}
+                  verticalLayout
+                />
+              </View>
+              <View style={styles.macRightColumn}>
+                <WeatherDetailCard
+                  title="Precipitation"
+                  value={`${Math.round(today?.day?.precipitationProbability?.total ?? 0)}%`}
+                  subtitle="Chance of rain"
+                  icon="water-percent"
+                  isDark={useDark}
+                />
+                <WeatherDetailCard
+                  title="Wind"
+                  value={formatSpeed(current?.wind?.speed)}
+                  subtitle={current?.wind?.gusts ? `Gusts: ${formatSpeed(current.wind.gusts)}` : undefined}
+                  icon="weather-windy"
+                  isDark={useDark}
+                />
+                <WeatherDetailCard
+                  title="Pressure"
+                  value={`${Math.round(current?.pressure ?? 0)} hPa`}
+                  icon="gauge"
+                  isDark={useDark}
+                />
+                <WeatherDetailCard
+                  title="Humidity"
+                  value={current?.relativeHumidity !== undefined ? `${Math.round(current.relativeHumidity)}%` : '--'}
+                  icon="water-percent"
+                  isDark={useDark}
+                />
+                
+                {current?.airQuality && (
+                  <View style={styles.macAirQualityContainer}>
+                    <AirQualityCard
+                      airQuality={current.airQuality}
+                      isDark={useDark}
+                    />
+                  </View>
+                )}
+              </View>
+            </View>
+          </>
+        ) : (
+          <>
+            {/* Mobile/tablet layout: original order */}
+            <DailyForecastCard
+              dailyForecast={dailyForecast}
+              formatTemp={formatTemp}
+              formatSpeed={formatSpeed}
+              isDark={useDark}
+              onDayPress={(index) => navigation.navigate('DailyDetail', {dayIndex: index})}
+            />
 
-        {/* Weather Details Grid - adapts columns based on available width */}
-        <View style={[styles.detailsGrid, detailColumns === 4 && styles.detailsGridWide]}>
-          <WeatherDetailCard
-            title="Precipitation"
-            value={`${Math.round(today?.day?.precipitationProbability?.total ?? 0)}%`}
-            subtitle="Chance of rain"
-            icon="water-percent"
-            isDark={useDark}
-          />
-          <WeatherDetailCard
-            title="Wind"
-            value={formatSpeed(current?.wind?.speed)}
-            subtitle={current?.wind?.gusts ? `Gusts: ${formatSpeed(current.wind.gusts)}` : undefined}
-            icon="weather-windy"
-            isDark={useDark}
-          />
-          <WeatherDetailCard
-            title="Pressure"
-            value={`${Math.round(current?.pressure ?? 0)} hPa`}
-            icon="gauge"
-            isDark={useDark}
-          />
-          <WeatherDetailCard
-            title="Humidity"
-            value={current?.relativeHumidity !== undefined ? `${Math.round(current.relativeHumidity)}%` : '--'}
-            icon="water-percent"
-            isDark={useDark}
-          />
-        </View>
+            <HourlyForecastCard
+              hourlyForecast={hourlyForecast}
+              formatTemp={formatTemp}
+              formatSpeed={formatSpeed}
+              timeFormat={settings.timeFormat}
+              isDark={useDark}
+            />
 
-        {/* Air Quality */}
-        {current?.airQuality && (
-          <AirQualityCard
-            airQuality={current.airQuality}
-            isDark={useDark}
-          />
+            <View style={[styles.detailsGrid, detailColumns === 4 && styles.detailsGridWide]}>
+              <WeatherDetailCard
+                title="Precipitation"
+                value={`${Math.round(today?.day?.precipitationProbability?.total ?? 0)}%`}
+                subtitle="Chance of rain"
+                icon="water-percent"
+                isDark={useDark}
+              />
+              <WeatherDetailCard
+                title="Wind"
+                value={formatSpeed(current?.wind?.speed)}
+                subtitle={current?.wind?.gusts ? `Gusts: ${formatSpeed(current.wind.gusts)}` : undefined}
+                icon="weather-windy"
+                isDark={useDark}
+              />
+              <WeatherDetailCard
+                title="Pressure"
+                value={`${Math.round(current?.pressure ?? 0)} hPa`}
+                icon="gauge"
+                isDark={useDark}
+              />
+              <WeatherDetailCard
+                title="Humidity"
+                value={current?.relativeHumidity !== undefined ? `${Math.round(current.relativeHumidity)}%` : '--'}
+                icon="water-percent"
+                isDark={useDark}
+              />
+            </View>
+
+            {current?.airQuality && (
+              <AirQualityCard
+                airQuality={current.airQuality}
+                isDark={useDark}
+              />
+            )}
+          </>
         )}
 
         {/* Attribution */}
@@ -385,7 +448,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   locationName: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '600',
     flex: 1,
   },
@@ -401,12 +464,12 @@ const styles = StyleSheet.create({
     padding: 32,
   },
   emptyText: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: '600',
     marginTop: 16,
   },
   emptySubtext: {
-    fontSize: 14,
+    fontSize: 15,
     marginTop: 8,
     textAlign: 'center',
   },
@@ -462,6 +525,24 @@ const styles = StyleSheet.create({
   },
   detailsGridWide: {
     // On wider screens all 4 cards fit in one row
+  },
+  macTwoColumn: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  macLeftColumn: {
+    flex: 1,
+  },
+  macRightColumn: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    alignContent: 'flex-start',
+  },
+  macAirQualityContainer: {
+    width: '100%',
   },
   attribution: {
     alignItems: 'center',

@@ -2,7 +2,7 @@ import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {useColorScheme} from 'react-native';
+import {useColorScheme, TouchableOpacity} from 'react-native';
 
 import {HomeScreen} from '../screens/HomeScreen';
 import {MacOSHomeScreen} from '../screens/MacOSHomeScreen';
@@ -120,10 +120,20 @@ export function RootNavigator() {
       <Stack.Screen
         name="SearchLocation"
         component={SearchLocationScreen}
-        options={{
+        options={({navigation}) => ({
           title: 'Add Location',
-          presentation: 'modal',
-        }}
+          presentation: isDesktop ? 'formSheet' : 'modal',
+          gestureEnabled: true,
+          headerShown: true,
+          headerLeft: () => null,
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={{paddingHorizontal: 16, paddingVertical: 8}}>
+              <Icon name="close" size={24} color={themeColors.text} />
+            </TouchableOpacity>
+          ),
+        })}
       />
       <Stack.Screen
         name="Alerts"

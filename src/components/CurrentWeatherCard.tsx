@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     height: 100,
   },
   weatherText: {
-    fontSize: 16,
+    fontSize: 17,
     marginTop: 8,
     textAlign: 'center',
   },
@@ -116,13 +116,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   feelsLike: {
-    fontSize: 14,
+    fontSize: 13,
     marginBottom: 4,
   },
   dayNightTemps: {
     flexDirection: 'row',
   },
   dayNightText: {
-    fontSize: 14,
+    fontSize: 13,
   },
 });

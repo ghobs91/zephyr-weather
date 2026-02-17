@@ -20,6 +20,7 @@ import {WeatherCode, Daily} from '../types/weather';
 import {RootStackParamList} from '../navigation/RootNavigator';
 import {getWeatherIconSource} from '../utils/weatherIcons';
 import {useResponsiveLayout} from '../utils/platformDetect';
+import {formatTime} from '../utils/timeFormat';
 
 type DailyDetailRouteProp = RouteProp<RootStackParamList, 'DailyDetail'>;
 
@@ -158,76 +159,88 @@ export function DailyDetailScreen() {
             Temperature Trend
           </Text>
           {dayHourly.length > 0 ? (
-            <View style={styles.chartContainer}>
-              {/* Weather icons row */}
-              <View style={styles.chartIconsRow}>
-                {dayHourly.filter((_, i) => i % 3 === 0 || i === dayHourly.length - 1).map((hour, index) => (
-                  <View key={index} style={{alignItems: 'center'}}>
-                    <Image
-                      source={getWeatherIconSource(hour.weatherCode, hour.isDaylight)}
-                      style={{width: 16, height: 16}}
-                      resizeMode="contain"
-                    />
-                  </View>
-                ))}
-              </View>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chartScrollContent}
+              style={styles.chartScrollView}>
+              <View style={styles.chartContainer}>
+                {/* Weather icons row */}
+                <View style={styles.chartIconsRow}>
+                  {dayHourly.filter((_, i) => i % 3 === 0 || i === dayHourly.length - 1).map((hour, index) => (
+                    <View key={index} style={{alignItems: 'center'}}>
+                      <Image
+                        source={getWeatherIconSource(hour.weatherCode, hour.isDaylight)}
+                        style={{width: 16, height: 16}}
+                        resizeMode="contain"
+                      />
+                    </View>
+                  ))}
+                </View>
 
-              {/* Interactive temperature chart */}
-              <LineChart.Provider
-                data={dayHourly.map((hour, index) => {
-                  const tempC = hour.temperature?.temperature ?? 0;
-                  const tempConverted = settings.temperatureUnit === 'fahrenheit' 
-                    ? tempC * 9/5 + 32 
-                    : tempC;
-                  return {
-                    timestamp: index,
-                    value: tempConverted,
-                  };
-                })}
-                yRange={{
-                  min: Math.min(...dayHourly.map(h => {
-                    const tempC = h.temperature?.temperature ?? 0;
-                    return settings.temperatureUnit === 'fahrenheit' ? tempC * 9/5 + 32 : tempC;
-                  })) - 2,
-                  max: Math.max(...dayHourly.map(h => {
-                    const tempC = h.temperature?.temperature ?? 0;
-                    return settings.temperatureUnit === 'fahrenheit' ? tempC * 9/5 + 32 : tempC;
-                  })) + 2,
-                }}>
-                <LineChart height={120} width={chartWidth}>
-                  <LineChart.Path color={themeColors.primary} width={2}>
-                    <LineChart.Gradient color={themeColors.primary} />
-                  </LineChart.Path>
-                  <LineChart.CursorCrosshair
-                    color={themeColors.primary}>
-                    <LineChart.Tooltip
-                      position="top"
-                      textStyle={{
-                        color: themeColors.text,
-                        fontSize: 16,
-                        fontWeight: '600',
-                      }}
-                      style={{
-                        backgroundColor: themeColors.cardBackground,
-                        padding: 8,
-                        borderRadius: 8,
-                      }}
-                    />
-                  </LineChart.CursorCrosshair>
-                </LineChart>
-              </LineChart.Provider>
+                {/* Interactive temperature chart */}
+                <LineChart.Provider
+                  data={dayHourly.map((hour, index) => {
+                    const tempC = hour.temperature?.temperature ?? 0;
+                    const tempConverted = settings.temperatureUnit === 'fahrenheit' 
+                      ? tempC * 9/5 + 32 
+                      : tempC;
+                    return {
+                      timestamp: index,
+                      value: tempConverted,
+                    };
+                  })}
+                  yRange={{
+                    min: Math.min(...dayHourly.map(h => {
+                      const tempC = h.temperature?.temperature ?? 0;
+                      return settings.temperatureUnit === 'fahrenheit' ? tempC * 9/5 + 32 : tempC;
+                    })) - 2,
+                    max: Math.max(...dayHourly.map(h => {
+                      const tempC = h.temperature?.temperature ?? 0;
+                      return settings.temperatureUnit === 'fahrenheit' ? tempC * 9/5 + 32 : tempC;
+                    })) + 2,
+                  }}>
+                  <LineChart height={120} width={chartWidth}>
+                    <LineChart.Path color={themeColors.primary} width={2}>
+                      <LineChart.Gradient color={themeColors.primary} />
+                    </LineChart.Path>
+                    <LineChart.CursorCrosshair
+                      color={themeColors.primary}>
+                      <LineChart.Tooltip
+                        position="top"
+                        textStyle={{
+                          color: themeColors.text,
+                          fontSize: 16,
+                          fontWeight: '600',
+                        }}
+                        style={{
+                          backgroundColor: themeColors.cardBackground,
+                          padding: 8,
+                          borderRadius: 8,
+                        }}>
+                        <LineChart.PriceText
+                          format={({value}) => {
+                            'worklet';
+                            return `${Math.round(value)}°`;
+                          }}
+                        />
+                      </LineChart.Tooltip>
+                    </LineChart.CursorCrosshair>
+                  </LineChart>
+                </LineChart.Provider>
 
-              {/* Hour labels */}
-              <View style={styles.chartHoursRow}>
-                {dayHourly.filter((_, i) => i % 3 === 0 || i === dayHourly.length - 1).map((hour, index) => (
-                  <Text
-                    key={index}
-                    style={[styles.chartHour, {color: themeColors.textSecondary}]}>
-                    {format(hour.date, 'ha').toLowerCase()}
-                  </Text>
-                ))}
+                {/* Hour labels */}
+                <View style={styles.chartHoursRow}>
+                  {dayHourly.filter((_, i) => i % 3 === 0 || i === dayHourly.length - 1).map((hour, index) => (
+                    <Text
+                      key={index}
+                      style={[styles.chartHour, {color: themeColors.textSecondary}]}>
+                      {formatTime(hour.date, settings.timeFormat, {showMinutes: false, lowercase: true})}
+                    </Text>
+                  ))}
+                </View>
               </View>
-            </View>
+            </ScrollView>
           ) : (
             <Text style={[styles.noDataText, {color: themeColors.textSecondary}]}>
               No hourly data available
@@ -259,9 +272,9 @@ export function DailyDetailScreen() {
               {(() => {
                 const total = day.day?.precipitation?.total ?? 0;
                 if (settings.precipitationUnit === 'inch') {
-                  return `${(total / 25.4).toFixed(2)} in`;
+                  return `${Math.round(total / 25.4 * 100) / 100} in`;
                 }
-                return `${total.toFixed(1)} mm`;
+                return `${Math.round(total)} mm`;
               })()}
             </Text>
           </View>
@@ -283,7 +296,7 @@ export function DailyDetailScreen() {
                 if (settings.speedUnit === 'mph') {
                   return `${Math.round(speed * 0.621371)} mph`;
                 } else if (settings.speedUnit === 'ms') {
-                  return `${(speed / 3.6).toFixed(1)} m/s`;
+                  return `${Math.round(speed / 3.6)} m/s`;
                 } else if (settings.speedUnit === 'kn') {
                   return `${Math.round(speed * 0.539957)} kn`;
                 }
@@ -301,7 +314,7 @@ export function DailyDetailScreen() {
                 if (settings.speedUnit === 'mph') {
                   return `${Math.round(gusts * 0.621371)} mph`;
                 } else if (settings.speedUnit === 'ms') {
-                  return `${(gusts / 3.6).toFixed(1)} m/s`;
+                  return `${Math.round(gusts / 3.6)} m/s`;
                 } else if (settings.speedUnit === 'kn') {
                   return `${Math.round(gusts * 0.539957)} kn`;
                 }
@@ -345,7 +358,7 @@ export function DailyDetailScreen() {
                 Sunrise
               </Text>
               <Text style={[styles.sunMoonTime, {color: themeColors.text}]}>
-                {day.sun?.riseTime ? format(new Date(day.sun.riseTime), 'h:mm a') : '--:--'}
+                {formatTime(day.sun?.riseTime ? new Date(day.sun.riseTime) : undefined, settings.timeFormat)}
               </Text>
             </View>
             <View style={styles.sunMoonItem}>
@@ -354,7 +367,7 @@ export function DailyDetailScreen() {
                 Sunset
               </Text>
               <Text style={[styles.sunMoonTime, {color: themeColors.text}]}>
-                {day.sun?.setTime ? format(new Date(day.sun.setTime), 'h:mm a') : '--:--'}
+                {formatTime(day.sun?.setTime ? new Date(day.sun.setTime) : undefined, settings.timeFormat)}
               </Text>
             </View>
             <View style={styles.sunMoonItem}>
@@ -368,7 +381,9 @@ export function DailyDetailScreen() {
                   const rise = new Date(day.sun.riseTime);
                   const set = new Date(day.sun.setTime);
                   const hours = (set.getTime() - rise.getTime()) / (1000 * 60 * 60);
-                  return `${hours.toFixed(1)}h`;
+                  const wholeHours = Math.floor(hours);
+                  const minutes = Math.round((hours - wholeHours) * 60);
+                  return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`;
                 })()}
               </Text>
             </View>
@@ -460,8 +475,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  chartContainer: {
+  chartScrollView: {
     marginTop: 16,
+  },
+  chartScrollContent: {
+    paddingRight: 16,
+  },
+  chartContainer: {
     width: '100%',
     alignSelf: 'center',
   },

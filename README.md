@@ -1,6 +1,8 @@
 # Zephyr Weather
 
-A beautiful, feature-rich weather app for iOS and macOS built with React Native, inspired by [Breezy Weather](https://github.com/breezy-weather/breezy-weather).
+A beautifully simple weather app you can rely on!
+
+Inspired by [Breezy Weather](https://github.com/breezy-weather/breezy-weather).
 
 ![React Native](https://img.shields.io/badge/React%20Native-0.79-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)

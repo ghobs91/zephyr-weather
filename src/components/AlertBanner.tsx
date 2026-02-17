@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   },
   headline: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
   timeRange: {

@@ -4,6 +4,7 @@ export type SpeedUnit = 'kmh' | 'mph' | 'ms' | 'kn';
 export type PressureUnit = 'hpa' | 'mb' | 'inhg' | 'mmhg';
 export type PrecipitationUnit = 'mm' | 'inch';
 export type DistanceUnit = 'km' | 'mi';
+export type TimeFormat = 'auto' | '12h' | '24h';
 
 export interface AppSettings {
   theme: ThemeMode;
@@ -12,6 +13,7 @@ export interface AppSettings {
   pressureUnit: PressureUnit;
   precipitationUnit: PrecipitationUnit;
   distanceUnit: DistanceUnit;
+  timeFormat: TimeFormat;
   defaultForecastSource: string;
   refreshInterval: number; // in minutes
   showNotifications: boolean;
@@ -28,6 +30,7 @@ export const defaultSettings: AppSettings = {
   pressureUnit: 'inhg',
   precipitationUnit: 'inch',
   distanceUnit: 'mi',
+  timeFormat: 'auto',
   defaultForecastSource: 'nws',
   refreshInterval: 60,
   showNotifications: true,

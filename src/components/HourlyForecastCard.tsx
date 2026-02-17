@@ -8,15 +8,18 @@ import {
   Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {format, isSameHour} from 'date-fns';
+import {isSameHour} from 'date-fns';
 import {Hourly, WeatherCode} from '../types/weather';
 import {colors} from '../theme/colors';
 import {getWeatherIconSource} from '../utils/weatherIcons';
+import {TimeFormat} from '../types/settings';
+import {formatHourlyTime} from '../utils/timeFormat';
 
 interface Props {
   hourlyForecast: Hourly[];
   formatTemp: (temp?: number) => string;
   formatSpeed: (speedKmh?: number) => string;
+  timeFormat: TimeFormat;
   isDark: boolean;
 }
 
@@ -26,6 +29,7 @@ export function HourlyForecastCard({
   hourlyForecast,
   formatTemp,
   formatSpeed,
+  timeFormat,
   isDark,
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>('conditions');
@@ -93,7 +97,7 @@ export function HourlyForecastCard({
                   styles.hourLabel,
                   {color: isNow ? themeColors.primary : themeColors.text},
                 ]}>
-                {isNow ? 'Now' : format(hour.date, 'HH:mm')}
+                {formatHourlyTime(hour.date, isNow, timeFormat)}
               </Text>
 
               <Image
@@ -166,7 +170,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   title: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
   },
   tabContainer: {
@@ -189,7 +193,7 @@ const styles = StyleSheet.create({
   },
   hourColumn: {
     alignItems: 'center',
-    width: 56,
+    width: 66,
   },
   hourLabel: {
     fontSize: 12,
@@ -212,14 +216,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   precipText: {
-    fontSize: 10,
+    fontSize: 11,
   },
   windInfo: {
     alignItems: 'center',
     marginTop: 8,
   },
   windText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
     marginTop: 2,
   },
