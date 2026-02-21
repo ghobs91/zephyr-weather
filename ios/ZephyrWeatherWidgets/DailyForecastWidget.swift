@@ -22,10 +22,20 @@ struct DailyForecastProvider: AppIntentTimelineProvider {
     
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<DailyForecastEntry> {
         let data = WeatherDataManager.shared.loadWeatherData(for: configuration.location?.id) ?? WeatherDataManager.shared.getMockWeatherData()
-        let entry = DailyForecastEntry(date: Date(), weatherData: data, configuration: configuration)
+        let now = Date()
+        let entry = DailyForecastEntry(date: now, weatherData: data, configuration: configuration)
         
-        // Update every 30 minutes
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: Date())!
+        let calendar = Calendar.current
+        // Refresh every 30 minutes, or exactly at midnight — whichever comes first.
+        // The midnight refresh ensures day labels and filtered forecasts update
+        // correctly when the date changes without waiting for the next 30-min poll.
+        let thirtyMinutes = calendar.date(byAdding: .minute, value: 30, to: now)!
+        let nextMidnight = calendar.nextDate(
+            after: now,
+            matching: DateComponents(hour: 0, minute: 0, second: 0),
+            matchingPolicy: .nextTime
+        ) ?? thirtyMinutes
+        let nextUpdate = min(thirtyMinutes, nextMidnight)
         return Timeline(entries: [entry], policy: .after(nextUpdate))
     }
 }
@@ -40,8 +50,16 @@ struct DailyForecastWidgetView: View {
     var entry: DailyForecastProvider.Entry
     @Environment(\.widgetFamily) var family
     
+    // Only show today and future days — past days may be present in cached data.
+    var todayAndFutureDays: [WeatherData.DailyForecast] {
+        let startOfToday = Calendar.current.startOfDay(for: Date())
+        return entry.weatherData.daily.filter {
+            Calendar.current.startOfDay(for: $0.date) >= startOfToday
+        }
+    }
+
     var allTemps: [Double] {
-        entry.weatherData.daily.flatMap { day in
+        todayAndFutureDays.flatMap { day in
             [day.dayTemp, day.nightTemp].compactMap { $0 }
         }
     }
@@ -58,7 +76,7 @@ struct DailyForecastWidgetView: View {
         if family == .systemMedium {
             // Compact horizontal layout for medium widget
             VStack(spacing: 4) {
-                ForEach(Array(entry.weatherData.daily.prefix(4).enumerated()), id: \.offset) { index, day in
+                ForEach(Array(todayAndFutureDays.prefix(4).enumerated()), id: \.offset) { index, day in
                     DayRow(day: day, minTemp: minTemp, maxTemp: maxTemp, temperatureUnit: entry.weatherData.temperatureUnit ?? "fahrenheit")
                 }
             }
@@ -78,7 +96,7 @@ struct DailyForecastWidgetView: View {
         } else if family == .systemExtraLarge {
             // Extra large layout for macOS - show full week with details
             HStack(spacing: 6) {
-                ForEach(Array(entry.weatherData.daily.prefix(7).enumerated()), id: \.offset) { index, day in
+                ForEach(Array(todayAndFutureDays.prefix(7).enumerated()), id: \.offset) { index, day in
                     DayColumn(day: day, minTemp: minTemp, maxTemp: maxTemp, temperatureUnit: entry.weatherData.temperatureUnit ?? "fahrenheit")
                 }
             }
@@ -98,7 +116,7 @@ struct DailyForecastWidgetView: View {
         } else {
             // Vertical column layout for large widget
             HStack(spacing: 3) {
-                ForEach(Array(entry.weatherData.daily.prefix(7).enumerated()), id: \.offset) { index, day in
+                ForEach(Array(todayAndFutureDays.prefix(7).enumerated()), id: \.offset) { index, day in
                     DayColumn(day: day, minTemp: minTemp, maxTemp: maxTemp, temperatureUnit: entry.weatherData.temperatureUnit ?? "fahrenheit")
                 }
             }

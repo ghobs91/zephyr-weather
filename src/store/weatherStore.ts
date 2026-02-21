@@ -3,7 +3,7 @@ import {persist, createJSONStorage} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Location, Weather} from '../types/weather';
 import {AppSettings, defaultSettings} from '../types/settings';
-import {updateWidgetData, updateAllLocationsWeatherData} from '../utils/widgetManager';
+import {updateLocationsList, updateAllLocationsWeatherData} from '../utils/widgetManager';
 
 interface WeatherState {
   locations: Location[];
@@ -102,13 +102,7 @@ export const useWeatherStore = create<WeatherState>()(
         return {locations: newLocations};
       }),
       
-      setCurrentLocationIndex: (index) => set((state) => {
-        const newLocation = state.locations[index];
-        if (newLocation?.weather) {
-          updateWidgetData(newLocation, state.settings).catch(err =>
-            console.error('Failed to update widget:', err)
-          );
-        }
+      setCurrentLocationIndex: (index) => set(() => {
         return {currentLocationIndex: index};
       }),
       
@@ -166,6 +160,13 @@ export const useWeatherStore = create<WeatherState>()(
         settings: state.settings,
         currentLocationIndex: state.currentLocationIndex,
       }),
+      onRehydrateStorage: () => (state, error) => {
+        if (state && !error && state.locations.length > 0) {
+          updateLocationsList(state.locations).catch(err =>
+            console.error('Failed to update locations list on rehydration:', err)
+          );
+        }
+      },
     }
   )
 );
