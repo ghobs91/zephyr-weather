@@ -1,11 +1,26 @@
-import {Platform} from 'react-native';
-import SharedGroupPreferences from 'react-native-shared-group-preferences';
+import {Platform, NativeModules} from 'react-native';
 import {Weather, WeatherCode, Location} from '../types/weather';
 import {AppSettings, TemperatureUnit} from '../types/settings';
 
 const APP_GROUP_IDENTIFIER = 'group.com.zephyrweather.shared';
 const WEATHER_DATA_KEY = 'weatherData';
 const LOCATIONS_LIST_KEY = 'locations';
+
+const {ZephyrWidgetBridge} = NativeModules;
+
+async function setSharedItem(key: string, value: string): Promise<void> {
+  if (ZephyrWidgetBridge) {
+    await ZephyrWidgetBridge.setItem(key, value, APP_GROUP_IDENTIFIER);
+  } else {
+    console.warn('ZephyrWidgetBridge not available');
+  }
+}
+
+async function reloadWidgets(): Promise<void> {
+  if (ZephyrWidgetBridge?.reloadWidgets) {
+    await ZephyrWidgetBridge.reloadWidgets();
+  }
+}
 
 // Convert weather code from TypeScript format (PARTLY_CLOUDY) to Swift format (partly_cloudy)
 function convertWeatherCode(code: string | null | undefined): string | null {
@@ -63,11 +78,7 @@ export async function updateLocationsList(locations: Location[]): Promise<void> 
 
     const jsonData = JSON.stringify(locationsList);
     
-    await SharedGroupPreferences.setItem(
-      LOCATIONS_LIST_KEY,
-      jsonData,
-      APP_GROUP_IDENTIFIER
-    );
+    await setSharedItem(LOCATIONS_LIST_KEY, jsonData);
 
     console.log('Locations list updated successfully');
   } catch (error) {
@@ -97,13 +108,11 @@ export async function updateAllLocationsWeatherData(
       }
     }
 
-    const jsonData = JSON.stringify(weatherDataMap);
-    
-    await SharedGroupPreferences.setItem(
-      WEATHER_DATA_KEY,
-      jsonData,
-      APP_GROUP_IDENTIFIER
-    );
+    if (Object.keys(weatherDataMap).length > 0) {
+      const jsonData = JSON.stringify(weatherDataMap);
+      await setSharedItem(WEATHER_DATA_KEY, jsonData);
+      await reloadWidgets();
+    }
 
     console.log('All locations weather data updated successfully');
   } catch (error) {
@@ -126,11 +135,8 @@ export async function updateWidgetData(location: Location, settings?: AppSetting
     const jsonData = JSON.stringify(widgetData);
     
     // Write to shared container as JSON file
-    await SharedGroupPreferences.setItem(
-      WEATHER_DATA_KEY,
-      jsonData,
-      APP_GROUP_IDENTIFIER
-    );
+    await setSharedItem(WEATHER_DATA_KEY, jsonData);
+    await reloadWidgets();
 
     console.log('Widget data updated successfully');
   } catch (error) {
@@ -156,22 +162,39 @@ function createWidgetWeatherData(location: Location, settings?: AppSettings): Wi
           isDaylight: location.weather.current.isDaylight ?? null,
         }
       : null,
-    daily: location.weather.dailyForecast.slice(0, 7).map(day => ({
-      date: day.date.toISOString(),
-      dayTemp: day.day?.temperature?.temperature ?? null,
-      nightTemp: day.night?.temperature?.temperature ?? null,
-      dayWeatherCode: convertWeatherCode(day.day?.weatherCode),
-      nightWeatherCode: convertWeatherCode(day.night?.weatherCode),
-      dayWeatherText: day.day?.weatherText ?? null,
-      precipProbability: day.day?.precipitationProbability?.total ?? null,
-    })),
-    hourly: location.weather.hourlyForecast.slice(0, 24).map(hour => ({
-      date: hour.date.toISOString(),
-      temperature: hour.temperature?.temperature ?? null,
-      weatherCode: convertWeatherCode(hour.weatherCode),
-      precipProbability: hour.precipitationProbability?.total ?? null,
-      isDaylight: hour.isDaylight ?? null,
-    })),
+    daily: (() => {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      return location.weather.dailyForecast
+        .filter(day => {
+          const dayStart = new Date(day.date);
+          dayStart.setHours(0, 0, 0, 0);
+          return dayStart.getTime() >= todayStart.getTime();
+        })
+        .slice(0, 7)
+        .map(day => ({
+          date: day.date.toISOString(),
+          dayTemp: day.day?.temperature?.temperature ?? null,
+          nightTemp: day.night?.temperature?.temperature ?? null,
+          dayWeatherCode: convertWeatherCode(day.day?.weatherCode),
+          nightWeatherCode: convertWeatherCode(day.night?.weatherCode),
+          dayWeatherText: day.day?.weatherText ?? null,
+          precipProbability: day.day?.precipitationProbability?.total ?? null,
+        }));
+    })(),
+    hourly: (() => {
+      const now = new Date();
+      return location.weather.hourlyForecast
+        .filter(hour => hour.date.getTime() >= now.getTime())
+        .slice(0, 24)
+        .map(hour => ({
+          date: hour.date.toISOString(),
+          temperature: hour.temperature?.temperature ?? null,
+          weatherCode: convertWeatherCode(hour.weatherCode),
+          precipProbability: hour.precipitationProbability?.total ?? null,
+          isDaylight: hour.isDaylight ?? null,
+        }));
+    })(),
     locationName: location.city ?? 'Unknown Location',
     temperatureUnit: settings?.temperatureUnit ?? 'fahrenheit',
   };

@@ -94,6 +94,23 @@ class WeatherDataManager {
     private let appGroupIdentifier = "group.com.zephyrweather.shared"
     private let weatherDataKey = "weatherData"
     
+    /// ISO8601 formatter that handles fractional seconds (.000Z) from JavaScript's toISOString()
+    private static let iso8601WithFractionalSeconds: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return formatter
+    }()
+    
+    private static let iso8601Plain: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return formatter
+    }()
+    
     func loadWeatherData(for locationId: String? = nil) -> WeatherData? {
         guard let userDefaults = UserDefaults(suiteName: appGroupIdentifier) else {
             return nil
@@ -109,13 +126,29 @@ class WeatherDataManager {
         
         do {
             let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
+            decoder.dateDecodingStrategy = .custom { decoder in
+                let container = try decoder.singleValueContainer()
+                let dateString = try container.decode(String.self)
+                if let date = WeatherDataManager.iso8601WithFractionalSeconds.date(from: dateString) {
+                    return date
+                }
+                if let date = WeatherDataManager.iso8601Plain.date(from: dateString) {
+                    return date
+                }
+                throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date: \(dateString)")
+            }
             
             // If a location ID is provided, try to load from the map
             if let locationId = locationId {
                 // Try to decode as a map of location IDs to weather data
                 if let weatherDataMap = try? decoder.decode([String: WeatherData].self, from: data) {
                     return weatherDataMap[locationId]
+                }
+            } else {
+                // No location specified — try to decode as map and return first entry
+                if let weatherDataMap = try? decoder.decode([String: WeatherData].self, from: data),
+                   let firstEntry = weatherDataMap.values.first {
+                    return firstEntry
                 }
             }
             

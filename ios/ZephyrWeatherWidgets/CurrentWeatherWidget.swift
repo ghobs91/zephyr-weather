@@ -22,10 +22,20 @@ struct CurrentWeatherProvider: AppIntentTimelineProvider {
     
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<CurrentWeatherEntry> {
         let data = WeatherDataManager.shared.loadWeatherData(for: configuration.location?.id) ?? WeatherDataManager.shared.getMockWeatherData()
-        let entry = CurrentWeatherEntry(date: Date(), weatherData: data, configuration: configuration)
+        let now = Date()
+        let entry = CurrentWeatherEntry(date: now, weatherData: data, configuration: configuration)
         
-        // Update every 15 minutes
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 15, to: Date())!
+        let calendar = Calendar.current
+        // Refresh every 15 minutes, or exactly at midnight — whichever comes first.
+        // The midnight refresh ensures hourly forecasts and day labels stay current
+        // when the date changes without waiting for the next 15-min poll.
+        let fifteenMinutes = calendar.date(byAdding: .minute, value: 15, to: now)!
+        let nextMidnight = calendar.nextDate(
+            after: now,
+            matching: DateComponents(hour: 0, minute: 0, second: 0),
+            matchingPolicy: .nextTime
+        ) ?? fifteenMinutes
+        let nextUpdate = min(fifteenMinutes, nextMidnight)
         return Timeline(entries: [entry], policy: .after(nextUpdate))
     }
 }
@@ -238,10 +248,12 @@ struct CurrentWeatherWidgetView: View {
             Divider()
                 .background(Color.white.opacity(0.2))
             
-            // Upcoming hours
+            // Upcoming hours — filter out any hours already in the past
             if !entry.weatherData.hourly.isEmpty {
+                let now = Date()
+                let upcomingHours = entry.weatherData.hourly.filter { $0.date > now }
                 HStack(spacing: 0) {
-                    ForEach(Array(entry.weatherData.hourly.prefix(6).enumerated()), id: \.offset) { index, hour in
+                    ForEach(Array(upcomingHours.prefix(6).enumerated()), id: \.offset) { index, hour in
                         VStack(spacing: 4) {
                             Text(hourLabel(hour.date))
                                 .font(.system(size: 11, weight: .medium))
