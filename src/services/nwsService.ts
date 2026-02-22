@@ -138,6 +138,64 @@ interface NWSAlertsResponse {
   }>;
 }
 
+// Get YYYY-MM-DD string for a Date in a specific timezone
+function localDateKey(date: Date, timeZone: string): string {
+  return date.toLocaleDateString('en-CA', {timeZone}); // en-CA gives YYYY-MM-DD
+}
+
+// Build a map of local date -> summed precipitation (mm) from NWS gridData
+function buildDailyPrecipMap(
+  values: NWSGridDataValue[],
+  timeZone: string
+): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const {validTime, value} of values) {
+    if (isNaN(value)) continue;
+    const timeStr = validTime.split('/')[0];
+    const date = new Date(timeStr);
+    if (isNaN(date.getTime())) continue;
+    const key = localDateKey(date, timeZone);
+    map.set(key, (map.get(key) ?? 0) + value);
+  }
+  return map;
+}
+
+// Build a map of local date -> summed snowfall (mm) from NWS gridData
+function buildDailySnowMap(
+  values: NWSGridDataValue[],
+  timeZone: string
+): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const {validTime, value} of values) {
+    if (isNaN(value) || value <= 0) continue;
+    const timeStr = validTime.split('/')[0];
+    const date = new Date(timeStr);
+    if (isNaN(date.getTime())) continue;
+    const key = localDateKey(date, timeZone);
+    map.set(key, (map.get(key) ?? 0) + value);
+  }
+  return map;
+}
+
+// Build a map of local date -> max wind gust (km/h) from NWS gridData
+function buildDailyGustMap(
+  values: NWSGridDataValue[],
+  timeZone: string
+): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const {validTime, value} of values) {
+    if (isNaN(value)) continue;
+    const timeStr = validTime.split('/')[0];
+    const date = new Date(timeStr);
+    if (isNaN(date.getTime())) continue;
+    const key = localDateKey(date, timeZone);
+    if (value > (map.get(key) ?? 0)) {
+      map.set(key, value);
+    }
+  }
+  return map;
+}
+
 function mapNWSWeatherToCode(
   shortForecast: string,
   icon: string,
@@ -334,6 +392,34 @@ export async function fetchNWSWeather(
       currentHumidity = gridDataResponse.data.properties.relativeHumidity.values[0].value;
     }
 
+    // Build per-day precipitation and gust maps from grid data
+    const precipMap = gridDataResponse?.data?.properties?.quantitativePrecipitation?.values
+      ? buildDailyPrecipMap(
+          gridDataResponse.data.properties.quantitativePrecipitation.values,
+          timeZone
+        )
+      : new Map<string, number>();
+
+    const gustMap = gridDataResponse?.data?.properties?.windGust?.values
+      ? buildDailyGustMap(
+          gridDataResponse.data.properties.windGust.values,
+          timeZone
+        )
+      : new Map<string, number>();
+
+    // NWS snowfallAmount is in mm; convert to cm to match Open-Meteo's snowfall_sum unit
+    const rawSnowValues = gridDataResponse?.data?.properties?.snowfallAmount?.values;
+    console.log('[NWS] gridData snowfallAmount has', rawSnowValues?.length ?? 0, 'values');
+    if (rawSnowValues?.length) {
+      console.log('[NWS] first few snowfallAmount values:', JSON.stringify(rawSnowValues.slice(0, 5)));
+    }
+    const snowMap = rawSnowValues
+      ? buildDailySnowMap(rawSnowValues, timeZone)
+      : new Map<string, number>();
+
+    console.log('[NWS] snowMap entries:', JSON.stringify(Object.fromEntries(snowMap)));
+    console.log('[NWS] precipMap entries:', JSON.stringify(Object.fromEntries(precipMap)));
+
     // Build current weather from the first period
     const currentPeriod = hourlyPeriods[0];
     const current: Current | undefined = currentPeriod
@@ -365,7 +451,7 @@ export async function fetchNWSWeather(
 
     for (const period of periods) {
       const date = new Date(period.startTime);
-      const dateKey = date.toISOString().split('T')[0];
+      const dateKey = localDateKey(date, timeZone);
 
       if (!dailyMap.has(dateKey)) {
         const dateObj = new Date(dateKey);
@@ -390,20 +476,44 @@ export async function fetchNWSWeather(
           ? fahrenheitToCelsius(period.temperature)
           : period.temperature;
 
+      const precipTotal = precipMap.get(dateKey);
+      const windGust = gustMap.get(dateKey);
+      const snowMm = snowMap.get(dateKey);
+      // NWS snowfallAmount is in mm of snow depth; convert to cm to match Open-Meteo
+      const snowCm = snowMm !== undefined ? snowMm / 10 : undefined;
+
       if (period.isDaytime) {
+        const weatherCode = mapNWSWeatherToCode(
+          period.shortForecast,
+          period.icon,
+          true
+        );
+        const isSnowCode = weatherCode === WeatherCode.SNOW ||
+          weatherCode === WeatherCode.SNOW_LIGHT ||
+          weatherCode === WeatherCode.SNOW_HEAVY;
+
+        // Fallback: if gridData has no snowfallAmount but forecast says snow,
+        // estimate snow depth from liquid precipitation using ~10:1 ratio
+        let finalSnowCm = snowCm;
+        if (finalSnowCm === undefined && isSnowCode && precipTotal !== undefined && precipTotal > 0) {
+          // precipTotal is mm of liquid equivalent; snow ≈ 10x depth in mm, then /10 for cm
+          finalSnowCm = precipTotal; // mm liquid → cm snow (10:1 ratio: mm * 10 / 10 = mm)
+          console.log(`[NWS] dateKey=${dateKey} estimated snowCm=${finalSnowCm} from precipTotal=${precipTotal}mm`);
+        }
+
         daily.day = {
-          weatherCode: mapNWSWeatherToCode(
-            period.shortForecast,
-            period.icon,
-            true
-          ),
+          weatherCode,
           weatherText: period.shortForecast,
           temperature: {
             temperature: tempC,
           },
+          precipitation: (precipTotal !== undefined || finalSnowCm !== undefined)
+            ? {total: precipTotal, snow: finalSnowCm}
+            : undefined,
           wind: {
             speed: mphToKmh(parseWindSpeed(period.windSpeed)),
             direction: parseWindDirection(period.windDirection),
+            gusts: windGust,
           },
           precipitationProbability: {
             total: period.probabilityOfPrecipitation?.value,

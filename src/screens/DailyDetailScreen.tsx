@@ -266,11 +266,12 @@ export function DailyDetailScreen() {
           </View>
           <View style={styles.detailRow}>
             <Text style={[styles.detailLabel, {color: themeColors.textSecondary}]}>
-              Total
+              {(day.day?.precipitation?.snow ?? 0) > 0 ? 'Total (liquid equiv.)' : 'Total'}
             </Text>
             <Text style={[styles.detailValue, {color: themeColors.text}]}>
               {(() => {
-                const total = day.day?.precipitation?.total ?? 0;
+                const total = day.day?.precipitation?.total;
+                if (total === undefined || total === null) return '--';
                 if (settings.precipitationUnit === 'inch') {
                   return `${Math.round(total / 25.4 * 100) / 100} in`;
                 }
@@ -278,6 +279,23 @@ export function DailyDetailScreen() {
               })()}
             </Text>
           </View>
+          {(day.day?.precipitation?.snow ?? 0) > 0 && (
+            <View style={styles.detailRow}>
+              <Text style={[styles.detailLabel, {color: themeColors.textSecondary}]}>
+                Snow Accumulation
+              </Text>
+              <Text style={[styles.detailValue, {color: themeColors.text}]}>
+                {(() => {
+                  // precipitation.snow is stored in cm (from Open-Meteo snowfall_sum)
+                  const snowCm = day.day!.precipitation!.snow!;
+                  if (settings.precipitationUnit === 'inch') {
+                    return `${Math.round(snowCm / 2.54 * 10) / 10} in`;
+                  }
+                  return `${Math.round(snowCm * 10)} mm`;
+                })()}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Wind */}
@@ -310,7 +328,8 @@ export function DailyDetailScreen() {
             </Text>
             <Text style={[styles.detailValue, {color: themeColors.text}]}>
               {(() => {
-                const gusts = day.day?.wind?.gusts ?? 0;
+                const gusts = day.day?.wind?.gusts;
+                if (gusts === undefined || gusts === null) return '--';
                 if (settings.speedUnit === 'mph') {
                   return `${Math.round(gusts * 0.621371)} mph`;
                 } else if (settings.speedUnit === 'ms') {
