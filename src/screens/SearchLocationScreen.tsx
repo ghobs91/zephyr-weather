@@ -108,6 +108,7 @@ export function SearchLocationScreen() {
   const [isLoadingCurrentLocation, setIsLoadingCurrentLocation] = useState(false);
   
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const inputRef = useRef<any>(null);
   
   const theme = settings.theme;
   const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
@@ -177,6 +178,14 @@ export function SearchLocationScreen() {
       performSearch(text);
     }, 300);
   }, [performSearch]);
+
+  // Delay focus so modal animation finishes before keyboard appears
+  useEffect(() => {
+    const focusTimer = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 350);
+    return () => clearTimeout(focusTimer);
+  }, []);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -342,12 +351,12 @@ export function SearchLocationScreen() {
       <View style={[styles.searchContainer, {backgroundColor: themeColors.surface}]}>
         <Icon name="magnify" size={24} color={themeColors.textSecondary} />
         <TextInput
+          ref={inputRef}
           style={[styles.searchInput, {color: themeColors.text}]}
           placeholder="Search for a city..."
           placeholderTextColor={themeColors.textTertiary}
           value={query}
           onChangeText={handleSearch}
-          autoFocus
           returnKeyType="search"
           autoCorrect={false}
           autoCapitalize="words"

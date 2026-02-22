@@ -20,6 +20,7 @@ interface Props {
   isDark: boolean;
   onDayPress?: (index: number) => void;
   verticalLayout?: boolean;
+  precipitationUnit?: 'mm' | 'inch';
 }
 
 type TabType = 'conditions' | 'wind';
@@ -31,10 +32,26 @@ export function DailyForecastCard({
   isDark,
   onDayPress,
   verticalLayout = false,
+  precipitationUnit = 'inch',
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabType>('conditions');
   const themeColors = isDark ? colors.dark : colors.light;
 
+  // snowCm is Open-Meteo's snowfall_sum (cm) or NWS converted to cm
+  const formatSnow = (snowCm?: number): string | null => {
+    if (!snowCm || snowCm <= 0) return null;
+    if (precipitationUnit === 'inch') {
+      const inches = snowCm * 0.393701;
+      return `${inches < 0.1 ? '<0.1' : inches.toFixed(1)}\"` ;
+    }
+    return `${snowCm < 1 ? snowCm.toFixed(1) : Math.round(snowCm)} cm`;
+  };
+  // Debug: log snow data for visible days
+  dailyForecast.forEach((day, i) => {
+    if (day.day?.precipitation?.snow !== undefined) {
+      console.log(`[DailyCard] day ${i} snow=${day.day.precipitation.snow} rain=${day.day.precipitation.rain} total=${day.day.precipitation.total}`);
+    }
+  });
   const getDayLabel = (date: Date): string => {
     return format(date, 'EEE');
   };
@@ -158,14 +175,27 @@ export function DailyForecastCard({
                         {formatTemp(nightTemp)}
                       </Text>
                     </View>
-                    {precipProb !== undefined && precipProb > 0 && (
-                      <View style={styles.precipContainer}>
-                        <Icon name="water" size={12} color={themeColors.rain} />
-                        <Text style={[styles.precipText, {color: themeColors.rain}]}>
-                          {Math.round(precipProb)}%
-                        </Text>
-                      </View>
-                    )}
+                    <View style={styles.precipRow}>
+                      {precipProb !== undefined && precipProb > 0 && (
+                        <View style={styles.precipContainer}>
+                          <Icon name="water" size={12} color={themeColors.rain} />
+                          <Text style={[styles.precipText, {color: themeColors.rain}]}>
+                            {Math.round(precipProb)}%
+                          </Text>
+                        </View>
+                      )}
+                      {(() => {
+                        const snowText = formatSnow(day.day?.precipitation?.snow);
+                        return snowText ? (
+                          <View style={styles.precipContainer}>
+                            <Icon name="snowflake" size={12} color={themeColors.snow} />
+                            <Text style={[styles.precipText, {color: themeColors.snow}]}>
+                              {snowText}
+                            </Text>
+                          </View>
+                        ) : null;
+                      })()}
+                    </View>
                   </View>
                 ) : (
                   <View style={styles.windContainerRow}>
@@ -243,14 +273,27 @@ export function DailyForecastCard({
                       </Text>
                     </View>
 
-                    {precipProb !== undefined && precipProb > 0 && (
-                      <View style={styles.precipContainer}>
-                        <Icon name="water" size={12} color={themeColors.rain} />
-                        <Text style={[styles.precipText, {color: themeColors.rain}]}>
-                          {Math.round(precipProb)}%
-                        </Text>
-                      </View>
-                    )}
+                    <View style={[styles.precipRow, {justifyContent: 'center'}]}>
+                      {precipProb !== undefined && precipProb > 0 && (
+                        <View style={styles.precipContainer}>
+                          <Icon name="water" size={12} color={themeColors.rain} />
+                          <Text style={[styles.precipText, {color: themeColors.rain}]}>
+                            {Math.round(precipProb)}%
+                          </Text>
+                        </View>
+                      )}
+                      {(() => {
+                        const snowText = formatSnow(day.day?.precipitation?.snow);
+                        return snowText ? (
+                          <View style={styles.precipContainer}>
+                            <Icon name="snowflake" size={12} color={themeColors.snow} />
+                            <Text style={[styles.precipText, {color: themeColors.snow}]}>
+                              {snowText}
+                            </Text>
+                          </View>
+                        ) : null;
+                      })()}
+                    </View>
                   </>
                 )}
 
@@ -396,11 +439,17 @@ const styles = StyleSheet.create({
     right: 0,
     borderRadius: 3,
   },
+  precipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 4,
+    justifyContent: 'flex-end',
+  },
   precipContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
-    marginTop: 4,
   },
   precipText: {
     fontSize: 12,

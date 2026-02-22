@@ -1,4 +1,4 @@
-import React, {useEffect, useCallback, useState} from 'react';
+import React, {useEffect, useCallback, useState, useRef} from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,11 @@ import {
   useColorScheme,
   TouchableOpacity,
   Platform,
+  Animated,
+  Alert,
+  Image,
+  FlatList,
+  Modal,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
@@ -23,6 +28,7 @@ import {RootStackParamList} from '../navigation/RootNavigator';
 import {useResponsiveLayout} from '../utils/platformDetect';
 import {formatTime} from '../utils/timeFormat';
 
+import {getWeatherIconSource} from '../utils/weatherIcons';
 import {CurrentWeatherCard} from '../components/CurrentWeatherCard';
 import {DailyForecastCard} from '../components/DailyForecastCard';
 import {HourlyForecastCard} from '../components/HourlyForecastCard';
@@ -46,10 +52,14 @@ export function HomeScreen() {
     setLoading,
     setError,
     addLocation,
+    setCurrentLocationIndex,
+    removeLocation,
   } = useWeatherStore();
   
   const [refreshing, setRefreshing] = useState(false);
   const [pageIndex, setPageIndex] = useState(currentLocationIndex);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const drawerAnim = useRef(new Animated.Value(-300)).current;
   
   const theme = settings.theme;
   const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
@@ -137,6 +147,43 @@ export function HomeScreen() {
       refreshWeather();
     }
   }, [currentLocation, refreshWeather]);
+
+  const openDrawer = useCallback(() => {
+    setDrawerOpen(true);
+    Animated.spring(drawerAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 65,
+      friction: 11,
+    }).start();
+  }, [drawerAnim]);
+
+  const closeDrawer = useCallback(() => {
+    Animated.timing(drawerAnim, {
+      toValue: -300,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(() => setDrawerOpen(false));
+  }, [drawerAnim]);
+
+  const handleDeleteLocation = useCallback((location: Location) => {
+    Alert.alert(
+      'Delete Location',
+      `Remove ${location.city || 'this location'}?`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {text: 'Delete', style: 'destructive', onPress: () => removeLocation(location.id)},
+      ]
+    );
+  }, [removeLocation]);
+
+  const formatTempShort = useCallback((temp?: number) => {
+    if (temp === undefined) return '--°';
+    if (settings.temperatureUnit === 'fahrenheit') {
+      return `${Math.round(temp * 9/5 + 32)}°`;
+    }
+    return `${Math.round(temp)}°`;
+  }, [settings.temperatureUnit]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -231,15 +278,21 @@ export function HomeScreen() {
         {!isDesktop && (
           <>
             <View style={styles.header}>
-              <TouchableOpacity
-                style={styles.locationHeader}
-                onPress={() => navigation.navigate('SearchLocation')}>
-                <Icon name="menu" size={24} color={themeColors.text} />
+              <View style={styles.locationHeader}>
+                <TouchableOpacity
+                  onPress={openDrawer}
+                  hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                  <Icon name="menu" size={24} color={themeColors.text} />
+                </TouchableOpacity>
                 <Text style={[styles.locationName, {color: themeColors.text}]}>
                   {currentLocation.city || 'Unknown Location'}
                 </Text>
-                <Icon name="pencil" size={20} color={themeColors.textSecondary} />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('SearchLocation')}
+                  hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                  <Icon name="pencil" size={20} color={themeColors.textSecondary} />
+                </TouchableOpacity>
+              </View>
               
               {weather?.base?.refreshTime && (
                 <Text style={[styles.updateTime, {color: themeColors.textSecondary}]}>
@@ -311,6 +364,7 @@ export function HomeScreen() {
                   isDark={useDark}
                   onDayPress={(index) => navigation.navigate('DailyDetail', {dayIndex: index})}
                   verticalLayout
+                  precipitationUnit={settings.precipitationUnit}
                 />
               </View>
               <View style={styles.macRightColumn}>
@@ -361,6 +415,7 @@ export function HomeScreen() {
               formatSpeed={formatSpeed}
               isDark={useDark}
               onDayPress={(index) => navigation.navigate('DailyDetail', {dayIndex: index})}
+              precipitationUnit={settings.precipitationUnit}
             />
 
             <HourlyForecastCard
@@ -421,6 +476,117 @@ export function HomeScreen() {
         <View style={{height: insets.bottom + 16}} />
         </View>
       </ScrollView>
+
+      {/* Locations Drawer */}
+      <Modal
+        transparent
+        visible={drawerOpen}
+        animationType="none"
+        onRequestClose={closeDrawer}
+        statusBarTranslucent>
+        <TouchableOpacity
+          style={styles.drawerBackdrop}
+          onPress={closeDrawer}
+          activeOpacity={1}
+        />
+        <Animated.View
+          style={[
+            styles.drawer,
+            {
+              backgroundColor: themeColors.background,
+              transform: [{translateX: drawerAnim}],
+            },
+          ]}>
+          <View style={[styles.drawerHeader, {paddingTop: insets.top + 16}]}>
+            <Text style={[styles.drawerTitle, {color: themeColors.text}]}>Locations</Text>
+            <TouchableOpacity
+              style={[styles.drawerAddBtn, {backgroundColor: themeColors.primary}]}
+              onPress={() => {
+                closeDrawer();
+                setTimeout(() => navigation.navigate('SearchLocation'), 250);
+              }}>
+              <Icon name="plus" size={22} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={locations}
+            keyExtractor={(item) => item.id}
+            renderItem={({item, index}) => {
+              const isSelected = index === pageIndex;
+              const current = item.weather?.current;
+              const today = item.weather?.dailyForecast?.[0];
+              return (
+                <TouchableOpacity
+                  style={[
+                    styles.drawerItem,
+                    {
+                      backgroundColor: isSelected
+                        ? (useDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)')
+                        : 'transparent',
+                    },
+                  ]}
+                  onPress={() => {
+                    setCurrentLocationIndex(index);
+                    setPageIndex(index);
+                    closeDrawer();
+                  }}
+                  onLongPress={() => handleDeleteLocation(item)}>
+                  <View style={styles.drawerItemTop}>
+                    <View style={styles.drawerItemTitleRow}>
+                      {item.isCurrentPosition && (
+                        <Icon name="crosshairs-gps" size={13} color={themeColors.primary} />
+                      )}
+                      <Text
+                        style={[styles.drawerItemCity, {color: themeColors.text}]}
+                        numberOfLines={1}>
+                        {item.city || 'Unknown'}
+                      </Text>
+                    </View>
+                    {current ? (
+                      <View style={styles.drawerItemWeather}>
+                        <Image
+                          source={getWeatherIconSource(current.weatherCode, current.isDaylight)}
+                          style={styles.drawerItemIcon}
+                          resizeMode="contain"
+                        />
+                        <Text style={[styles.drawerItemTemp, {color: themeColors.text}]}>
+                          {formatTempShort(current.temperature?.temperature)}
+                        </Text>
+                      </View>
+                    ) : (
+                      <Text style={[styles.drawerItemTemp, {color: themeColors.textSecondary}]}>
+                        --°
+                      </Text>
+                    )}
+                  </View>
+                  {current && (
+                    <Text
+                      style={[styles.drawerItemCondition, {color: themeColors.textSecondary}]}
+                      numberOfLines={1}>
+                      {current.weatherText}
+                    </Text>
+                  )}
+                  {today && (
+                    <Text style={[styles.drawerItemDayNight, {color: themeColors.textTertiary}]}>
+                      H: {formatTempShort(today.day?.temperature?.temperature)} · L:{' '}
+                      {formatTempShort(today.night?.temperature?.temperature)}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              );
+            }}
+            contentContainerStyle={styles.drawerList}
+            ListEmptyComponent={
+              <View style={styles.drawerEmpty}>
+                <Icon name="map-marker-off" size={48} color={themeColors.textSecondary} />
+                <Text style={[styles.drawerEmptyText, {color: themeColors.textSecondary}]}>
+                  No locations yet
+                </Text>
+              </View>
+            }
+          />
+        </Animated.View>
+      </Modal>
     </View>
   );
 }
@@ -550,5 +716,95 @@ const styles = StyleSheet.create({
   },
   attributionText: {
     fontSize: 12,
+  },
+  // Drawer
+  drawerBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  drawer: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 300,
+    shadowColor: '#000',
+    shadowOffset: {width: 3, height: 0},
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  drawerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  drawerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+  },
+  drawerAddBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  drawerList: {
+    paddingHorizontal: 12,
+    paddingBottom: 24,
+  },
+  drawerItem: {
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 4,
+  },
+  drawerItemTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  drawerItemTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+    marginRight: 8,
+  },
+  drawerItemCity: {
+    fontSize: 17,
+    fontWeight: '600',
+    flex: 1,
+  },
+  drawerItemWeather: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  drawerItemIcon: {
+    width: 28,
+    height: 28,
+  },
+  drawerItemTemp: {
+    fontSize: 22,
+    fontWeight: '300',
+  },
+  drawerItemCondition: {
+    fontSize: 13,
+    marginBottom: 2,
+  },
+  drawerItemDayNight: {
+    fontSize: 12,
+  },
+  drawerEmpty: {
+    alignItems: 'center',
+    paddingTop: 48,
+  },
+  drawerEmptyText: {
+    fontSize: 15,
+    marginTop: 12,
   },
 });
