@@ -123,13 +123,14 @@ export function SearchLocationScreen() {
       }
     };
     
+    // @ts-ignore - document only exists on web/macOS
     if (typeof document !== 'undefined') {
       // @ts-ignore - web/macOS only
-      document.addEventListener('keydown', handleKeyDown);
+      (document as any).addEventListener('keydown', handleKeyDown);
       
       return () => {
         // @ts-ignore - web/macOS only
-        document.removeEventListener('keydown', handleKeyDown);
+        (document as any).removeEventListener('keydown', handleKeyDown);
       };
     }
   }, [navigation]);

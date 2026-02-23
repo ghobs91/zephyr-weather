@@ -164,106 +164,74 @@ struct CurrentWeatherWidgetView: View {
     }
     
     var largeWidgetView: some View {
-        VStack(spacing: 12) {
-            // Top section - Current conditions
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
+        let startOfToday = Calendar.current.startOfDay(for: Date())
+        let todayAndFutureDays = entry.weatherData.daily.filter {
+            Calendar.current.startOfDay(for: $0.date) >= startOfToday
+        }
+        let allTemps = todayAndFutureDays.flatMap { [$0.dayTemp, $0.nightTemp].compactMap { $0 } }
+        let minTemp = allTemps.min() ?? 0
+        let maxTemp = allTemps.max() ?? 100
+        let now = Date()
+        let upcomingHours = entry.weatherData.hourly.filter { $0.date > now }
+
+        return VStack(spacing: 0) {
+            // Location name
+            if let locationName = entry.weatherData.locationName {
+                Text(locationName)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.75))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, 2)
+            }
+
+            // Current conditions
+            HStack(alignment: .top, spacing: 8) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(formatTemp(entry.weatherData.current?.temperature))
-                        .font(.system(size: 64, weight: .thin))
+                        .font(.system(size: 60, weight: .thin))
                         .foregroundColor(temperatureColor(entry.weatherData.current?.temperature))
                         .minimumScaleFactor(0.5)
                         .lineLimit(1)
-                    
+
                     Text(entry.weatherData.current?.weatherText ?? "Unknown")
-                        .font(.system(size: 18, weight: .medium))
+                        .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.white.opacity(0.9))
-                        .lineLimit(2)
-                    
-                    if let today = entry.weatherData.daily.first {
+                        .lineLimit(1)
+
+                    if let today = todayAndFutureDays.first {
                         Text("H: \(formatTemp(today.dayTemp))  L: \(formatTemp(today.nightTemp))")
-                            .font(.system(size: 14, weight: .regular))
+                            .font(.system(size: 13, weight: .regular))
                             .foregroundColor(.white.opacity(0.7))
                     }
                 }
-                
+
                 Spacer()
-                
+
                 Image(weatherIconAsset(entry.weatherData.current?.weatherCode))
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 90, height: 90)
+                    .frame(width: 75, height: 75)
             }
-            
+            .padding(.bottom, 10)
+
             Divider()
-                .background(Color.white.opacity(0.2))
-            
-            // Details grid
-            HStack(spacing: 16) {
-                if let humidity = entry.weatherData.current?.humidity {
-                    VStack(spacing: 4) {
-                        Image(systemName: "humidity.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(.blue.opacity(0.8))
-                        Text("\(Int(humidity))%")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                        Text("Humidity")
-                            .font(.system(size: 11))
-                            .foregroundColor(.white.opacity(0.6))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                
-                if let windSpeed = entry.weatherData.current?.windSpeed {
-                    VStack(spacing: 4) {
-                        Image(systemName: "wind")
-                            .font(.system(size: 16))
-                            .foregroundColor(.cyan.opacity(0.8))
-                        Text("\(Int(windSpeed)) km/h")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                        Text("Wind")
-                            .font(.system(size: 11))
-                            .foregroundColor(.white.opacity(0.6))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                
-                if let feelsLike = entry.weatherData.current?.feelsLike {
-                    VStack(spacing: 4) {
-                        Image(systemName: "thermometer.medium")
-                            .font(.system(size: 16))
-                            .foregroundColor(.orange.opacity(0.8))
-                        Text(formatTemp(feelsLike))
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                        Text("Feels Like")
-                            .font(.system(size: 11))
-                            .foregroundColor(.white.opacity(0.6))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            }
-            
-            Divider()
-                .background(Color.white.opacity(0.2))
-            
-            // Upcoming hours — filter out any hours already in the past
-            if !entry.weatherData.hourly.isEmpty {
-                let now = Date()
-                let upcomingHours = entry.weatherData.hourly.filter { $0.date > now }
+                .background(Color.white.opacity(0.25))
+                .padding(.bottom, 8)
+
+            // Hourly forecast row
+            if !upcomingHours.isEmpty {
                 HStack(spacing: 0) {
-                    ForEach(Array(upcomingHours.prefix(6).enumerated()), id: \.offset) { index, hour in
+                    ForEach(Array(upcomingHours.prefix(6).enumerated()), id: \.offset) { _, hour in
                         VStack(spacing: 4) {
                             Text(hourLabel(hour.date))
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(.white.opacity(0.7))
-                            
+
                             Image(weatherIconAsset(hour.weatherCode))
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 24, height: 24)
-                            
+                                .frame(width: 22, height: 22)
+
                             Text(formatTemp(hour.temperature))
                                 .font(.system(size: 13, weight: .semibold))
                                 .foregroundColor(.white)
@@ -271,9 +239,28 @@ struct CurrentWeatherWidgetView: View {
                         .frame(maxWidth: .infinity)
                     }
                 }
+                .padding(.bottom, 8)
             }
+
+            Divider()
+                .background(Color.white.opacity(0.25))
+                .padding(.bottom, 2)
+
+            // Daily forecast rows
+            VStack(spacing: 0) {
+                ForEach(Array(todayAndFutureDays.prefix(5).enumerated()), id: \.offset) { _, day in
+                    DayRow(
+                        day: day,
+                        minTemp: minTemp,
+                        maxTemp: maxTemp,
+                        temperatureUnit: entry.weatherData.temperatureUnit ?? "fahrenheit"
+                    )
+                }
+            }
+
+            Spacer(minLength: 0)
         }
-        .padding(16)
+        .padding(14)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .containerBackground(for: .widget) {
             LinearGradient(

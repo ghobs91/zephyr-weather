@@ -58,15 +58,15 @@
 		C8BD99912F335CFC00EE55C4 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		C8BD99932F335CFC00EE55C4 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		C8BD99B22F335E1C00EE55C4 /* ZephyrWeatherWidgetsExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ZephyrWeatherWidgetsExtension.entitlements; sourceTree = "<group>"; };
+		C8BDAA022F3900000000AB02 /* ZephyrWidgetBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ZephyrWidgetBridge.h; path = ZephyrWeather/ZephyrWidgetBridge.h; sourceTree = "<group>"; };
+		C8BDAA032F3900000000AB03 /* ZephyrWidgetBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = ZephyrWidgetBridge.m; path = ZephyrWeather/ZephyrWidgetBridge.m; sourceTree = "<group>"; };
 		D738859BDE98B13B02DC0CBB /* Pods-ZephyrWeather.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZephyrWeather.debug.xcconfig"; path = "Target Support Files/Pods-ZephyrWeather/Pods-ZephyrWeather.debug.xcconfig"; sourceTree = "<group>"; };
 		EBABA00DA58E4D28597541CE /* Pods-ZephyrWeather.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZephyrWeather.release.xcconfig"; path = "Target Support Files/Pods-ZephyrWeather/Pods-ZephyrWeather.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		C8BDAA022F3900000000AB02 /* ZephyrWidgetBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ZephyrWidgetBridge.h; path = ZephyrWeather/ZephyrWidgetBridge.h; sourceTree = "<group>"; };
-		C8BDAA032F3900000000AB03 /* ZephyrWidgetBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = ZephyrWidgetBridge.m; path = ZephyrWeather/ZephyrWidgetBridge.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		C8BD99A72F335CFE00EE55C4 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		C8BD99A72F335CFE00EE55C4 /* Exceptions for "ZephyrWeatherWidgets" folder in "ZephyrWeatherWidgetsExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -76,7 +76,18 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		C8BD99952F335CFC00EE55C4 /* ZephyrWeatherWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (C8BD99A72F335CFE00EE55C4 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = ZephyrWeatherWidgets; sourceTree = "<group>"; };
+		C8BD99952F335CFC00EE55C4 /* ZephyrWeatherWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C8BD99A72F335CFE00EE55C4 /* Exceptions for "ZephyrWeatherWidgets" folder in "ZephyrWeatherWidgetsExtension" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = ZephyrWeatherWidgets;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -296,13 +307,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-ZephyrWeather/Pods-ZephyrWeather-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-ZephyrWeather/Pods-ZephyrWeather-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -317,13 +324,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-ZephyrWeather/Pods-ZephyrWeather-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-ZephyrWeather/Pods-ZephyrWeather-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -533,7 +536,10 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -601,7 +607,10 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;

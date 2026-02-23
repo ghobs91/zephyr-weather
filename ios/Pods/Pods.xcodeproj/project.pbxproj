@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -25386,7 +25386,7 @@
 				LastUpgradeCheck = 1600;
 			};
 			buildConfigurationList = 46EB2E00000030 /* Build configuration list for PBXProject "Pods" */;
-			compatibilityVersion = "Xcode 12.0";
+			compatibilityVersion = "Xcode 26.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (

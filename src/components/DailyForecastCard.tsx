@@ -142,7 +142,7 @@ export function DailyForecastCard({
                   <Text style={[styles.dayLabel, {color: themeColors.text}]} numberOfLines={1}>
                     {getDayLabel(day.date)}
                   </Text>
-                  <Text style={[styles.dateLabel, {color: themeColors.textSecondary}]}>
+                  <Text style={[styles.dayLabel, {color: themeColors.textSecondary}]}>
                     {getDateLabel(day.date)}
                   </Text>
                 </View>
@@ -239,7 +239,7 @@ export function DailyForecastCard({
                 <Text style={[styles.dayLabel, {color: themeColors.text}]} numberOfLines={1}>
                   {getDayLabel(day.date)}
                 </Text>
-                <Text style={[styles.dateLabel, {color: themeColors.textSecondary}]}>
+                <Text style={[styles.dayLabel, {color: themeColors.textSecondary}]}>
                   {getDateLabel(day.date)}
                 </Text>
                 

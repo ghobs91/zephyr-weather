@@ -221,7 +221,7 @@ export function DailyDetailScreen() {
                         <LineChart.PriceText
                           format={({value}) => {
                             'worklet';
-                            return `${Math.round(value)}°`;
+                            return `${Math.round(Number(value))}°`;
                           }}
                         />
                       </LineChart.Tooltip>

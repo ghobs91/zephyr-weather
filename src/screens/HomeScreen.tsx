@@ -408,7 +408,15 @@ export function HomeScreen() {
           </>
         ) : (
           <>
-            {/* Mobile/tablet layout: original order */}
+            {/* Mobile/tablet layout: hourly first, then daily */}
+            <HourlyForecastCard
+              hourlyForecast={hourlyForecast}
+              formatTemp={formatTemp}
+              formatSpeed={formatSpeed}
+              timeFormat={settings.timeFormat}
+              isDark={useDark}
+            />
+
             <DailyForecastCard
               dailyForecast={dailyForecast}
               formatTemp={formatTemp}
@@ -416,14 +424,6 @@ export function HomeScreen() {
               isDark={useDark}
               onDayPress={(index) => navigation.navigate('DailyDetail', {dayIndex: index})}
               precipitationUnit={settings.precipitationUnit}
-            />
-
-            <HourlyForecastCard
-              hourlyForecast={hourlyForecast}
-              formatTemp={formatTemp}
-              formatSpeed={formatSpeed}
-              timeFormat={settings.timeFormat}
-              isDark={useDark}
             />
 
             <View style={[styles.detailsGrid, detailColumns === 4 && styles.detailsGridWide]}>

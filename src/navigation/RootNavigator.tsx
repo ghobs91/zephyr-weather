@@ -6,7 +6,7 @@ import {useColorScheme, TouchableOpacity} from 'react-native';
 
 import {HomeScreen} from '../screens/HomeScreen';
 import {MacOSHomeScreen} from '../screens/MacOSHomeScreen';
-import {LocationsScreen} from '../screens/LocationsScreen';
+import {RadarScreen} from '../screens/RadarScreen';
 import {SearchLocationScreen} from '../screens/SearchLocationScreen';
 import {SettingsScreen} from '../screens/SettingsScreen';
 import {DailyDetailScreen} from '../screens/DailyDetailScreen';
@@ -24,7 +24,7 @@ export type RootStackParamList = {
 
 export type MainTabParamList = {
   Home: undefined;
-  Locations: undefined;
+  Radar: undefined;
   Settings: undefined;
 };
 
@@ -60,12 +60,12 @@ function MainTabs() {
         }}
       />
       <Tab.Screen
-        name="Locations"
-        component={LocationsScreen}
+        name="Radar"
+        component={RadarScreen}
         options={{
-          tabBarLabel: 'Locations',
+          tabBarLabel: 'Radar',
           tabBarIcon: ({color, size}) => (
-            <Icon name="map-marker-outline" size={size} color={color} />
+            <Icon name="radar" size={size} color={color} />
           ),
         }}
       />
