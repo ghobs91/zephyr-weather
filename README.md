@@ -73,7 +73,7 @@ Inspired by [Breezy Weather](https://github.com/breezy-weather/breezy-weather).
 
 ## Weather Sources
 
-Currently integrated with **[Open-Meteo](https://open-meteo.com/)** - a free, open-source weather API.
+Currently integrated with **[The National Weather Service (NWS) API](https://www.weather.gov/documentation/services-web-api)** for US weather, and **[Open-Meteo](https://open-meteo.com/)** for global forecasts.
 
 ### Open-Meteo Features
 - Weather forecast
