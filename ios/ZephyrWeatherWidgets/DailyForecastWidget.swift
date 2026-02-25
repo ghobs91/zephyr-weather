@@ -114,25 +114,162 @@ struct DailyForecastWidgetView: View {
                 )
             }
         } else {
-            // Vertical column layout for large widget
-            HStack(spacing: 3) {
-                ForEach(Array(todayAndFutureDays.prefix(7).enumerated()), id: \.offset) { index, day in
-                    DayColumn(day: day, minTemp: minTemp, maxTemp: maxTemp, temperatureUnit: entry.weatherData.temperatureUnit ?? "fahrenheit")
+            largeWidgetView
+        }
+    }
+
+    var largeWidgetView: some View {
+        let now = Date()
+        let upcomingHours = entry.weatherData.hourly.filter { $0.date > now }
+
+        return VStack(spacing: 0) {
+            // Location name
+            if let locationName = entry.weatherData.locationName {
+                Text(locationName)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.75))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, 4)
+            }
+
+            // Current conditions
+            HStack(alignment: .top, spacing: 8) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(formatCurrentTemp(entry.weatherData.current?.temperature))
+                        .font(.system(size: 52, weight: .thin))
+                        .foregroundColor(currentTempColor(entry.weatherData.current?.temperature))
+                        .minimumScaleFactor(0.5)
+                        .lineLimit(1)
+
+                    Text(entry.weatherData.current?.weatherText ?? "")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.white.opacity(0.9))
+                        .lineLimit(1)
+
+                    if let today = todayAndFutureDays.first {
+                        Text("H: \(formatTempValue(today.dayTemp))  L: \(formatTempValue(today.nightTemp))")
+                            .font(.system(size: 13, weight: .regular))
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                }
+
+                Spacer()
+
+                Image(largeIconName(entry.weatherData.current?.weatherCode))
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 70, height: 70)
+            }
+            .padding(.bottom, 8)
+
+            Divider()
+                .background(Color.white.opacity(0.25))
+                .padding(.bottom, 6)
+
+            // Hourly forecast row
+            if !upcomingHours.isEmpty {
+                HStack(spacing: 0) {
+                    ForEach(Array(upcomingHours.prefix(6).enumerated()), id: \.offset) { _, hour in
+                        VStack(spacing: 3) {
+                            Text(hourLabel(hour.date))
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.white.opacity(0.7))
+
+                            Image(largeIconName(hour.weatherCode))
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 22, height: 22)
+
+                            Text(formatCurrentTemp(hour.temperature))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+                .padding(.bottom, 6)
+            }
+
+            Divider()
+                .background(Color.white.opacity(0.25))
+                .padding(.bottom, 2)
+
+            // Daily forecast rows (vertical)
+            VStack(spacing: 0) {
+                ForEach(Array(todayAndFutureDays.prefix(5).enumerated()), id: \.offset) { _, day in
+                    DayRow(
+                        day: day,
+                        minTemp: minTemp,
+                        maxTemp: maxTemp,
+                        temperatureUnit: entry.weatherData.temperatureUnit ?? "fahrenheit"
+                    )
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 14)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .containerBackground(for: .widget) {
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color(red: 0.2, green: 0.25, blue: 0.35),
-                        Color(red: 0.15, green: 0.2, blue: 0.3)
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .containerBackground(for: .widget) {
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.15, green: 0.2, blue: 0.3),
+                    Color(red: 0.1, green: 0.15, blue: 0.25)
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+
+    func formatCurrentTemp(_ temp: Double?) -> String {
+        guard let temp = temp else { return "--°" }
+        let isFahrenheit = entry.weatherData.temperatureUnit == "fahrenheit"
+        let displayTemp = isFahrenheit ? temp * 9 / 5 + 32 : temp
+        let unit = isFahrenheit ? "°F" : "°C"
+        return "\(Int(round(displayTemp)))\(unit)"
+    }
+
+    func formatTempValue(_ temp: Double?) -> String {
+        guard let temp = temp else { return "--" }
+        let isFahrenheit = entry.weatherData.temperatureUnit == "fahrenheit"
+        let displayTemp = isFahrenheit ? temp * 9 / 5 + 32 : temp
+        return "\(Int(round(displayTemp)))°"
+    }
+
+    func currentTempColor(_ temp: Double?) -> Color {
+        guard let temp = temp else { return .white }
+        let isFahrenheit = entry.weatherData.temperatureUnit == "fahrenheit"
+        let tempF = isFahrenheit ? temp * 9 / 5 + 32 : temp
+        if tempF >= 90 { return Color(red: 1.0, green: 0.3, blue: 0.3) }
+        if tempF >= 80 { return Color(red: 1.0, green: 0.6, blue: 0.2) }
+        if tempF >= 70 { return Color(red: 1.0, green: 0.8, blue: 0.3) }
+        if tempF >= 60 { return Color(red: 0.5, green: 0.8, blue: 0.5) }
+        if tempF >= 50 { return Color(red: 0.4, green: 0.7, blue: 1.0) }
+        if tempF >= 40 { return Color(red: 0.5, green: 0.7, blue: 1.0) }
+        if tempF >= 32 { return Color(red: 0.6, green: 0.8, blue: 1.0) }
+        return Color(red: 0.7, green: 0.85, blue: 1.0)
+    }
+
+    func hourLabel(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "ha"
+        return formatter.string(from: date)
+    }
+
+    func largeIconName(_ code: String?) -> String {
+        guard let code = code, let weatherCode = WeatherCode(rawValue: code) else {
+            return "cloudy"
+        }
+        switch weatherCode {
+        case .clear: return "clear"
+        case .partlyCloudy: return "partly-cloudy"
+        case .cloudy, .fog, .haze: return "cloudy"
+        case .rainLight, .rain: return "rain"
+        case .rainHeavy: return "storm"
+        case .snowLight, .snow, .snowHeavy, .sleet, .hail: return "snow"
+        case .thunderstorm: return "lightning"
+        case .wind: return "wind"
         }
     }
 }
