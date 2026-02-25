@@ -30,9 +30,12 @@ import {
   NexradScan,
 } from '../services/nexradService';
 
-const TIMELINE_HOURS = 4;
+const TIMELINE_HOURS = 2;
 const PLAYBACK_INTERVAL_MS = 750; // ms per frame
 const MAX_ANIMATION_FRAMES = 20;
+// Extra pixels of tiles pre-loaded beyond the visible edges so panning
+// reveals already-loaded tiles instead of blank space.
+const TILE_BUFFER_PX = 250;
 
 // ---------------------------------------------------------------------------
 // Map helpers
@@ -242,17 +245,27 @@ export function RadarScreen() {
   const panStartLat = useSharedValue(lat);
   const panStartLon = useSharedValue(lon);
 
+  // Live transform driven by gestures — moves the tile layer on the UI thread
+  // without waiting for a JS/React re-render.
+  const panTranslateX = useSharedValue(0);
+  const panTranslateY = useSharedValue(0);
+  const gestureScale = useSharedValue(1);
+
   const mapGesture = useMemo(() => {
     const pinch = Gesture.Pinch()
       .onStart(() => {
         pinchStartZoom.value = mapZoom.value;
       })
       .onUpdate(e => {
-        const newZoom = Math.max(3, Math.min(12, pinchStartZoom.value + Math.log2(e.scale)));
+        const rawZoom = pinchStartZoom.value + Math.log2(e.scale);
+        const newZoom = Math.max(3, Math.min(12, rawZoom));
         mapZoom.value = newZoom;
+        // Drive a scale transform so tiles visually zoom during the gesture.
+        gestureScale.value = Math.pow(2, newZoom - pinchStartZoom.value);
       })
       .onEnd(() => {
         runOnJS(updateCommittedMap)(mapCenterLat.value, mapCenterLon.value, mapZoom.value);
+        // gestureScale resets in the useEffect after tiles re-render.
       });
 
     const pan = Gesture.Pan()
@@ -262,23 +275,27 @@ export function RadarScreen() {
         panStartLon.value = mapCenterLon.value;
       })
       .onUpdate(e => {
+        // Translate the tile layer directly — no JS bridge needed.
+        panTranslateX.value = e.translationX;
+        panTranslateY.value = e.translationY;
+      })
+      .onEnd(() => {
         const n = Math.pow(2, mapZoom.value);
         const worldPixels = n * 256;
         const lonPerPx = 360 / worldPixels;
         const latRad = (panStartLat.value * Math.PI) / 180;
         const latPerPx = (360 / worldPixels) / Math.cos(latRad);
-
-        mapCenterLon.value = panStartLon.value - e.translationX * lonPerPx;
-        mapCenterLat.value = panStartLat.value + e.translationY * latPerPx;
-      })
-      .onEnd(() => {
+        mapCenterLon.value = panStartLon.value - panTranslateX.value * lonPerPx;
+        mapCenterLat.value = panStartLat.value + panTranslateY.value * latPerPx;
         runOnJS(updateCommittedMap)(mapCenterLat.value, mapCenterLon.value, mapZoom.value);
+        // panTranslate resets in the useEffect after tiles re-render.
       });
 
     return Gesture.Simultaneous(pan, pinch);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Exact viewport bbox (used for nothing that needs tile coverage).
   const bbox = useMemo(() => {
     if (mapSize.width === 0 || mapSize.height === 0) {
       return {west: committedMap.lon - 5, south: committedMap.lat - 3, east: committedMap.lon + 5, north: committedMap.lat + 3};
@@ -286,32 +303,47 @@ export function RadarScreen() {
     return bboxFromCenter(committedMap.lat, committedMap.lon, committedMap.zoom, mapSize.width, mapSize.height);
   }, [committedMap, mapSize.width, mapSize.height]);
 
+  // Expanded bbox that covers the viewport + TILE_BUFFER_PX on every side.
+  // Tiles and the radar overlay are rendered into this larger area so that
+  // panning up to TILE_BUFFER_PX in any direction reveals pre-loaded content.
+  const expandedW = mapSize.width + 2 * TILE_BUFFER_PX;
+  const expandedH = mapSize.height + 2 * TILE_BUFFER_PX;
+  const expandedBbox = useMemo(() => {
+    if (mapSize.width === 0 || mapSize.height === 0) {
+      return {west: committedMap.lon - 7, south: committedMap.lat - 5, east: committedMap.lon + 7, north: committedMap.lat + 5};
+    }
+    return bboxFromCenter(committedMap.lat, committedMap.lon, committedMap.zoom, expandedW, expandedH);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [committedMap, mapSize.width, mapSize.height]);
+
   const baseTiles = useMemo(() => {
     if (mapSize.width === 0 || mapSize.height === 0) return [];
     return getBaseTiles(
-      bbox.west,
-      bbox.south,
-      bbox.east,
-      bbox.north,
-      mapSize.width,
-      mapSize.height,
+      expandedBbox.west,
+      expandedBbox.south,
+      expandedBbox.east,
+      expandedBbox.north,
+      expandedW,
+      expandedH,
       Math.round(committedMap.zoom),
       useDark,
     );
-  }, [bbox, mapSize.width, mapSize.height, committedMap.zoom, useDark]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expandedBbox, mapSize.width, mapSize.height, committedMap.zoom, useDark]);
 
   const radarUrl = useMemo(() => {
     if (mapSize.width === 0 || mapSize.height === 0) return '';
     return buildRadarImageUrl(
-      bbox.west,
-      bbox.south,
-      bbox.east,
-      bbox.north,
-      mapSize.width * 2, // retina
-      mapSize.height * 2,
+      expandedBbox.west,
+      expandedBbox.south,
+      expandedBbox.east,
+      expandedBbox.north,
+      expandedW * 2, // retina
+      expandedH * 2,
       currentEpoch,
     );
-  }, [bbox, mapSize.width, mapSize.height, currentEpoch]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expandedBbox, mapSize.width, mapSize.height, currentEpoch]);
 
   // -- Frame-based timeline helpers --
 
@@ -415,6 +447,24 @@ export function RadarScreen() {
     width: thumbX.value,
   }));
 
+  // Smooth live transform applied to the tile/radar layer during gestures.
+  const mapAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {translateX: panTranslateX.value},
+      {translateY: panTranslateY.value},
+      {scale: gestureScale.value},
+    ],
+  }));
+
+  // After tiles re-render at the new committed position/zoom, reset the
+  // gesture transforms so the visual result is seamless.
+  useEffect(() => {
+    panTranslateX.value = 0;
+    panTranslateY.value = 0;
+    gestureScale.value = 1;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [committedMap]);
+
   const timeLabels = useMemo(() => {
     const labels: {text: string; fraction: number}[] = [];
     for (let h = TIMELINE_HOURS; h >= 0; h--) {
@@ -453,34 +503,49 @@ export function RadarScreen() {
       {/* Map */}
       <GestureDetector gesture={mapGesture}>
         <View style={styles.mapContainer} onLayout={handleMapLayout}>
-          {/* Base map tiles */}
-          {baseTiles.map(tile => (
-            <Image
-              key={`${tile.x}-${tile.y}`}
-              source={{uri: tile.url}}
-              style={[
-                styles.mapTile,
-                {
-                  left: tile.left,
-                  top: tile.top,
-                  width: tile.width,
-                  height: tile.height,
-                },
-              ]}
-            />
-          ))}
+          {/* Tile + radar layer — transformed on the UI thread during gestures.
+              Positioned with a negative offset equal to TILE_BUFFER_PX so extra
+              tiles extend beyond every edge, eliminating blank-space during pan. */}
+          <Animated.View
+            style={[
+              {
+                position: 'absolute',
+                left: -TILE_BUFFER_PX,
+                top: -TILE_BUFFER_PX,
+                width: mapSize.width + 2 * TILE_BUFFER_PX,
+                height: mapSize.height + 2 * TILE_BUFFER_PX,
+              },
+              mapAnimatedStyle,
+            ]}>
+            {/* Base map tiles */}
+            {baseTiles.map(tile => (
+              <Image
+                key={`${tile.x}-${tile.y}`}
+                source={{uri: tile.url}}
+                style={[
+                  styles.mapTile,
+                  {
+                    left: tile.left,
+                    top: tile.top,
+                    width: tile.width,
+                    height: tile.height,
+                  },
+                ]}
+              />
+            ))}
 
-          {/* Radar overlay */}
-          {radarUrl !== '' && (
-            <Image
-              source={{uri: radarUrl}}
-              style={styles.radarOverlay}
-              resizeMode="stretch"
-              onLoadStart={() => setRadarLoading(true)}
-              onLoadEnd={() => setRadarLoading(false)}
-              onError={() => setRadarLoading(false)}
-            />
-          )}
+            {/* Radar overlay */}
+            {radarUrl !== '' && (
+              <Image
+                source={{uri: radarUrl}}
+                style={styles.radarOverlay}
+                resizeMode="stretch"
+                onLoadStart={() => setRadarLoading(true)}
+                onLoadEnd={() => setRadarLoading(false)}
+                onError={() => setRadarLoading(false)}
+              />
+            )}
+          </Animated.View>
 
           {/* Loading indicator */}
           {(radarLoading || scanStatus === 'loading') && (
@@ -524,7 +589,7 @@ export function RadarScreen() {
               NOAA NEXRAD via AWS · © OpenStreetMap · CARTO
             </Text>
           </View>
-        </View>
+        </View>{/* mapContainer */}
       </GestureDetector>
 
       {/* Timeline */}
