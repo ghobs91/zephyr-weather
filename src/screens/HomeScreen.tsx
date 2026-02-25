@@ -423,6 +423,7 @@ export function HomeScreen() {
               formatSpeed={formatSpeed}
               isDark={useDark}
               onDayPress={(index) => navigation.navigate('DailyDetail', {dayIndex: index})}
+              verticalLayout
               precipitationUnit={settings.precipitationUnit}
             />
 
@@ -473,7 +474,7 @@ export function HomeScreen() {
           </Text>
         </View>
 
-        <View style={{height: insets.bottom + 16}} />
+        <View style={{height: insets.bottom + 88}} />
         </View>
       </ScrollView>
 

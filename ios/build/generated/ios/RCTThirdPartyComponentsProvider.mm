@@ -20,6 +20,8 @@
 
   dispatch_once(&nativeComponentsToken, ^{
     thirdPartyComponents = @{
+			@"BlurView": NSClassFromString(@"BlurView"), // @react-native-community/blur
+			@"VibrancyView": NSClassFromString(@"VibrancyView"), // @react-native-community/blur
 			@"RNGestureHandlerButton": NSClassFromString(@"RNGestureHandlerButtonComponentView"), // react-native-gesture-handler
 			@"RNCSafeAreaProvider": NSClassFromString(@"RNCSafeAreaProviderComponentView"), // react-native-safe-area-context
 			@"RNCSafeAreaView": NSClassFromString(@"RNCSafeAreaViewComponentView"), // react-native-safe-area-context

@@ -101,6 +101,8 @@ const styles = StyleSheet.create({
   },
   weatherInfo: {
     alignItems: 'center',
+    flex: 1,
+    marginLeft: 12,
   },
   weatherIcon: {
     width: 100,
@@ -110,6 +112,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     marginTop: 8,
     textAlign: 'center',
+    flexShrink: 1,
   },
   detailsRow: {
     marginTop: 16,
