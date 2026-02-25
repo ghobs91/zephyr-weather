@@ -1,10 +1,9 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -23,8 +22,6 @@ interface Props {
   isDark: boolean;
 }
 
-type TabType = 'conditions' | 'wind';
-
 export function HourlyForecastCard({
   hourlyForecast,
   formatTemp,
@@ -32,7 +29,6 @@ export function HourlyForecastCard({
   timeFormat,
   isDark,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<TabType>('conditions');
   const themeColors = isDark ? colors.dark : colors.light;
 
   const now = new Date();
@@ -47,38 +43,6 @@ export function HourlyForecastCard({
       <View style={styles.header}>
         <Icon name="clock-outline" size={20} color={themeColors.textSecondary} />
         <Text style={[styles.title, {color: themeColors.text}]}>Hourly forecast</Text>
-      </View>
-
-      {/* Tab Selector */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === 'conditions' && {backgroundColor: themeColors.primary},
-          ]}
-          onPress={() => setActiveTab('conditions')}>
-          <Text
-            style={[
-              styles.tabText,
-              {color: activeTab === 'conditions' ? '#FFFFFF' : themeColors.textSecondary},
-            ]}>
-            Conditions
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === 'wind' && {backgroundColor: themeColors.primary},
-          ]}
-          onPress={() => setActiveTab('wind')}>
-          <Text
-            style={[
-              styles.tabText,
-              {color: activeTab === 'wind' ? '#FFFFFF' : themeColors.textSecondary},
-            ]}>
-            Wind
-          </Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -106,38 +70,22 @@ export function HourlyForecastCard({
                 resizeMode="contain"
               />
 
-              {activeTab === 'conditions' && (
-                <>
-                  <Text style={[styles.tempText, {color: themeColors.text}]}>
-                    {formatTemp(temp)}
-                  </Text>
+              <Text style={[styles.tempText, {color: themeColors.text}]}>
+                {formatTemp(temp)}
+              </Text>
 
-                  {precipProb !== undefined && precipProb > 0 && (
-                    <View style={styles.precipContainer}>
-                      <Icon name="water" size={10} color={themeColors.rain} />
-                      <Text style={[styles.precipText, {color: themeColors.rain}]}>
-                        {Math.round(precipProb)}%
-                      </Text>
-                    </View>
-                  )}
-                </>
-              )}
-
-              {activeTab === 'wind' && (
-                <View style={styles.windInfo}>
-                  <Icon
-                    name="navigation"
-                    size={14}
-                    color={themeColors.textSecondary}
-                    style={{
-                      transform: [{rotate: `${(hour.wind?.direction ?? 0) + 180}deg`}],
-                    }}
-                  />
-                  <Text style={[styles.windText, {color: themeColors.text}]}>
-                    {formatSpeed(hour.wind?.speed)}
+              {precipProb !== undefined && precipProb > 0 && (
+                <View style={styles.precipContainer}>
+                  <Icon name="water" size={10} color={themeColors.rain} />
+                  <Text style={[styles.precipText, {color: themeColors.rain}]}>
+                    {Math.round(precipProb)}%
                   </Text>
                 </View>
               )}
+
+              <Text style={[styles.windText, {color: themeColors.textSecondary}]}>
+                {formatSpeed(hour.wind?.speed)}
+              </Text>
             </View>
           );
         })}
@@ -172,20 +120,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 17,
     fontWeight: '600',
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    marginBottom: 16,
-    gap: 8,
-  },
-  tab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
   hoursContainer: {
     paddingVertical: 8,

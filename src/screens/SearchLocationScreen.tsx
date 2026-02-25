@@ -12,6 +12,7 @@ import {
   Platform,
   PermissionsAndroid,
   Alert,
+  KeyboardAvoidingView,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
@@ -184,7 +185,7 @@ export function SearchLocationScreen() {
   useEffect(() => {
     const focusTimer = setTimeout(() => {
       inputRef.current?.focus();
-    }, 350);
+    }, 700);
     return () => clearTimeout(focusTimer);
   }, []);
 
@@ -338,7 +339,10 @@ export function SearchLocationScreen() {
   ), [themeColors, handleSelectLocation, layout]);
 
   return (
-    <View style={[styles.container, {backgroundColor: themeColors.background}]}>
+    <KeyboardAvoidingView
+      style={[styles.container, {backgroundColor: themeColors.background}]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 44 : 0}>
       <View style={[
         styles.innerContainer,
         {
@@ -348,26 +352,6 @@ export function SearchLocationScreen() {
           paddingHorizontal: layout.contentPadding,
         },
       ]}>
-      {/* Search Input */}
-      <View style={[styles.searchContainer, {backgroundColor: themeColors.surface}]}>
-        <Icon name="magnify" size={24} color={themeColors.textSecondary} />
-        <TextInput
-          ref={inputRef}
-          style={[styles.searchInput, {color: themeColors.text}]}
-          placeholder="Search for a city..."
-          placeholderTextColor={themeColors.textTertiary}
-          value={query}
-          onChangeText={handleSearch}
-          returnKeyType="search"
-          autoCorrect={false}
-          autoCapitalize="words"
-        />
-        {query.length > 0 && (
-          <TouchableOpacity onPress={() => handleSearch('')}>
-            <Icon name="close-circle" size={20} color={themeColors.textSecondary} />
-          </TouchableOpacity>
-        )}
-      </View>
 
       {/* Error Message */}
       {error && (
@@ -461,9 +445,30 @@ export function SearchLocationScreen() {
       </TouchableOpacity>
       </View>
 
+      {/* Search Input */}
+      <View style={[styles.searchContainer, {backgroundColor: themeColors.surface}]}>
+        <Icon name="magnify" size={24} color={themeColors.textSecondary} />
+        <TextInput
+          ref={inputRef}
+          style={[styles.searchInput, {color: themeColors.text}]}
+          placeholder="Search for a city..."
+          placeholderTextColor={themeColors.textTertiary}
+          value={query}
+          onChangeText={handleSearch}
+          returnKeyType="search"
+          autoCorrect={false}
+          autoCapitalize="words"
+        />
+        {query.length > 0 && (
+          <TouchableOpacity onPress={() => handleSearch('')}>
+            <Icon name="close-circle" size={20} color={themeColors.textSecondary} />
+          </TouchableOpacity>
+        )}
+      </View>
+
       <View style={{height: insets.bottom}} />
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -477,7 +482,8 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 16,
+    marginTop: 8,
+    marginBottom: 8,
     paddingHorizontal: 16,
     borderRadius: 12,
     height: 48,

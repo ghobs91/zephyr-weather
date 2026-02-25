@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {
   View,
   Text,
@@ -8,24 +8,22 @@ import {
   useColorScheme,
   Alert,
   Image,
+  Animated,
 } from 'react-native';
+import {Swipeable} from 'react-native-gesture-handler';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useNavigation, CompositeNavigationProp} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {useWeatherStore} from '../store/weatherStore';
 import {colors} from '../theme/colors';
 import {Location, WeatherCode} from '../types/weather';
-import {RootStackParamList, MainTabParamList} from '../navigation/RootNavigator';
+import {RootStackParamList} from '../navigation/RootNavigator';
 import {getWeatherIconSource} from '../utils/weatherIcons';
 import {useResponsiveLayout} from '../utils/platformDetect';
 
-type NavigationProp = CompositeNavigationProp<
-  BottomTabNavigationProp<MainTabParamList>,
-  NativeStackNavigationProp<RootStackParamList>
->;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export function LocationsScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -74,8 +72,28 @@ export function LocationsScreen() {
     const current = weather?.current;
     const today = weather?.dailyForecast?.[0];
 
+    const renderRightActions = (progress: Animated.AnimatedInterpolation<number>) => {
+      const translateX = progress.interpolate({
+        inputRange: [0, 1],
+        outputRange: [80, 0],
+      });
+      return (
+        <Animated.View style={[styles.deleteAction, {transform: [{translateX}]}]}>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => removeLocation(item.id)}>
+            <Icon name="trash-can-outline" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        </Animated.View>
+      );
+    };
+
     return (
-      <View style={[
+      <Swipeable
+        renderRightActions={renderRightActions}
+        rightThreshold={40}
+        overshootRight={false}>
+        <View style={[
         styles.itemWrapper,
         {
           paddingHorizontal: layout.contentPadding,
@@ -95,7 +113,7 @@ export function LocationsScreen() {
         ]}
         onPress={() => {
           setCurrentLocationIndex(index);
-          navigation.navigate('Home');
+          navigation.goBack();
         }}
         onLongPress={() => handleDeleteLocation(item)}>
         <View style={styles.locationHeader}>
@@ -143,7 +161,8 @@ export function LocationsScreen() {
           )}
         </View>
       </TouchableOpacity>
-      </View>
+        </View>
+      </Swipeable>
     );
   };
 
@@ -272,6 +291,19 @@ const styles = StyleSheet.create({
   noData: {
     fontSize: 14,
     fontStyle: 'italic',
+  },
+  deleteAction: {
+    justifyContent: 'center',
+    marginBottom: 12,
+    marginRight: 16,
+  },
+  deleteButton: {
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 72,
+    borderRadius: 16,
+    alignSelf: 'stretch',
   },
   emptyContainer: {
     alignItems: 'center',

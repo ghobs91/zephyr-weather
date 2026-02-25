@@ -11,8 +11,6 @@ import {
   Animated,
   Alert,
   Image,
-  FlatList,
-  Modal,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
@@ -58,8 +56,8 @@ export function HomeScreen() {
   
   const [refreshing, setRefreshing] = useState(false);
   const [pageIndex, setPageIndex] = useState(currentLocationIndex);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const drawerAnim = useRef(new Animated.Value(-300)).current;
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerAnim = useRef(new Animated.Value(0)).current;
   
   const theme = settings.theme;
   const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
@@ -148,23 +146,23 @@ export function HomeScreen() {
     }
   }, [currentLocation, refreshWeather]);
 
-  const openDrawer = useCallback(() => {
-    setDrawerOpen(true);
-    Animated.spring(drawerAnim, {
-      toValue: 0,
+  const openPicker = useCallback(() => {
+    setPickerOpen(true);
+    Animated.spring(pickerAnim, {
+      toValue: 1,
       useNativeDriver: true,
-      tension: 65,
-      friction: 11,
+      tension: 70,
+      friction: 12,
     }).start();
-  }, [drawerAnim]);
+  }, [pickerAnim]);
 
-  const closeDrawer = useCallback(() => {
-    Animated.timing(drawerAnim, {
-      toValue: -300,
-      duration: 220,
+  const closePicker = useCallback(() => {
+    Animated.timing(pickerAnim, {
+      toValue: 0,
+      duration: 180,
       useNativeDriver: true,
-    }).start(() => setDrawerOpen(false));
-  }, [drawerAnim]);
+    }).start(() => setPickerOpen(false));
+  }, [pickerAnim]);
 
   const handleDeleteLocation = useCallback((location: Location) => {
     Alert.alert(
@@ -274,35 +272,8 @@ export function HomeScreen() {
           },
         ]}>
         
-        {/* Location Header - Hide on macOS desktop layout */}
-        {!isDesktop && (
-          <>
-            <View style={styles.header}>
-              <View style={styles.locationHeader}>
-                <TouchableOpacity
-                  onPress={openDrawer}
-                  hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-                  <Icon name="menu" size={24} color={themeColors.text} />
-                </TouchableOpacity>
-                <Text style={[styles.locationName, {color: themeColors.text}]}>
-                  {currentLocation.city || 'Unknown Location'}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('SearchLocation')}
-                  hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-                  <Icon name="pencil" size={20} color={themeColors.textSecondary} />
-                </TouchableOpacity>
-              </View>
-              
-              {weather?.base?.refreshTime && (
-                <Text style={[styles.updateTime, {color: themeColors.textSecondary}]}>
-                  <Icon name="clock-outline" size={12} color={themeColors.textSecondary} />{' '}
-                  {formatTime(new Date(weather.base.refreshTime), settings.timeFormat)}
-                </Text>
-              )}
-            </View>
-          </>
-        )}
+        {/* Spacer so content starts below the floating pill on mobile */}
+        {!isDesktop && <View style={{height: 66}} />}
 
         {/* macOS: Show location name and HOME badge at top */}
         {isDesktop && (
@@ -478,116 +449,155 @@ export function HomeScreen() {
         </View>
       </ScrollView>
 
-      {/* Locations Drawer */}
-      <Modal
-        transparent
-        visible={drawerOpen}
-        animationType="none"
-        onRequestClose={closeDrawer}
-        statusBarTranslucent>
-        <TouchableOpacity
-          style={styles.drawerBackdrop}
-          onPress={closeDrawer}
-          activeOpacity={1}
-        />
-        <Animated.View
-          style={[
-            styles.drawer,
-            {
-              backgroundColor: themeColors.background,
-              transform: [{translateX: drawerAnim}],
-            },
-          ]}>
-          <View style={[styles.drawerHeader, {paddingTop: insets.top + 16}]}>
-            <Text style={[styles.drawerTitle, {color: themeColors.text}]}>Locations</Text>
+      {/* Picker: rendered at root level so it's above ScrollView, backdrop below dropdown */}
+      {/* Floating top bar: hamburger | city picker | settings */}
+      {!isDesktop && (
+        <>
+          {/* Backdrop – zIndex 100, behind the picker pill/dropdown (101) */}
+          {pickerOpen && (
             <TouchableOpacity
-              style={[styles.drawerAddBtn, {backgroundColor: themeColors.primary}]}
-              onPress={() => {
-                closeDrawer();
-                setTimeout(() => navigation.navigate('SearchLocation'), 250);
-              }}>
-              <Icon name="plus" size={22} color="#FFFFFF" />
+              style={styles.pickerBackdrop}
+              onPress={closePicker}
+              activeOpacity={1}
+            />
+          )}
+
+          {/* Top bar row – zIndex 101 */}
+          <View
+            style={[styles.pickerFloating, {top: insets.top + 8}]}
+            pointerEvents="box-none">
+
+            {/* Hamburger – opens Locations */}
+            <TouchableOpacity
+              style={[
+                styles.iconPill,
+                {
+                  backgroundColor: useDark ? 'rgba(28,28,30,0.92)' : 'rgba(255,255,255,0.92)',
+                  borderColor: useDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+                },
+              ]}
+              onPress={() => navigation.navigate('Locations')}
+              activeOpacity={0.8}>
+              <Icon name="menu" size={24} color={themeColors.textSecondary} />
             </TouchableOpacity>
-          </View>
-          <FlatList
-            data={locations}
-            keyExtractor={(item) => item.id}
-            renderItem={({item, index}) => {
-              const isSelected = index === pageIndex;
-              const current = item.weather?.current;
-              const today = item.weather?.dailyForecast?.[0];
-              return (
-                <TouchableOpacity
-                  style={[
-                    styles.drawerItem,
-                    {
-                      backgroundColor: isSelected
-                        ? (useDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)')
-                        : 'transparent',
-                    },
-                  ]}
-                  onPress={() => {
-                    setCurrentLocationIndex(index);
-                    setPageIndex(index);
-                    closeDrawer();
-                  }}
-                  onLongPress={() => handleDeleteLocation(item)}>
-                  <View style={styles.drawerItemTop}>
-                    <View style={styles.drawerItemTitleRow}>
-                      {item.isCurrentPosition && (
-                        <Icon name="crosshairs-gps" size={13} color={themeColors.primary} />
-                      )}
-                      <Text
-                        style={[styles.drawerItemCity, {color: themeColors.text}]}
-                        numberOfLines={1}>
-                        {item.city || 'Unknown'}
-                      </Text>
-                    </View>
-                    {current ? (
-                      <View style={styles.drawerItemWeather}>
-                        <Image
-                          source={getWeatherIconSource(current.weatherCode, current.isDaylight)}
-                          style={styles.drawerItemIcon}
-                          resizeMode="contain"
-                        />
-                        <Text style={[styles.drawerItemTemp, {color: themeColors.text}]}>
-                          {formatTempShort(current.temperature?.temperature)}
-                        </Text>
-                      </View>
-                    ) : (
-                      <Text style={[styles.drawerItemTemp, {color: themeColors.textSecondary}]}>
-                        --°
-                      </Text>
-                    )}
-                  </View>
-                  {current && (
-                    <Text
-                      style={[styles.drawerItemCondition, {color: themeColors.textSecondary}]}
-                      numberOfLines={1}>
-                      {current.weatherText}
-                    </Text>
-                  )}
-                  {today && (
-                    <Text style={[styles.drawerItemDayNight, {color: themeColors.textTertiary}]}>
-                      H: {formatTempShort(today.day?.temperature?.temperature)} · L:{' '}
-                      {formatTempShort(today.night?.temperature?.temperature)}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              );
-            }}
-            contentContainerStyle={styles.drawerList}
-            ListEmptyComponent={
-              <View style={styles.drawerEmpty}>
-                <Icon name="map-marker-off" size={48} color={themeColors.textSecondary} />
-                <Text style={[styles.drawerEmptyText, {color: themeColors.textSecondary}]}>
-                  No locations yet
+
+            {/* Center: city picker pill + dropdown */}
+            <View style={styles.pickerCenter} pointerEvents="box-none">
+              <TouchableOpacity
+                style={[
+                  styles.pickerPill,
+                  {
+                    backgroundColor: useDark ? 'rgba(28,28,30,0.92)' : 'rgba(255,255,255,0.92)',
+                    borderColor: useDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+                  },
+                ]}
+                onPress={pickerOpen ? closePicker : openPicker}
+                activeOpacity={0.8}>
+                {currentLocation.isCurrentPosition && (
+                  <Icon name="crosshairs-gps" size={14} color={themeColors.primary} />
+                )}
+                <Text style={[styles.pickerCityText, {color: themeColors.text}]} numberOfLines={1}>
+                  {currentLocation.city || 'Unknown Location'}
                 </Text>
-              </View>
-            }
-          />
-        </Animated.View>
-      </Modal>
+                <Icon
+                  name={pickerOpen ? 'chevron-up' : 'chevron-down'}
+                  size={18}
+                  color={themeColors.textSecondary}
+                />
+              </TouchableOpacity>
+
+              {pickerOpen && (
+                <Animated.View
+                  style={[
+                    styles.pickerDropdown,
+                    {
+                      backgroundColor: useDark ? 'rgba(28,28,30,0.97)' : 'rgba(255,255,255,0.97)',
+                      borderColor: useDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)',
+                    },
+                    {
+                      opacity: pickerAnim,
+                      transform: [{
+                        translateY: pickerAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [-8, 0],
+                        }),
+                      }],
+                    },
+                  ]}>
+                  {locations.map((loc, index) => {
+                    const isSelected = index === pageIndex;
+                    const locCurrent = loc.weather?.current;
+                    const locToday = loc.weather?.dailyForecast?.[0];
+                    return (
+                      <TouchableOpacity
+                        key={loc.id}
+                        style={[
+                          styles.pickerItem,
+                          isSelected && {
+                            backgroundColor: useDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                          },
+                        ]}
+                        onPress={() => {
+                          setCurrentLocationIndex(index);
+                          setPageIndex(index);
+                          closePicker();
+                        }}>
+                        <View style={styles.pickerItemLeft}>
+                          {loc.isCurrentPosition ? (
+                            <Icon name="crosshairs-gps" size={13} color={themeColors.primary} style={{marginRight: 4}} />
+                          ) : null}
+                          <View>
+                            <Text style={[styles.pickerItemCity, {color: themeColors.text}]} numberOfLines={1}>
+                              {loc.city || 'Unknown'}
+                            </Text>
+                            {locToday && (
+                              <Text style={[styles.pickerItemSub, {color: themeColors.textSecondary}]}>
+                                H:{formatTempShort(locToday.day?.temperature?.temperature)} · L:{formatTempShort(locToday.night?.temperature?.temperature)}
+                              </Text>
+                            )}
+                          </View>
+                        </View>
+                        <View style={styles.pickerItemRight}>
+                          {locCurrent && (
+                            <>
+                              <Image
+                                source={getWeatherIconSource(locCurrent.weatherCode, locCurrent.isDaylight)}
+                                style={styles.pickerItemIcon}
+                                resizeMode="contain"
+                              />
+                              <Text style={[styles.pickerItemTemp, {color: themeColors.text}]}>
+                                {formatTempShort(locCurrent.temperature?.temperature)}
+                              </Text>
+                            </>
+                          )}
+                          {isSelected && (
+                            <Icon name="check" size={16} color={themeColors.primary} style={{marginLeft: 6}} />
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </Animated.View>
+              )}
+            </View>
+
+            {/* Settings button */}
+            <TouchableOpacity
+              style={[
+                styles.iconPill,
+                {
+                  backgroundColor: useDark ? 'rgba(28,28,30,0.92)' : 'rgba(255,255,255,0.92)',
+                  borderColor: useDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+                },
+              ]}
+              onPress={() => navigation.navigate('Settings')}
+              activeOpacity={0.8}>
+              <Icon name="cog-outline" size={24} color={themeColors.textSecondary} />
+            </TouchableOpacity>
+
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -623,6 +633,104 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
     marginLeft: 36,
+  },
+  // Floating location picker (absolutely positioned at root level)
+  pickerFloating: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    zIndex: 101,
+  },
+  pickerCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  iconPill: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 0.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 0.22,
+    shadowRadius: 20,
+    elevation: 16,
+  },
+  pickerPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 15,
+    borderRadius: 26,
+    borderWidth: 0.5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 0.22,
+    shadowRadius: 20,
+    elevation: 16,
+    width: '100%',
+  },
+  pickerCityText: {
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+  },
+  pickerDropdown: {
+    marginTop: 6,
+    borderRadius: 18,
+    borderWidth: 0.5,
+    overflow: 'hidden',
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 0.18,
+    shadowRadius: 20,
+    elevation: 12,
+  },
+  pickerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  pickerItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
+  },
+  pickerItemCity: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  pickerItemSub: {
+    fontSize: 12,
+    marginTop: 1,
+  },
+  pickerItemRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pickerItemIcon: {
+    width: 28,
+    height: 28,
+  },
+  pickerItemTemp: {
+    fontSize: 18,
+    fontWeight: '300',
+    marginLeft: 4,
+  },
+  pickerBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 100,
   },
   emptyContainer: {
     flex: 1,
@@ -717,95 +825,5 @@ const styles = StyleSheet.create({
   },
   attributionText: {
     fontSize: 12,
-  },
-  // Drawer
-  drawerBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-  },
-  drawer: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 300,
-    shadowColor: '#000',
-    shadowOffset: {width: 3, height: 0},
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  drawerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  drawerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  drawerAddBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  drawerList: {
-    paddingHorizontal: 12,
-    paddingBottom: 24,
-  },
-  drawerItem: {
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 4,
-  },
-  drawerItemTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  drawerItemTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flex: 1,
-    marginRight: 8,
-  },
-  drawerItemCity: {
-    fontSize: 17,
-    fontWeight: '600',
-    flex: 1,
-  },
-  drawerItemWeather: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  drawerItemIcon: {
-    width: 28,
-    height: 28,
-  },
-  drawerItemTemp: {
-    fontSize: 22,
-    fontWeight: '300',
-  },
-  drawerItemCondition: {
-    fontSize: 13,
-    marginBottom: 2,
-  },
-  drawerItemDayNight: {
-    fontSize: 12,
-  },
-  drawerEmpty: {
-    alignItems: 'center',
-    paddingTop: 48,
-  },
-  drawerEmptyText: {
-    fontSize: 15,
-    marginTop: 12,
   },
 });

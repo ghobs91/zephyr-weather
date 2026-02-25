@@ -172,10 +172,10 @@ export function RadarScreen() {
   const lon = location?.longitude ?? -98.5795;
 
   const [mapSize, setMapSize] = useState({width: 0, height: 0});
-  const [radarLoading, setRadarLoading] = useState(true);
   const [sliderWidth, setSliderWidth] = useState(0);
   const [selectedTimeLabel, setSelectedTimeLabel] = useState('Now');
-  const [currentEpoch, setCurrentEpoch] = useState(Date.now());
+  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
+  const [framesLoadedCount, setFramesLoadedCount] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const playbackStepRef = useRef(0);
 
@@ -201,11 +201,11 @@ export function RadarScreen() {
         const picked = pickAnimationFrames(scans, MAX_ANIMATION_FRAMES);
         setFrames(picked);
         setScanStatus(picked.length > 0 ? 'ready' : 'error');
+        setFramesLoadedCount(0);
         if (picked.length > 0) {
           // Start at most recent frame
-          const last = picked[picked.length - 1];
-          setCurrentEpoch(last.epochMs);
           playbackStepRef.current = picked.length - 1;
+          setCurrentFrameIndex(picked.length - 1);
         }
       })
       .catch(() => {
@@ -331,19 +331,30 @@ export function RadarScreen() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expandedBbox, mapSize.width, mapSize.height, committedMap.zoom, useDark]);
 
-  const radarUrl = useMemo(() => {
-    if (mapSize.width === 0 || mapSize.height === 0) return '';
-    return buildRadarImageUrl(
-      expandedBbox.west,
-      expandedBbox.south,
-      expandedBbox.east,
-      expandedBbox.north,
-      expandedW * 2, // retina
-      expandedH * 2,
-      currentEpoch,
+  // Pre-compute URLs for every frame — rendered all at once in the overlay.
+  const allRadarUrls = useMemo(() => {
+    if (frames.length === 0 || mapSize.width === 0 || mapSize.height === 0) return [];
+    return frames.map(f =>
+      buildRadarImageUrl(
+        expandedBbox.west,
+        expandedBbox.south,
+        expandedBbox.east,
+        expandedBbox.north,
+        expandedW * 2,
+        expandedH * 2,
+        f.epochMs,
+      ),
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expandedBbox, mapSize.width, mapSize.height, currentEpoch]);
+  }, [frames, expandedBbox, mapSize.width, mapSize.height]);
+
+  // Reset loaded count whenever the frame URL set changes (new station / bbox).
+  useEffect(() => {
+    setFramesLoadedCount(0);
+    setIsPlaying(false);
+  }, [allRadarUrls]);
+
+  const framesPreloaded = framesLoadedCount >= allRadarUrls.length && allRadarUrls.length > 0;
 
   // -- Frame-based timeline helpers --
 
@@ -352,9 +363,9 @@ export function RadarScreen() {
       if (frames.length === 0) return;
       const clamped = Math.max(0, Math.min(idx, frames.length - 1));
       playbackStepRef.current = clamped;
-      const scan = frames[clamped];
-      setCurrentEpoch(scan.epochMs);
+      setCurrentFrameIndex(clamped);
 
+      const scan = frames[clamped];
       const isLast = clamped === frames.length - 1;
       setSelectedTimeLabel(isLast ? 'Now' : formatTimeLabel(new Date(scan.epochMs)));
     },
@@ -379,7 +390,7 @@ export function RadarScreen() {
     if (sliderWidth <= 0 || frames.length === 0) return;
     const fraction = playbackStepRef.current / Math.max(1, frames.length - 1);
     thumbX.value = fraction * sliderWidth;
-  }, [currentEpoch, sliderWidth, frames.length, thumbX]);
+  }, [currentFrameIndex, sliderWidth, frames.length, thumbX]);
 
   const pausePlayback = useCallback(() => setIsPlaying(false), []);
 
@@ -418,8 +429,8 @@ export function RadarScreen() {
     const interval = setInterval(() => {
       const next = (playbackStepRef.current + 1) % frames.length;
       playbackStepRef.current = next;
+      setCurrentFrameIndex(next);
       const scan = frames[next];
-      setCurrentEpoch(scan.epochMs);
       const isLast = next === frames.length - 1;
       setSelectedTimeLabel(isLast ? 'Now' : formatTimeLabel(new Date(scan.epochMs)));
       // Update slider position
@@ -430,15 +441,14 @@ export function RadarScreen() {
   }, [isPlaying, frames, sliderWidth, thumbX]);
 
   const handleTogglePlayback = useCallback(() => {
-    if (frames.length === 0) return;
+    if (frames.length === 0 || !framesPreloaded) return;
     setIsPlaying(prev => {
       if (!prev && playbackStepRef.current >= frames.length - 1) {
         playbackStepRef.current = 0;
       }
       return !prev;
     });
-  }, [frames.length]);
-
+  }, [frames.length, framesPreloaded]);
   const thumbStyle = useAnimatedStyle(() => ({
     transform: [{translateX: thumbX.value - 12}],
   }));
@@ -534,21 +544,22 @@ export function RadarScreen() {
               />
             ))}
 
-            {/* Radar overlay */}
-            {radarUrl !== '' && (
+            {/* Radar overlay — all frames mounted, only current one visible.
+                This avoids any re-decode / network fetch during playback. */}
+            {allRadarUrls.map((url, i) => (
               <Image
-                source={{uri: radarUrl}}
-                style={styles.radarOverlay}
+                key={url}
+                source={{uri: url}}
+                style={[styles.radarOverlay, {opacity: i === currentFrameIndex ? 0.7 : 0}]}
                 resizeMode="stretch"
-                onLoadStart={() => setRadarLoading(true)}
-                onLoadEnd={() => setRadarLoading(false)}
-                onError={() => setRadarLoading(false)}
+                onLoad={() => setFramesLoadedCount(c => c + 1)}
+                onError={() => setFramesLoadedCount(c => c + 1)}
               />
-            )}
+            ))}
           </Animated.View>
 
           {/* Loading indicator */}
-          {(radarLoading || scanStatus === 'loading') && (
+          {(!framesPreloaded || scanStatus === 'loading') && (
             <View style={styles.mapLoadingIndicator}>
               <ActivityIndicator size="small" color={themeColors.primary} />
             </View>
@@ -599,7 +610,7 @@ export function RadarScreen() {
           {
             backgroundColor: themeColors.surface,
             borderTopColor: themeColors.border,
-            paddingBottom: Math.max(insets.bottom, 16),
+            paddingBottom: insets.bottom + 88,
           },
         ]}>
         <View style={styles.timeDisplay}>
@@ -607,15 +618,19 @@ export function RadarScreen() {
             onPress={handleTogglePlayback}
             style={[
               styles.playButton,
-              {backgroundColor: frames.length > 0 ? themeColors.primary : themeColors.border},
+              {backgroundColor: frames.length > 0 && framesPreloaded ? themeColors.primary : themeColors.border},
             ]}
             activeOpacity={0.75}
-            disabled={frames.length === 0}>
-            <Icon
-              name={isPlaying ? 'pause' : 'play'}
-              size={18}
-              color="#fff"
-            />
+            disabled={frames.length === 0 || !framesPreloaded}>
+            {frames.length > 0 && !framesPreloaded ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Icon
+                name={isPlaying ? 'pause' : 'play'}
+                size={18}
+                color="#fff"
+              />
+            )}
           </TouchableOpacity>
           <Icon name="clock-outline" size={16} color={themeColors.primary} />
           <Text style={[styles.timeDisplayText, {color: themeColors.text}]}>
@@ -738,7 +753,6 @@ const styles = StyleSheet.create({
   },
   radarOverlay: {
     ...StyleSheet.absoluteFillObject,
-    opacity: 0.7,
   },
   mapLoadingIndicator: {
     position: 'absolute',

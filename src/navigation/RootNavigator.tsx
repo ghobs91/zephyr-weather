@@ -12,6 +12,7 @@ import {SearchLocationScreen} from '../screens/SearchLocationScreen';
 import {SettingsScreen} from '../screens/SettingsScreen';
 import {DailyDetailScreen} from '../screens/DailyDetailScreen';
 import {AlertsScreen} from '../screens/AlertsScreen';
+import {LocationsScreen} from '../screens/LocationsScreen';
 import {useWeatherStore} from '../store/weatherStore';
 import {colors} from '../theme/colors';
 import {isMacOS} from '../utils/platformDetect';
@@ -21,6 +22,8 @@ export type RootStackParamList = {
   DailyDetail: {dayIndex: number};
   SearchLocation: undefined;
   Alerts: undefined;
+  Locations: undefined;
+  Settings: undefined;
 };
 
 export type MainTabParamList = {
@@ -40,9 +43,9 @@ function GlassPill({children, style, useDark}: {children: React.ReactNode; style
   return (
     <View style={[tabBarStyles.glassPill, useDark ? tabBarStyles.glassPillDark : tabBarStyles.glassPillLight, style]}>
       {/* Bottom layer: tinted fill */}
-      <View style={[StyleSheet.absoluteFill, {borderRadius: 26, backgroundColor: useDark ? 'rgba(28,38,54,0.72)' : 'rgba(245,247,250,0.72)'}]} />
+      <View style={[StyleSheet.absoluteFill, {borderRadius: 26, backgroundColor: useDark ? 'rgba(28,28,30,0.92)' : 'rgba(255,255,255,0.92)'}]} />
       {/* Top highlight shimmer */}
-      <View style={[tabBarStyles.glassShimmer, {backgroundColor: useDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.55)'}]} />
+      <View style={[tabBarStyles.glassShimmer, {backgroundColor: useDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.55)'}]} />
       {/* Inner border highlight */}
       <View style={[StyleSheet.absoluteFill, tabBarStyles.glassBorder, {borderColor: useDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.8)'}]} />
       <View style={tabBarStyles.glassContent}>{children}</View>
@@ -135,9 +138,9 @@ const tabBarStyles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
   },
   glassPillLight: {
-    shadowColor: '#6b7280',
+    shadowColor: '#000',
     borderWidth: 0.5,
-    borderColor: 'rgba(255,255,255,0.7)',
+    borderColor: 'rgba(0,0,0,0.08)',
   },
   glassShimmer: {
     position: 'absolute',
@@ -262,6 +265,25 @@ export function RootNavigator() {
         options={{
           title: 'Weather Alerts',
           headerBackTitle: 'Back',
+        }}
+      />
+      <Stack.Screen
+        name="Locations"
+        component={LocationsScreen}
+        options={{
+          title: 'Locations',
+          headerBackTitle: 'Back',
+          presentation: 'modal',
+          gestureEnabled: true,
+        }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          title: 'Settings',
+          presentation: 'modal',
+          gestureEnabled: true,
         }}
       />
     </Stack.Navigator>

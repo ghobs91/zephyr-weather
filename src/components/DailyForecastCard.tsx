@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -58,8 +58,6 @@ interface Props {
   precipitationUnit?: 'mm' | 'inch';
 }
 
-type TabType = 'conditions' | 'wind';
-
 export function DailyForecastCard({
   dailyForecast,
   formatTemp,
@@ -69,7 +67,6 @@ export function DailyForecastCard({
   verticalLayout = false,
   precipitationUnit = 'inch',
 }: Props) {
-  const [activeTab, setActiveTab] = useState<TabType>('conditions');
   const themeColors = isDark ? colors.dark : colors.light;
 
   // snowCm is Open-Meteo's snowfall_sum (cm) or NWS converted to cm
@@ -117,42 +114,6 @@ export function DailyForecastCard({
         <Text style={[styles.title, {color: themeColors.text}]}>Daily forecast</Text>
       </View>
 
-      {/* Tab Selector */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === 'conditions' && {
-              backgroundColor: themeColors.primary,
-            },
-          ]}
-          onPress={() => setActiveTab('conditions')}>
-          <Text
-            style={[
-              styles.tabText,
-              {color: activeTab === 'conditions' ? '#FFFFFF' : themeColors.textSecondary},
-            ]}>
-            Conditions
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === 'wind' && {
-              backgroundColor: themeColors.primary,
-            },
-          ]}
-          onPress={() => setActiveTab('wind')}>
-          <Text
-            style={[
-              styles.tabText,
-              {color: activeTab === 'wind' ? '#FFFFFF' : themeColors.textSecondary},
-            ]}>
-            Wind
-          </Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Daily List */}
       {verticalLayout ? (
         <ScrollView
@@ -184,8 +145,7 @@ export function DailyForecastCard({
                     </Text>
                   </View>
 
-                  {activeTab === 'conditions' ? (
-                    <View style={styles.dayRowRight}>
+                  <View style={styles.dayRowRight}>
                       <View style={styles.tempRow}>
                         <Image
                           source={getWeatherIconSource(day.day?.weatherCode, true)}
@@ -217,54 +177,30 @@ export function DailyForecastCard({
                         </Text>
                       </View>
                     </View>
-                  ) : (
-                    <View style={styles.dayRowRight}>
-                      <View style={styles.windContainerRow}>
-                        <Image
-                          source={getWeatherIconSource(day.day?.weatherCode, true)}
-                          style={styles.weatherIcon}
-                          resizeMode="contain"
-                        />
-                        <Icon
-                          name="navigation"
-                          size={16}
-                          color={themeColors.textSecondary}
-                          style={{
-                            transform: [{rotate: `${(day.day?.wind?.direction ?? 0) + 180}deg`}],
-                          }}
-                        />
-                        <Text style={[styles.windText, {color: themeColors.text}]}>
-                          {formatSpeed(day.day?.wind?.speed)}
-                        </Text>
-                      </View>
-                    </View>
-                  )}
-                </View>
+                  </View>
 
                 {/* Precip row sits below the alignment row so it doesn't affect centering */}
-                {activeTab === 'conditions' && (
-                  <View style={styles.precipRow}>
-                    {precipProb !== undefined && precipProb > 0 && (
+                <View style={styles.precipRow}>
+                  {precipProb !== undefined && precipProb > 0 && (
+                    <View style={styles.precipContainer}>
+                      <Icon name="water" size={12} color={themeColors.rain} />
+                      <Text style={[styles.precipText, {color: themeColors.rain}]}>
+                        {Math.round(precipProb)}%
+                      </Text>
+                    </View>
+                  )}
+                  {(() => {
+                    const snowText = formatSnow(day.day?.precipitation?.snow);
+                    return snowText ? (
                       <View style={styles.precipContainer}>
-                        <Icon name="water" size={12} color={themeColors.rain} />
-                        <Text style={[styles.precipText, {color: themeColors.rain}]}>
-                          {Math.round(precipProb)}%
+                        <Icon name="snowflake" size={12} color={themeColors.snow} />
+                        <Text style={[styles.precipText, {color: themeColors.snow}]}>
+                          {snowText}
                         </Text>
                       </View>
-                    )}
-                    {(() => {
-                      const snowText = formatSnow(day.day?.precipitation?.snow);
-                      return snowText ? (
-                        <View style={styles.precipContainer}>
-                          <Icon name="snowflake" size={12} color={themeColors.snow} />
-                          <Text style={[styles.precipText, {color: themeColors.snow}]}>
-                            {snowText}
-                          </Text>
-                        </View>
-                      ) : null;
-                    })()}
-                  </View>
-                )}
+                    ) : null;
+                  })()}
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -302,9 +238,7 @@ export function DailyForecastCard({
                   resizeMode="contain"
                 />
 
-                {activeTab === 'conditions' && (
-                  <>
-                    <View style={styles.tempBarContainer}>
+                <View style={styles.tempBarContainer}>
                       <Text style={[styles.tempLabel, {color: themeColors.text}]}>
                         {formatTemp(dayTemp)}
                       </Text>
@@ -352,24 +286,6 @@ export function DailyForecastCard({
                         ) : null;
                       })()}
                     </View>
-                  </>
-                )}
-
-                {activeTab === 'wind' && (
-                  <View style={styles.windContainer}>
-                    <Icon
-                      name="navigation"
-                      size={16}
-                      color={themeColors.textSecondary}
-                      style={{
-                        transform: [{rotate: `${(day.day?.wind?.direction ?? 0) + 180}deg`}],
-                      }}
-                    />
-                    <Text style={[styles.windText, {color: themeColors.text}]}>
-                      {formatSpeed(day.day?.wind?.speed)}
-                    </Text>
-                  </View>
-                )}
               </TouchableOpacity>
             );
           })}
@@ -399,20 +315,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 17,
     fontWeight: '600',
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    marginBottom: 16,
-    gap: 8,
-  },
-  tab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  tabText: {
-    fontSize: 15,
-    fontWeight: '500',
   },
   daysContainer: {
     paddingVertical: 8,
