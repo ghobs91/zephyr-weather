@@ -10,6 +10,15 @@ Inspired by [Breezy Weather](https://github.com/breezy-weather/breezy-weather).
 ![macOS](https://img.shields.io/badge/macOS-13.0%2B-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/Screenshot%202026-02-25%20at%206.28.24%20AM_1284x2778.png" width="22%" alt="Screenshot 1" />
+  <img src="screenshots/Screenshot%202026-02-25%20at%206.28.41%20AM_1284x2778.png" width="22%" alt="Screenshot 2" />
+  <img src="screenshots/Screenshot%202026-02-25%20at%206.30.11%20AM_1284x2778.png" width="22%" alt="Screenshot 3" />
+  <img src="screenshots/Screenshot%202026-02-25%20at%206.30.27%20AM_1284x2778.png" width="22%" alt="Screenshot 4" />
+</p>
+
 ## Features
 
 ### Platforms
