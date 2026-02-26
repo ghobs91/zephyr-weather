@@ -13,10 +13,10 @@ Inspired by [Breezy Weather](https://github.com/breezy-weather/breezy-weather).
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/Screenshot%202026-02-25%20at%206.28.24%20AM_1284x2778.png" width="22%" alt="Screenshot 1" />
-  <img src="screenshots/Screenshot%202026-02-25%20at%206.28.41%20AM_1284x2778.png" width="22%" alt="Screenshot 2" />
-  <img src="screenshots/Screenshot%202026-02-25%20at%206.30.11%20AM_1284x2778.png" width="22%" alt="Screenshot 3" />
-  <img src="screenshots/Screenshot%202026-02-25%20at%206.30.27%20AM_1284x2778.png" width="22%" alt="Screenshot 4" />
+  <img src="screenshots/screenshot-1.png" width="30%" alt="Screenshot 1" />
+  <img src="screenshots/screenshot-2.png" width="30%" alt="Screenshot 2" />
+  <img src="screenshots/screenshot-3.png" width="30%" alt="Screenshot 3" />
+  <img src="screenshots/screenshot-4.png" width="30%" alt="Screenshot 4" />
 </p>
 
 ## Features
