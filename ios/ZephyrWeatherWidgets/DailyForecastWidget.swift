@@ -126,30 +126,30 @@ struct DailyForecastWidgetView: View {
             // Location name
             if let locationName = entry.weatherData.locationName {
                 Text(locationName)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.75))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.bottom, 4)
+                    .padding(.bottom, 2)
             }
 
             // Current conditions
             HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 1) {
                     Text(formatCurrentTemp(entry.weatherData.current?.temperature))
-                        .font(.system(size: 52, weight: .thin))
+                        .font(.system(size: 64, weight: .thin))
                         .foregroundColor(currentTempColor(entry.weatherData.current?.temperature))
-                        .minimumScaleFactor(0.5)
+                        .minimumScaleFactor(0.6)
                         .lineLimit(1)
 
                     Text(entry.weatherData.current?.weatherText ?? "")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.white.opacity(0.9))
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white.opacity(0.85))
                         .lineLimit(1)
 
                     if let today = todayAndFutureDays.first {
-                        Text("H: \(formatTempValue(today.dayTemp))  L: \(formatTempValue(today.nightTemp))")
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundColor(.white.opacity(0.7))
+                        Text("H:\(formatTempValue(today.dayTemp))  L:\(formatTempValue(today.nightTemp))")
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundColor(.white.opacity(0.65))
                     }
                 }
 
@@ -158,41 +158,41 @@ struct DailyForecastWidgetView: View {
                 Image(largeIconName(entry.weatherData.current?.weatherCode))
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 70, height: 70)
+                    .frame(width: 68, height: 68)
             }
-            .padding(.bottom, 8)
+            .padding(.bottom, 6)
 
             Divider()
                 .background(Color.white.opacity(0.25))
-                .padding(.bottom, 6)
+                .padding(.bottom, 5)
 
             // Hourly forecast row
             if !upcomingHours.isEmpty {
                 HStack(spacing: 0) {
                     ForEach(Array(upcomingHours.prefix(6).enumerated()), id: \.offset) { _, hour in
-                        VStack(spacing: 3) {
+                        VStack(spacing: 2) {
                             Text(hourLabel(hour.date))
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.white.opacity(0.7))
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(.white.opacity(0.65))
 
                             Image(largeIconName(hour.weatherCode))
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 22, height: 22)
+                                .frame(width: 20, height: 20)
 
                             Text(formatCurrentTemp(hour.temperature))
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(.system(size: 12, weight: .semibold))
                                 .foregroundColor(.white)
                         }
                         .frame(maxWidth: .infinity)
                     }
                 }
-                .padding(.bottom, 6)
+                .padding(.bottom, 5)
             }
 
             Divider()
                 .background(Color.white.opacity(0.25))
-                .padding(.bottom, 2)
+                .padding(.bottom, 3)
 
             // Daily forecast rows (vertical)
             VStack(spacing: 0) {
@@ -205,10 +205,9 @@ struct DailyForecastWidgetView: View {
                     )
                 }
             }
-
-            Spacer(minLength: 0)
         }
-        .padding(14)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .containerBackground(for: .widget) {
             LinearGradient(
@@ -284,19 +283,19 @@ struct DayRow: View {
         HStack(spacing: 8) {
             // Day name
             Text(dayName(day.date))
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(.white)
-                .frame(width: 40, alignment: .leading)
+                .frame(width: 38, alignment: .leading)
             
             // Weather icon
             Image(weatherIconAsset(day.dayWeatherCode))
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 30, height: 30)
+                .frame(width: 22, height: 22)
             
             // Low temp (grayed out)
             Text("\(formatTempNumber(day.nightTemp))")
-                .font(.system(size: 14, weight: .regular))
+                .font(.system(size: 13, weight: .regular))
                 .foregroundColor(.white.opacity(0.5))
                 .frame(width: 26, alignment: .trailing)
             
@@ -310,11 +309,11 @@ struct DayRow: View {
             
             // High temp
             Text("\(formatTempNumber(day.dayTemp))")
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.white)
                 .frame(width: 26, alignment: .trailing)
         }
-        .padding(.vertical, 3)
+        .padding(.vertical, 2)
     }
     
     func dayName(_ date: Date) -> String {

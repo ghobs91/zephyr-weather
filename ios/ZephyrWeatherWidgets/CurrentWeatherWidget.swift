@@ -178,30 +178,30 @@ struct CurrentWeatherWidgetView: View {
             // Location name
             if let locationName = entry.weatherData.locationName {
                 Text(locationName)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.75))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.bottom, 2)
             }
 
             // Current conditions
             HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 1) {
                     Text(formatTemp(entry.weatherData.current?.temperature))
-                        .font(.system(size: 60, weight: .thin))
+                        .font(.system(size: 64, weight: .thin))
                         .foregroundColor(temperatureColor(entry.weatherData.current?.temperature))
-                        .minimumScaleFactor(0.5)
+                        .minimumScaleFactor(0.6)
                         .lineLimit(1)
 
                     Text(entry.weatherData.current?.weatherText ?? "Unknown")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white.opacity(0.9))
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white.opacity(0.85))
                         .lineLimit(1)
 
                     if let today = todayAndFutureDays.first {
-                        Text("H: \(formatTemp(today.dayTemp))  L: \(formatTemp(today.nightTemp))")
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundColor(.white.opacity(0.7))
+                        Text("H:\(formatTemp(today.dayTemp))  L:\(formatTemp(today.nightTemp))")
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundColor(.white.opacity(0.65))
                     }
                 }
 
@@ -210,41 +210,41 @@ struct CurrentWeatherWidgetView: View {
                 Image(weatherIconAsset(entry.weatherData.current?.weatherCode))
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 75, height: 75)
+                    .frame(width: 68, height: 68)
             }
-            .padding(.bottom, 10)
+            .padding(.bottom, 6)
 
             Divider()
                 .background(Color.white.opacity(0.25))
-                .padding(.bottom, 8)
+                .padding(.bottom, 5)
 
             // Hourly forecast row
             if !upcomingHours.isEmpty {
                 HStack(spacing: 0) {
                     ForEach(Array(upcomingHours.prefix(6).enumerated()), id: \.offset) { _, hour in
-                        VStack(spacing: 4) {
+                        VStack(spacing: 2) {
                             Text(hourLabel(hour.date))
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.white.opacity(0.7))
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(.white.opacity(0.65))
 
                             Image(weatherIconAsset(hour.weatherCode))
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 22, height: 22)
+                                .frame(width: 20, height: 20)
 
                             Text(formatTemp(hour.temperature))
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(.system(size: 12, weight: .semibold))
                                 .foregroundColor(.white)
                         }
                         .frame(maxWidth: .infinity)
                     }
                 }
-                .padding(.bottom, 8)
+                .padding(.bottom, 5)
             }
 
             Divider()
                 .background(Color.white.opacity(0.25))
-                .padding(.bottom, 2)
+                .padding(.bottom, 3)
 
             // Daily forecast rows
             VStack(spacing: 0) {
@@ -257,10 +257,9 @@ struct CurrentWeatherWidgetView: View {
                     )
                 }
             }
-
-            Spacer(minLength: 0)
         }
-        .padding(14)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .containerBackground(for: .widget) {
             LinearGradient(
