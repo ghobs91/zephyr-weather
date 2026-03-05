@@ -20,6 +20,9 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useWeatherStore} from '../store/weatherStore';
 import {fetchWeather, fetchAirQuality} from '../services/openMeteoService';
 import {fetchNWSWeather, isUSLocation} from '../services/nwsService';
+import {fetchMetNoWeather} from '../services/metnoService';
+import {fetchBrightSkyWeather} from '../services/brightSkyService';
+import {combineEnsemble, EnsembleSource} from '../services/ensembleService';
 import {colors, getTemperatureColor} from '../theme/colors';
 import {WeatherCode, Location} from '../types/weather';
 import {RootStackParamList} from '../navigation/RootNavigator';
@@ -78,38 +81,41 @@ export function HomeScreen() {
     try {
       setLoading(true);
       
-      // Check if location is in the US and use NWS if available
-      const useNWS = await isUSLocation(
-        currentLocation.latitude,
-        currentLocation.longitude
-      );
-      
-      let weather;
-      if (useNWS) {
-        console.log('Using NWS API for US location');
-        weather = await fetchNWSWeather(
-          currentLocation.latitude,
-          currentLocation.longitude
-        );
-        
-        // Fetch air quality from Open-Meteo since NWS doesn't provide it
-        const airQuality = await fetchAirQuality(
-          currentLocation.latitude,
-          currentLocation.longitude,
-          currentLocation.timezone
-        );
-        
-        if (weather.current && airQuality) {
-          weather.current.airQuality = airQuality;
-        }
-      } else {
-        console.log('Using Open-Meteo API for international location');
-        weather = await fetchWeather(
-          currentLocation.latitude,
-          currentLocation.longitude,
-          currentLocation.timezone
-        );
+      const {latitude, longitude, timezone} = currentLocation;
+      const useNWS = await isUSLocation(latitude, longitude);
+
+      // Fire all source fetches in parallel; each is wrapped so a single
+      // failure doesn't block the rest — we just drop that source.
+      const primaryPromise = useNWS
+        ? fetchNWSWeather(latitude, longitude)
+            .then(async (w) => {
+              // Supplement NWS with air quality from Open-Meteo
+              const aq = await fetchAirQuality(latitude, longitude, timezone).catch(() => null);
+              if (w.current && aq) w.current.airQuality = aq;
+              return {name: 'NWS', weather: w} as EnsembleSource;
+            })
+            .catch((e) => { console.warn('NWS fetch failed:', e); return null; })
+        : fetchWeather(latitude, longitude, timezone)
+            .then((w) => ({name: 'Open-Meteo', weather: w} as EnsembleSource))
+            .catch((e) => { console.warn('Open-Meteo fetch failed:', e); return null; });
+
+      const metnoPromise = fetchMetNoWeather(latitude, longitude, timezone)
+        .then((w) => ({name: 'Met.no', weather: w} as EnsembleSource))
+        .catch((e) => { console.warn('Met.no fetch failed:', e); return null; });
+
+      const brightSkyPromise = fetchBrightSkyWeather(latitude, longitude, timezone)
+        .then((w) => ({name: 'BrightSky', weather: w} as EnsembleSource))
+        .catch((e) => { console.warn('BrightSky fetch failed:', e); return null; });
+
+      const results = await Promise.all([primaryPromise, metnoPromise, brightSkyPromise]);
+      const sources = results.filter((r): r is EnsembleSource => r !== null);
+
+      if (sources.length === 0) {
+        throw new Error('All weather sources failed');
       }
+
+      console.log(`Ensemble: combining ${sources.length} source(s): ${sources.map(s => s.name).join(', ')}`);
+      const weather = combineEnsemble(sources);
       
       updateLocationWeather(currentLocation.id, weather);
     } catch (error) {
@@ -313,6 +319,7 @@ export function HomeScreen() {
           formatTemp={formatTemp}
           isDaylight={current?.isDaylight}
           isDark={useDark}
+          confidence={currentLocation?.weather?.confidence}
         />
 
         {isDesktop ? (

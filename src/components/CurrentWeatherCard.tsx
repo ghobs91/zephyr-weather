@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Text, StyleSheet, Image} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {Current, Daily, WeatherCode} from '../types/weather';
+import {Current, Daily, WeatherCode, EnsembleConfidence} from '../types/weather';
 import {colors, getTemperatureColor} from '../theme/colors';
 import {getWeatherIconSource} from '../utils/weatherIcons';
 
@@ -11,6 +11,14 @@ interface Props {
   formatTemp: (temp?: number) => string;
   isDaylight?: boolean;
   isDark: boolean;
+  confidence?: EnsembleConfidence;
+}
+
+function getConfidenceLabel(overall?: number): {text: string; color: string} {
+  if (overall === undefined) return {text: '', color: '#999'};
+  if (overall >= 0.75) return {text: 'High confidence', color: '#4CAF50'};
+  if (overall >= 0.5) return {text: 'Moderate confidence', color: '#FF9800'};
+  return {text: 'Low confidence', color: '#F44336'};
 }
 
 export function CurrentWeatherCard({
@@ -19,6 +27,7 @@ export function CurrentWeatherCard({
   formatTemp,
   isDaylight = true,
   isDark,
+  confidence,
 }: Props) {
   const themeColors = isDark ? colors.dark : colors.light;
   
@@ -71,6 +80,16 @@ export function CurrentWeatherCard({
           </Text>
         </View>
       </View>
+
+      {confidence && confidence.sourceCount !== undefined && confidence.sourceCount > 1 && (
+        <View style={styles.confidenceRow}>
+          <View style={[styles.confidenceDot, {backgroundColor: getConfidenceLabel(confidence.overall).color}]} />
+          <Text style={[styles.confidenceText, {color: themeColors.textSecondary}]}>
+            {getConfidenceLabel(confidence.overall).text}
+            {confidence.sourceNames ? ` (${confidence.sourceNames.join(', ')})` : ''}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -127,5 +146,20 @@ const styles = StyleSheet.create({
   },
   dayNightText: {
     fontSize: 13,
+  },
+  confidenceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    justifyContent: 'center',
+  },
+  confidenceDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  confidenceText: {
+    fontSize: 12,
   },
 });

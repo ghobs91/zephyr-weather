@@ -188,6 +188,15 @@ export interface Current {
   dailyForecast?: string;
 }
 
+export interface EnsembleConfidence {
+  temperature?: number; // 0-1, based on std dev across sources
+  precipitation?: number;
+  wind?: number;
+  overall?: number;
+  sourceCount?: number; // how many sources contributed
+  sourceNames?: string[]; // e.g. ['NWS', 'Met.no', 'BrightSky']
+}
+
 export interface Weather {
   base?: {
     refreshTime?: Date;
@@ -204,6 +213,7 @@ export interface Weather {
   minutelyForecast?: Minutely[];
   alerts?: Alert[];
   normals?: Normals[];
+  confidence?: EnsembleConfidence;
 }
 
 export interface Location {
