@@ -8,6 +8,11 @@ const LOCATIONS_LIST_KEY = 'locations';
 
 const {ZephyrWidgetBridge} = NativeModules;
 
+// Debounce timer for widget updates — prevents rapid successive reloadAllTimelines
+// calls which iOS rate-limits.
+let pendingWidgetUpdate: ReturnType<typeof setTimeout> | null = null;
+const WIDGET_UPDATE_DEBOUNCE_MS = 1500;
+
 async function setSharedItem(key: string, value: string): Promise<void> {
   if (ZephyrWidgetBridge) {
     await ZephyrWidgetBridge.setItem(key, value, APP_GROUP_IDENTIFIER);
@@ -20,6 +25,21 @@ async function reloadWidgets(): Promise<void> {
   if (ZephyrWidgetBridge?.reloadWidgets) {
     await ZephyrWidgetBridge.reloadWidgets();
   }
+}
+
+// Writes data to the shared container immediately, then debounces the
+// WidgetKit timeline reload so rapid back-to-back store mutations don't
+// exhaust the iOS reload budget.
+function scheduleWidgetReload(): void {
+  if (pendingWidgetUpdate) {
+    clearTimeout(pendingWidgetUpdate);
+  }
+  pendingWidgetUpdate = setTimeout(() => {
+    pendingWidgetUpdate = null;
+    reloadWidgets().catch(err =>
+      console.error('Failed to reload widgets:', err),
+    );
+  }, WIDGET_UPDATE_DEBOUNCE_MS);
 }
 
 // Convert weather code from TypeScript format (PARTLY_CLOUDY) to Swift format (partly_cloudy)
@@ -57,6 +77,7 @@ interface WidgetWeatherData {
   }>;
   locationName: string;
   temperatureUnit: string;
+  lastUpdated: string;
 }
 
 interface SharedLocation {
@@ -111,7 +132,7 @@ export async function updateAllLocationsWeatherData(
     if (Object.keys(weatherDataMap).length > 0) {
       const jsonData = JSON.stringify(weatherDataMap);
       await setSharedItem(WEATHER_DATA_KEY, jsonData);
-      await reloadWidgets();
+      scheduleWidgetReload();
     }
 
     console.log('All locations weather data updated successfully');
@@ -136,7 +157,7 @@ export async function updateWidgetData(location: Location, settings?: AppSetting
     
     // Write to shared container as JSON file
     await setSharedItem(WEATHER_DATA_KEY, jsonData);
-    await reloadWidgets();
+    scheduleWidgetReload();
 
     console.log('Widget data updated successfully');
   } catch (error) {
@@ -197,5 +218,6 @@ function createWidgetWeatherData(location: Location, settings?: AppSettings): Wi
     })(),
     locationName: location.city ?? 'Unknown Location',
     temperatureUnit: settings?.temperatureUnit ?? 'fahrenheit',
+    lastUpdated: new Date().toISOString(),
   };
 }

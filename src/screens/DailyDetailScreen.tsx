@@ -219,6 +219,11 @@ export function DailyDetailScreen() {
                           borderRadius: 8,
                         }}>
                         <LineChart.PriceText
+                          style={{
+                            color: themeColors.text,
+                            fontSize: 16,
+                            fontWeight: '600',
+                          }}
                           format={({value}) => {
                             'worklet';
                             return `${Math.round(Number(value))}°`;

@@ -17,6 +17,8 @@
 		C8BD99942F335CFC00EE55C4 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8BD99932F335CFC00EE55C4 /* SwiftUI.framework */; };
 		C8BD99A32F335CFE00EE55C4 /* ZephyrWeatherWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C8BD99902F335CFC00EE55C4 /* ZephyrWeatherWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C8BDAA012F3900000000AB01 /* ZephyrWidgetBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = C8BDAA032F3900000000AB03 /* ZephyrWidgetBridge.m */; };
+		C8BDAA052F4000010000AA01 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8BD99912F335CFC00EE55C4 /* WidgetKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		C8BDBB012F4000010000BB01 /* ZephyrWidgetReloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8BDBB022F4000010000BB02 /* ZephyrWidgetReloader.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +62,7 @@
 		C8BD99B22F335E1C00EE55C4 /* ZephyrWeatherWidgetsExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ZephyrWeatherWidgetsExtension.entitlements; sourceTree = "<group>"; };
 		C8BDAA022F3900000000AB02 /* ZephyrWidgetBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ZephyrWidgetBridge.h; path = ZephyrWeather/ZephyrWidgetBridge.h; sourceTree = "<group>"; };
 		C8BDAA032F3900000000AB03 /* ZephyrWidgetBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = ZephyrWidgetBridge.m; path = ZephyrWeather/ZephyrWidgetBridge.m; sourceTree = "<group>"; };
+		C8BDBB022F4000010000BB02 /* ZephyrWidgetReloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ZephyrWidgetReloader.swift; path = ZephyrWeather/ZephyrWidgetReloader.swift; sourceTree = "<group>"; };
 		D738859BDE98B13B02DC0CBB /* Pods-ZephyrWeather.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZephyrWeather.debug.xcconfig"; path = "Target Support Files/Pods-ZephyrWeather/Pods-ZephyrWeather.debug.xcconfig"; sourceTree = "<group>"; };
 		EBABA00DA58E4D28597541CE /* Pods-ZephyrWeather.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZephyrWeather.release.xcconfig"; path = "Target Support Files/Pods-ZephyrWeather/Pods-ZephyrWeather.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -84,6 +87,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C8BDAA052F4000010000AA01 /* WidgetKit.framework in Frameworks */,
 				975600D52AF6F706B1282CBC /* libPods-ZephyrWeather.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -113,6 +117,7 @@
 				AC0BB7693FBB4CB9001E3DE1 /* PrivacyInfo.xcprivacy */,
 				C8BDAA022F3900000000AB02 /* ZephyrWidgetBridge.h */,
 				C8BDAA032F3900000000AB03 /* ZephyrWidgetBridge.m */,
+				C8BDBB022F4000010000BB02 /* ZephyrWidgetReloader.swift */,
 			);
 			name = ZephyrWeather;
 			sourceTree = "<group>";
@@ -362,6 +367,7 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				C8BDAA012F3900000000AB01 /* ZephyrWidgetBridge.m in Sources */,
+				C8BDBB012F4000010000BB01 /* ZephyrWidgetReloader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

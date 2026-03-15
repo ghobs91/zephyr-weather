@@ -58,6 +58,7 @@ struct WeatherData: Codable {
     let hourly: [HourlyForecast]
     let locationName: String?
     let temperatureUnit: String?
+    let lastUpdated: Date?
     
     struct CurrentWeather: Codable {
         let temperature: Double?
@@ -203,7 +204,8 @@ class WeatherDataManager {
             daily: daily,
             hourly: hourly,
             locationName: "San Francisco",
-            temperatureUnit: "fahrenheit"
+            temperatureUnit: "fahrenheit",
+            lastUpdated: Date()
         )
     }
 }

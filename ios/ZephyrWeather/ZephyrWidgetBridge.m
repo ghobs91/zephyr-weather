@@ -1,6 +1,9 @@
 #import "ZephyrWidgetBridge.h"
 #import <React/RCTLog.h>
-#import <objc/runtime.h>
+
+// Defined in ZephyrWidgetReloader.swift via @_cdecl — avoids the
+// ObjC/Swift class-interop header generation chicken-and-egg problem.
+extern void ZephyrReloadAllWidgets(void);
 
 @implementation ZephyrWidgetBridge
 
@@ -31,29 +34,11 @@ RCT_EXPORT_METHOD(setItem:(NSString *)key
 RCT_EXPORT_METHOD(reloadWidgets:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
-  // Use runtime lookup to avoid hard WidgetKit link dependency
-  Class widgetCenterClass = NSClassFromString(@"WGWidgetCenter");
-  if (!widgetCenterClass) {
-    widgetCenterClass = NSClassFromString(@"WidgetCenter");
-  }
-  if (widgetCenterClass) {
-    SEL sharedSel = NSSelectorFromString(@"shared");
-    SEL reloadSel = NSSelectorFromString(@"reloadAllTimelines");
-    if ([widgetCenterClass respondsToSelector:sharedSel]) {
-      dispatch_async(dispatch_get_main_queue(), ^{
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-        id center = [widgetCenterClass performSelector:sharedSel];
-        if ([center respondsToSelector:reloadSel]) {
-          [center performSelector:reloadSel];
-        }
-#pragma clang diagnostic pop
-        resolve(nil);
-      });
-      return;
-    }
-  }
-  resolve(nil);
+  dispatch_async(dispatch_get_main_queue(), ^{
+    ZephyrReloadAllWidgets();
+    RCTLogInfo(@"WidgetKit: reloaded all timelines");
+    resolve(nil);
+  });
 }
 
 @end
