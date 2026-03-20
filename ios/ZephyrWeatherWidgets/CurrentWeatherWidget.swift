@@ -63,7 +63,7 @@ struct CurrentWeatherWidgetView: View {
     var smallWidgetView: some View {
         VStack(spacing: 8) {
             // Weather Icon
-            Image(weatherIconAsset(entry.weatherData.current?.weatherCode))
+            Image(weatherIconAsset(entry.weatherData.current?.weatherCode, isDay: entry.weatherData.current?.isDaylight))
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 60, height: 60)
@@ -136,7 +136,7 @@ struct CurrentWeatherWidgetView: View {
             
             // Right side - Icon and Condition
             VStack(alignment: .trailing, spacing: 6) {
-                Image(weatherIconAsset(entry.weatherData.current?.weatherCode))
+                Image(weatherIconAsset(entry.weatherData.current?.weatherCode, isDay: entry.weatherData.current?.isDaylight))
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 70, height: 70)
@@ -207,7 +207,7 @@ struct CurrentWeatherWidgetView: View {
 
                 Spacer()
 
-                Image(weatherIconAsset(entry.weatherData.current?.weatherCode))
+                Image(weatherIconAsset(entry.weatherData.current?.weatherCode, isDay: entry.weatherData.current?.isDaylight))
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 68, height: 68)
@@ -227,7 +227,7 @@ struct CurrentWeatherWidgetView: View {
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundColor(.white.opacity(0.65))
 
-                            Image(weatherIconAsset(hour.weatherCode))
+                            Image(weatherIconAsset(hour.weatherCode, isDay: hour.isDaylight))
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 20, height: 20)
@@ -319,24 +319,35 @@ struct CurrentWeatherWidgetView: View {
         }
     }
     
-    func weatherIconAsset(_ code: String?) -> String {
+    func weatherIconAsset(_ code: String?, isDay: Bool? = nil) -> String {
+        let day = isDay ?? true
         guard let code = code, let weatherCode = WeatherCode(rawValue: code) else {
-            return "cloudy"
+            return day ? "overcast-day" : "overcast-night"
         }
         
         switch weatherCode {
         case .clear:
-            return "clear"
+            return day ? "clear" : "clear-night"
         case .partlyCloudy:
-            return "partly-cloudy"
-        case .cloudy, .fog, .haze:
-            return "cloudy"
-        case .rainLight, .rain:
+            return day ? "partly-cloudy" : "partly-cloudy-night"
+        case .cloudy:
+            return day ? "overcast-day" : "overcast-night"
+        case .fog:
+            return day ? "fog-day" : "fog-night"
+        case .haze:
+            return day ? "fog-day" : "fog-night"
+        case .rainLight:
+            return "drizzle"
+        case .rain:
             return "rain"
         case .rainHeavy:
             return "storm"
-        case .snowLight, .snow, .snowHeavy, .sleet, .hail:
+        case .snowLight, .snow, .snowHeavy:
             return "snow"
+        case .sleet:
+            return "sleet"
+        case .hail:
+            return "hail"
         case .thunderstorm:
             return "lightning"
         case .wind:

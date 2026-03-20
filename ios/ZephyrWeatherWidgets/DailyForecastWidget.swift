@@ -155,7 +155,7 @@ struct DailyForecastWidgetView: View {
 
                 Spacer()
 
-                Image(largeIconName(entry.weatherData.current?.weatherCode))
+                Image(largeIconName(entry.weatherData.current?.weatherCode, isDay: entry.weatherData.current?.isDaylight))
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 68, height: 68)
@@ -175,7 +175,7 @@ struct DailyForecastWidgetView: View {
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundColor(.white.opacity(0.65))
 
-                            Image(largeIconName(hour.weatherCode))
+                            Image(largeIconName(hour.weatherCode, isDay: hour.isDaylight))
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 20, height: 20)
@@ -256,17 +256,27 @@ struct DailyForecastWidgetView: View {
         return formatter.string(from: date)
     }
 
-    func largeIconName(_ code: String?) -> String {
+    func largeIconName(_ code: String?, isDay: Bool? = nil) -> String {
+        return weatherIconAsset(code, isDay: isDay)
+    }
+    
+    func weatherIconAsset(_ code: String?, isDay: Bool? = nil) -> String {
+        let day = isDay ?? true
         guard let code = code, let weatherCode = WeatherCode(rawValue: code) else {
-            return "cloudy"
+            return day ? "overcast-day" : "overcast-night"
         }
         switch weatherCode {
-        case .clear: return "clear"
-        case .partlyCloudy: return "partly-cloudy"
-        case .cloudy, .fog, .haze: return "cloudy"
-        case .rainLight, .rain: return "rain"
+        case .clear: return day ? "clear" : "clear-night"
+        case .partlyCloudy: return day ? "partly-cloudy" : "partly-cloudy-night"
+        case .cloudy: return day ? "overcast-day" : "overcast-night"
+        case .fog: return day ? "fog-day" : "fog-night"
+        case .haze: return day ? "fog-day" : "fog-night"
+        case .rainLight: return "drizzle"
+        case .rain: return "rain"
         case .rainHeavy: return "storm"
-        case .snowLight, .snow, .snowHeavy, .sleet, .hail: return "snow"
+        case .snowLight, .snow, .snowHeavy: return "snow"
+        case .sleet: return "sleet"
+        case .hail: return "hail"
         case .thunderstorm: return "lightning"
         case .wind: return "wind"
         }
@@ -335,7 +345,7 @@ struct DayRow: View {
     
     func weatherIconAsset(_ code: String?) -> String {
         guard let code = code, let weatherCode = WeatherCode(rawValue: code) else {
-            return "cloudy"
+            return "overcast-day"
         }
         
         switch weatherCode {
@@ -344,13 +354,19 @@ struct DayRow: View {
         case .partlyCloudy:
             return "partly-cloudy"
         case .cloudy, .fog, .haze:
-            return "cloudy"
-        case .rainLight, .rain:
+            return "overcast-day"
+        case .rainLight:
+            return "drizzle"
+        case .rain:
             return "rain"
         case .rainHeavy:
             return "storm"
-        case .snowLight, .snow, .snowHeavy, .sleet, .hail:
+        case .snowLight, .snow, .snowHeavy:
             return "snow"
+        case .sleet:
+            return "sleet"
+        case .hail:
+            return "hail"
         case .thunderstorm:
             return "lightning"
         case .wind:
@@ -489,7 +505,7 @@ struct DayColumn: View {
     
     func weatherIconAsset(_ code: String?) -> String {
         guard let code = code, let weatherCode = WeatherCode(rawValue: code) else {
-            return "cloudy"
+            return "overcast-day"
         }
         
         switch weatherCode {
@@ -498,13 +514,19 @@ struct DayColumn: View {
         case .partlyCloudy:
             return "partly-cloudy"
         case .cloudy, .fog, .haze:
-            return "cloudy"
-        case .rainLight, .rain:
+            return "overcast-day"
+        case .rainLight:
+            return "drizzle"
+        case .rain:
             return "rain"
         case .rainHeavy:
             return "storm"
-        case .snowLight, .snow, .snowHeavy, .sleet, .hail:
+        case .snowLight, .snow, .snowHeavy:
             return "snow"
+        case .sleet:
+            return "sleet"
+        case .hail:
+            return "hail"
         case .thunderstorm:
             return "lightning"
         case .wind:
