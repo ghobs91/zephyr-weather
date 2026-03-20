@@ -1,9 +1,9 @@
 import React from 'react';
-import {View, Text, StyleSheet, Image} from 'react-native';
+import {View, Text, StyleSheet} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Current, Daily, WeatherCode, EnsembleConfidence} from '../types/weather';
 import {colors, getTemperatureColor} from '../theme/colors';
-import {getWeatherIconSource} from '../utils/weatherIcons';
+import {WeatherIcon} from './WeatherIcon';
 
 interface Props {
   current?: Current;
@@ -55,10 +55,10 @@ export function CurrentWeatherCard({
         </View>
         
         <View style={styles.weatherInfo}>
-          <Image
-            source={getWeatherIconSource(weatherCode, isDaylight)}
+          <WeatherIcon
+            code={weatherCode}
+            isDay={isDaylight}
             style={styles.weatherIcon}
-            resizeMode="contain"
           />
           <Text style={[styles.weatherText, {color: themeColors.text}]}>
             {weatherText || 'Unknown'}

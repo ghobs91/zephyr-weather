@@ -1,48 +1,56 @@
+import React from 'react';
+import {SvgProps} from 'react-native-svg';
 import {WeatherCode} from '../types/weather';
 
-// Weather icon mapping - using 100px PNG files for crisp rendering
-export const weatherIcons = {
-  clear: require('../assets/weather/icons8-sun-100.png'),
-  night: require('../assets/weather/icons8-sunset-100.png'),
-  partlyCloudy: require('../assets/weather/icons8-partly-cloudy-day-100.png'),
-  cloudy: require('../assets/weather/icons8-cloud-100.png'),
-  rain: require('../assets/weather/icons8-rain-100.png'),
-  storm: require('../assets/weather/icons8-storm-100.png'),
-  snow: require('../assets/weather/icons8-snow-100.png'),
-  wind: require('../assets/weather/icons8-windy-weather-100.png'),
-  lightning: require('../assets/weather/icons8-storm-100.png'),
-};
+import ClearDay from '../assets/weather/meteocons/clear-day.svg';
+import ClearNight from '../assets/weather/meteocons/clear-night.svg';
+import PartlyCloudyDay from '../assets/weather/meteocons/partly-cloudy-day.svg';
+import PartlyCloudyNight from '../assets/weather/meteocons/partly-cloudy-night.svg';
+import Overcast from '../assets/weather/meteocons/overcast.svg';
+import Drizzle from '../assets/weather/meteocons/drizzle.svg';
+import Rain from '../assets/weather/meteocons/rain.svg';
+import ThunderstormsRain from '../assets/weather/meteocons/thunderstorms-rain.svg';
+import Thunderstorms from '../assets/weather/meteocons/thunderstorms.svg';
+import Snow from '../assets/weather/meteocons/snow.svg';
+import Sleet from '../assets/weather/meteocons/sleet.svg';
+import Hail from '../assets/weather/meteocons/hail.svg';
+import Fog from '../assets/weather/meteocons/fog.svg';
+import Wind from '../assets/weather/meteocons/wind.svg';
 
-export const getWeatherIconSource = (
+export const getWeatherIconComponent = (
   code?: WeatherCode,
-  isDay: boolean = true
-): any => {
+  isDay: boolean = true,
+): React.FC<SvgProps> => {
   switch (code) {
     case WeatherCode.CLEAR:
-      return isDay ? weatherIcons.clear : weatherIcons.night;
+      return isDay ? ClearDay : ClearNight;
     case WeatherCode.PARTLY_CLOUDY:
-      return isDay ? weatherIcons.partlyCloudy : weatherIcons.night;
+      return isDay ? PartlyCloudyDay : PartlyCloudyNight;
     case WeatherCode.CLOUDY:
-      return weatherIcons.cloudy;
+      return Overcast;
     case WeatherCode.RAIN_LIGHT:
+      return Drizzle;
     case WeatherCode.RAIN:
-      return weatherIcons.rain;
+      return Rain;
     case WeatherCode.RAIN_HEAVY:
-      return weatherIcons.storm;
+      return ThunderstormsRain;
     case WeatherCode.SNOW_LIGHT:
     case WeatherCode.SNOW:
     case WeatherCode.SNOW_HEAVY:
+      return Snow;
     case WeatherCode.SLEET:
+      return Sleet;
     case WeatherCode.HAIL:
-      return weatherIcons.snow;
+      return Hail;
     case WeatherCode.THUNDERSTORM:
-      return weatherIcons.lightning;
+      return Thunderstorms;
     case WeatherCode.FOG:
     case WeatherCode.HAZE:
-      return weatherIcons.cloudy;
+      return Fog;
     case WeatherCode.WIND:
-      return weatherIcons.wind;
+      return Wind;
     default:
-      return isDay ? weatherIcons.clear : weatherIcons.night;
+      return isDay ? ClearDay : ClearNight;
   }
 };
+

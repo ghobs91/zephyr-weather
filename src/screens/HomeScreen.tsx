@@ -10,7 +10,6 @@ import {
   Platform,
   Animated,
   Alert,
-  Image,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
@@ -29,7 +28,7 @@ import {RootStackParamList} from '../navigation/RootNavigator';
 import {useResponsiveLayout} from '../utils/platformDetect';
 import {formatTime} from '../utils/timeFormat';
 
-import {getWeatherIconSource} from '../utils/weatherIcons';
+import {WeatherIcon} from '../components/WeatherIcon';
 import {CurrentWeatherCard} from '../components/CurrentWeatherCard';
 import {DailyForecastCard} from '../components/DailyForecastCard';
 import {HourlyForecastCard} from '../components/HourlyForecastCard';
@@ -227,8 +226,14 @@ export function HomeScreen() {
   const hourlyForecast = weather?.hourlyForecast ?? [];
   const alerts = weather?.alerts ?? [];
 
-  // Get today's daily data
-  const today = dailyForecast[0];
+  // Get today's daily data — find the first entry whose local date is today
+  // or in the future. dailyForecast[0] may be yesterday when sources include
+  // past_days or when daily dates are stored as UTC midnight (which shifts
+  // the local date backwards for western timezones).
+  const todayLocalKey = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local tz
+  const today = dailyForecast.find(
+    d => d.date.toLocaleDateString('en-CA') >= todayLocalKey,
+  ) ?? dailyForecast[0];
   
   // Format temperature based on settings
   const formatTemp = (temp?: number) => {
@@ -567,10 +572,10 @@ export function HomeScreen() {
                         <View style={styles.pickerItemRight}>
                           {locCurrent && (
                             <>
-                              <Image
-                                source={getWeatherIconSource(locCurrent.weatherCode, locCurrent.isDaylight)}
+                              <WeatherIcon
+                                code={locCurrent.weatherCode}
+                                isDay={locCurrent.isDaylight}
                                 style={styles.pickerItemIcon}
-                                resizeMode="contain"
                               />
                               <Text style={[styles.pickerItemTemp, {color: themeColors.text}]}>
                                 {formatTempShort(locCurrent.temperature?.temperature)}

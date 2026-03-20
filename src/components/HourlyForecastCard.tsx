@@ -4,13 +4,12 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {isSameHour} from 'date-fns';
 import {Hourly, WeatherCode} from '../types/weather';
 import {colors} from '../theme/colors';
-import {getWeatherIconSource} from '../utils/weatherIcons';
+import {WeatherIcon} from './WeatherIcon';
 import {TimeFormat} from '../types/settings';
 import {formatHourlyTime} from '../utils/timeFormat';
 
@@ -64,10 +63,10 @@ export function HourlyForecastCard({
                 {formatHourlyTime(hour.date, isNow, timeFormat)}
               </Text>
 
-              <Image
-                source={getWeatherIconSource(hour.weatherCode, hour.isDaylight)}
+              <WeatherIcon
+                code={hour.weatherCode}
+                isDay={hour.isDaylight}
                 style={styles.weatherIcon}
-                resizeMode="contain"
               />
 
               <Text style={[styles.tempText, {color: themeColors.text}]}>

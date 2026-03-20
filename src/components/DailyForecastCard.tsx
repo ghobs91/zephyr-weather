@@ -5,14 +5,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Image,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {format, isPast, startOfDay, isToday} from 'date-fns';
 import {Daily, WeatherCode} from '../types/weather';
 import {colors} from '../theme/colors';
-import {getWeatherIconSource} from '../utils/weatherIcons';
+import {WeatherIcon} from './WeatherIcon';
 
 // Absolute temperature scale in Celsius:
 // -20°C → deep blue, 0°C → cyan, 15°C → green, 25°C → yellow, 35°C → orange, 45°C → red
@@ -147,10 +146,10 @@ export function DailyForecastCard({
 
                   <View style={styles.dayRowRight}>
                       <View style={styles.tempRow}>
-                        <Image
-                          source={getWeatherIconSource(day.day?.weatherCode, true)}
+                        <WeatherIcon
+                          code={day.day?.weatherCode}
+                          isDay={true}
                           style={styles.weatherIcon}
-                          resizeMode="contain"
                         />
                         <Text style={[styles.tempLabel, {color: themeColors.textSecondary}]}>
                           {formatTemp(nightTemp)}
@@ -232,10 +231,10 @@ export function DailyForecastCard({
                   {getDateLabel(day.date)}
                 </Text>
                 
-                <Image
-                  source={getWeatherIconSource(day.day?.weatherCode, true)}
+                <WeatherIcon
+                  code={day.day?.weatherCode}
+                  isDay={true}
                   style={styles.weatherIcon}
-                  resizeMode="contain"
                 />
 
                 <View style={styles.tempBarContainer}>

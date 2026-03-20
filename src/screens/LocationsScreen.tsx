@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   useColorScheme,
   Alert,
-  Image,
   Animated,
 } from 'react-native';
 import {Swipeable} from 'react-native-gesture-handler';
@@ -18,9 +17,9 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {useWeatherStore} from '../store/weatherStore';
 import {colors} from '../theme/colors';
-import {Location, WeatherCode} from '../types/weather';
+import {Location} from '../types/weather';
 import {RootStackParamList} from '../navigation/RootNavigator';
-import {getWeatherIconSource} from '../utils/weatherIcons';
+import {WeatherIcon} from '../components/WeatherIcon';
 import {useResponsiveLayout} from '../utils/platformDetect';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -134,10 +133,10 @@ export function LocationsScreen() {
           {current ? (
             <>
               <View style={styles.currentWeather}>
-                <Image
-                  source={getWeatherIconSource(current.weatherCode, current.isDaylight)}
+                <WeatherIcon
+                  code={current.weatherCode}
+                  isDay={current.isDaylight}
                   style={styles.weatherIcon}
-                  resizeMode="contain"
                 />
                 <Text style={[styles.temperature, {color: themeColors.text}]}>
                   {formatTemp(current.temperature?.temperature)}

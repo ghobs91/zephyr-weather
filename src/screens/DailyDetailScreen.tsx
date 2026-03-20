@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   useColorScheme,
-  Image,
   useWindowDimensions,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -18,7 +17,7 @@ import {useWeatherStore} from '../store/weatherStore';
 import {colors, getTemperatureColor, getUvColor} from '../theme/colors';
 import {WeatherCode, Daily} from '../types/weather';
 import {RootStackParamList} from '../navigation/RootNavigator';
-import {getWeatherIconSource} from '../utils/weatherIcons';
+import {WeatherIcon} from '../components/WeatherIcon';
 import {useResponsiveLayout} from '../utils/platformDetect';
 import {formatTime} from '../utils/timeFormat';
 
@@ -118,10 +117,10 @@ export function DailyDetailScreen() {
                 </Text>
               )}
               <View style={styles.weatherRow}>
-                <Image
-                  source={getWeatherIconSource(day.day?.weatherCode, true)}
+                <WeatherIcon
+                  code={day.day?.weatherCode}
+                  isDay={true}
                   style={styles.weatherIcon}
-                  resizeMode="contain"
                 />
                 <Text style={[styles.weatherText, {color: themeColors.text}]}>
                   {day.day?.weatherText || 'Unknown'}
@@ -143,10 +142,10 @@ export function DailyDetailScreen() {
                 </Text>
               )}
               <View style={styles.weatherRow}>
-                <Image
-                  source={getWeatherIconSource(day.night?.weatherCode, false)}
+                <WeatherIcon
+                  code={day.night?.weatherCode}
+                  isDay={false}
                   style={styles.weatherIcon}
-                  resizeMode="contain"
                 />
               </View>
             </View>
@@ -169,10 +168,10 @@ export function DailyDetailScreen() {
                 <View style={styles.chartIconsRow}>
                   {dayHourly.filter((_, i) => i % 3 === 0 || i === dayHourly.length - 1).map((hour, index) => (
                     <View key={index} style={{alignItems: 'center'}}>
-                      <Image
-                        source={getWeatherIconSource(hour.weatherCode, hour.isDaylight)}
+                      <WeatherIcon
+                        code={hour.weatherCode}
+                        isDay={hour.isDaylight}
                         style={{width: 16, height: 16}}
-                        resizeMode="contain"
                       />
                     </View>
                   ))}
