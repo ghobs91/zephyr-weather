@@ -69,7 +69,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		C8BD99A72F335CFE00EE55C4 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		C8BD99A72F335CFE00EE55C4 /* Exceptions for "ZephyrWeatherWidgets" folder in "ZephyrWeatherWidgetsExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -79,7 +79,18 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		C8BD99952F335CFC00EE55C4 /* ZephyrWeatherWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (C8BD99A72F335CFE00EE55C4 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = ZephyrWeatherWidgets; sourceTree = "<group>"; };
+		C8BD99952F335CFC00EE55C4 /* ZephyrWeatherWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C8BD99A72F335CFE00EE55C4 /* Exceptions for "ZephyrWeatherWidgets" folder in "ZephyrWeatherWidgetsExtension" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = ZephyrWeatherWidgets;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -301,13 +312,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-ZephyrWeather/Pods-ZephyrWeather-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-ZephyrWeather/Pods-ZephyrWeather-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -322,13 +329,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-ZephyrWeather/Pods-ZephyrWeather-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-ZephyrWeather/Pods-ZephyrWeather-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -397,7 +400,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = ZephyrWeather/ZephyrWeather.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEAD_CODE_STRIPPING = YES;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				DEVELOPMENT_TEAM = XTXZ3CYRPX;
@@ -414,7 +417,7 @@
 					"$(SDKROOT)/System/iOSSupport/usr/lib/swift",
 					"$(inherited)",
 				);
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -439,7 +442,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = ZephyrWeather/ZephyrWeather.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEAD_CODE_STRIPPING = YES;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				DEVELOPMENT_TEAM = XTXZ3CYRPX;
@@ -455,7 +458,7 @@
 					"$(SDKROOT)/System/iOSSupport/usr/lib/swift",
 					"$(inherited)",
 				);
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -539,7 +542,10 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -607,7 +613,10 @@
 					"-DFOLLY_USE_LIBCPP=1",
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
@@ -629,7 +638,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = ZephyrWeatherWidgetsExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
@@ -652,7 +661,7 @@
 					"$(inherited)",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRESERVE_DEAD_CODE_INITS_AND_TERMS = YES;
@@ -686,7 +695,7 @@
 				CODE_SIGN_ENTITLEMENTS = ZephyrWeatherWidgetsExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
@@ -709,7 +718,7 @@
 					"$(inherited)",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				MTL_FAST_MATH = YES;
 				PRESERVE_DEAD_CODE_INITS_AND_TERMS = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.zephyr.weather.ZephyrWeatherWidgets;

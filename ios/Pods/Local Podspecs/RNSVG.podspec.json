@@ -54,8 +54,6 @@
   },
   "exclude_files": "apple/Utils/RNSVGFabricConversions.h",
   "dependencies": {
-    "React-Core": [
-
-    ]
+    "React-Core": []
   }
 }

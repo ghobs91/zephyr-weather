@@ -37665,6 +37665,7 @@
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(inherited)",
 					"-DNDEBUG",
+					"-DFMT_USE_CONSTEVAL=0",
 				);
 				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
@@ -37698,6 +37699,10 @@
 				GCC_PREFIX_HEADER = "Target Support Files/fmt/fmt-prefix.pch";
 				GENERATE_INFOPLIST_FILE = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(inherited)",
+					"-DFMT_USE_CONSTEVAL=0",
+				);
 				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
 				PRIVATE_HEADERS_FOLDER_PATH = "";

@@ -36,75 +36,31 @@
   },
   "requires_arc": true,
   "dependencies": {
-    "React-Core": [
-
-    ],
+    "React-Core": [],
     "RCT-Folly": [
       "2024.11.18.00"
     ],
-    "glog": [
-
-    ],
-    "React-RCTFabric": [
-
-    ],
-    "ReactCodegen": [
-
-    ],
-    "RCTRequired": [
-
-    ],
-    "RCTTypeSafety": [
-
-    ],
-    "ReactCommon/turbomodule/bridging": [
-
-    ],
-    "ReactCommon/turbomodule/core": [
-
-    ],
-    "React-NativeModulesApple": [
-
-    ],
-    "Yoga": [
-
-    ],
-    "React-Fabric": [
-
-    ],
-    "React-graphics": [
-
-    ],
-    "React-utils": [
-
-    ],
-    "React-featureflags": [
-
-    ],
-    "React-debug": [
-
-    ],
-    "React-ImageManager": [
-
-    ],
-    "React-rendererdebug": [
-
-    ],
-    "DoubleConversion": [
-
-    ],
-    "React-jsi": [
-
-    ],
-    "React-renderercss": [
-
-    ],
-    "hermes-engine": [
-
-    ],
-    "React-hermes": [
-
-    ]
+    "glog": [],
+    "React-RCTFabric": [],
+    "ReactCodegen": [],
+    "RCTRequired": [],
+    "RCTTypeSafety": [],
+    "ReactCommon/turbomodule/bridging": [],
+    "ReactCommon/turbomodule/core": [],
+    "React-NativeModulesApple": [],
+    "Yoga": [],
+    "React-Fabric": [],
+    "React-graphics": [],
+    "React-utils": [],
+    "React-featureflags": [],
+    "React-debug": [],
+    "React-ImageManager": [],
+    "React-rendererdebug": [],
+    "DoubleConversion": [],
+    "React-jsi": [],
+    "React-renderercss": [],
+    "hermes-engine": [],
+    "React-hermes": []
   },
   "subspecs": [
     {

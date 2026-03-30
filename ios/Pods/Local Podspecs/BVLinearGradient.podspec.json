@@ -23,8 +23,6 @@
     "Foundation"
   ],
   "dependencies": {
-    "React-Core": [
-
-    ]
+    "React-Core": []
   }
 }

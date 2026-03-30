@@ -60,4 +60,8 @@ struct ConfigurationAppIntent: WidgetConfigurationIntent {
     
     @Parameter(title: "Location")
     var location: LocationEntity?
+    
+    func perform() async throws -> some IntentResult {
+        return .result()
+    }
 }
