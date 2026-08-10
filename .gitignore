@@ -70,6 +70,9 @@ web_modules/
 .env.*
 !.env.example
 
+# Xcode env local override (machine-specific node path)
+ios/.xcode.env.local
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
