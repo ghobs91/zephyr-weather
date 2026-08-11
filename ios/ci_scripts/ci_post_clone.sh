@@ -38,18 +38,19 @@ npm ci
 echo "--- Fixing hardcoded paths ---"
 PODS_SUPPORT_DIR="$CI_PRIMARY_REPOSITORY_PATH/ios/Pods/Target Support Files"
 if [ -d "$PODS_SUPPORT_DIR" ]; then
-  find "$PODS_SUPPORT_DIR" -type f \
-    -exec sed -i '' "s|/Users/andrewg/Projects/zephyr-weather|$CI_PRIMARY_REPOSITORY_PATH|g" {} \;
-  echo "Paths updated in Pods support files."
 
-  # Create a copy of the Expo configure script at a path without spaces,
-  # since Xcode's shell script generation cannot handle spaces in paths.
+  # Copy the Expo configure script to a path without spaces first.
+  # (Must happen before sed, since set -e would abort on sed failure.)
   EXPO_SCRIPT="$PODS_SUPPORT_DIR/Pods-ZephyrWeather/expo-configure-project.sh"
   if [ -f "$EXPO_SCRIPT" ]; then
     cp "$EXPO_SCRIPT" "$CI_PRIMARY_REPOSITORY_PATH/ios/Pods/expo-configure.sh"
     chmod +x "$CI_PRIMARY_REPOSITORY_PATH/ios/Pods/expo-configure.sh"
     echo "Copied expo-configure script to path without spaces."
   fi
+
+  find "$PODS_SUPPORT_DIR" -type f \
+    -exec sed -i '' "s|/Users/andrewg/Projects/zephyr-weather|$CI_PRIMARY_REPOSITORY_PATH|g" {} \; || true
+  echo "Paths updated in Pods support files."
 else
   echo "WARNING: Pods support directory not found, skipping path fix."
 fi
