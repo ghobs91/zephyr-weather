@@ -54,11 +54,10 @@ if [ -d "$PODS_SUPPORT_DIR" ]; then
 
   # Generate ExpoModulesProvider.swift now (instead of during the build).
   # The [Expo] Configure project build phase can't run Node.js correctly
-  # due to working-directory issues, so we generate the file here.
+  # due to working-directory and module resolution issues.
   echo "Generating ExpoModulesProvider.swift..."
   cd "$CI_PRIMARY_REPOSITORY_PATH"
-  node --no-warnings --eval "require('expo/bin/autolinking')" \
-    expo-modules-autolinking generate-modules-provider \
+  npx expo-modules-autolinking generate-modules-provider \
     --target "$PODS_SUPPORT_DIR/Pods-ZephyrWeather/ExpoModulesProvider.swift" \
     --target-name "ZephyrWeather" \
     --entitlement "$CI_PRIMARY_REPOSITORY_PATH/ios/ZephyrWeather/ZephyrWeather.entitlements" \
