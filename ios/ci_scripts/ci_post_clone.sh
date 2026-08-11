@@ -52,6 +52,20 @@ if [ -d "$PODS_SUPPORT_DIR" ]; then
     echo "Copied expo-configure script to path without spaces."
   fi
 
+  # Generate ExpoModulesProvider.swift now (instead of during the build).
+  # The [Expo] Configure project build phase can't run Node.js correctly
+  # due to working-directory issues, so we generate the file here.
+  echo "Generating ExpoModulesProvider.swift..."
+  cd "$CI_PRIMARY_REPOSITORY_PATH"
+  node --no-warnings --eval "require('expo/bin/autolinking')" \
+    expo-modules-autolinking generate-modules-provider \
+    --target "$PODS_SUPPORT_DIR/Pods-ZephyrWeather/ExpoModulesProvider.swift" \
+    --target-name "ZephyrWeather" \
+    --entitlement "$CI_PRIMARY_REPOSITORY_PATH/ios/ZephyrWeather/ZephyrWeather.entitlements" \
+    --platform "apple" \
+    --packages "@expo/dom-webview" "expo" "expo-asset" "expo-constants" "expo-file-system" "expo-font" "expo-keep-awake"
+  echo "ExpoModulesProvider.swift generated."
+
   find "$PODS_SUPPORT_DIR" -type f \
     -exec sed -i '' "s|/Users/andrewg/Projects/zephyr-weather|$CI_PRIMARY_REPOSITORY_PATH|g" {} \; || true
   echo "Paths updated in Pods support files."
