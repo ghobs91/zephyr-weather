@@ -402,7 +402,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\ncd \"${SRCROOT}/..\" && \"${SRCROOT}/Pods/expo-configure.sh\"\n";
+			shellScript = "# Generate ExpoModulesProvider.swift using npx (works cross-platform).\ncd \"${SRCROOT}/..\"\nnpx expo-modules-autolinking generate-modules-provider \\\n  --target \"${SRCROOT}/Pods/Target Support Files/Pods-ZephyrWeather/ExpoModulesProvider.swift\" \\\n  --target-name ZephyrWeather \\\n  --platform apple \\\n  --packages \"@expo/dom-webview\" \"expo\" \"expo-asset\" \"expo-constants\" \"expo-file-system\" \"expo-font\" \"expo-keep-awake\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
