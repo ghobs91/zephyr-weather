@@ -37,6 +37,8 @@ NODE_NOT_FOUND
 
   # Execute argument, if present
   if [[ "$#" -gt 0 ]]; then
+    # cd to the repository root so Node.js can resolve modules from node_modules/
+    cd "$PODS_ROOT/.."
     "$NODE_BINARY" "$@"
   fi
 }
