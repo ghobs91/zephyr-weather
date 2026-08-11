@@ -39,13 +39,16 @@ echo "--- Fixing hardcoded paths ---"
 PODS_SUPPORT_DIR="$CI_PRIMARY_REPOSITORY_PATH/ios/Pods/Target Support Files"
 if [ -d "$PODS_SUPPORT_DIR" ]; then
 
-  # Copy the Expo configure script to a path without spaces first.
-  # (Must happen before sed, since set -e would abort on sed failure.)
-  EXPO_SCRIPT="$PODS_SUPPORT_DIR/Pods-ZephyrWeather/expo-configure-project.sh"
-  if [ -f "$EXPO_SCRIPT" ]; then
+  # Copy the Expo configure script to a path without spaces.
+  # (Must happen before sed since set -e aborts on sed failure.)
+  EXPO_SCRIPT=$(find "$PODS_SUPPORT_DIR" -name "expo-configure-project.sh" -type f | head -1)
+  if [ -n "$EXPO_SCRIPT" ] && [ -f "$EXPO_SCRIPT" ]; then
     cp "$EXPO_SCRIPT" "$CI_PRIMARY_REPOSITORY_PATH/ios/Pods/expo-configure.sh"
     chmod +x "$CI_PRIMARY_REPOSITORY_PATH/ios/Pods/expo-configure.sh"
-    echo "Copied expo-configure script to path without spaces."
+    echo "Copied expo-configure script: $EXPO_SCRIPT"
+  else
+    echo "WARNING: expo-configure-project.sh not found in $PODS_SUPPORT_DIR"
+    ls -la "$PODS_SUPPORT_DIR" | head -20
   fi
 
   find "$PODS_SUPPORT_DIR" -type f \
