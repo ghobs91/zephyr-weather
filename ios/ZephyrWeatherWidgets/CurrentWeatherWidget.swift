@@ -16,12 +16,16 @@ struct CurrentWeatherProvider: AppIntentTimelineProvider {
     }
     
     func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> CurrentWeatherEntry {
-        let data = WeatherDataManager.shared.loadWeatherData(for: configuration.location?.id) ?? WeatherDataManager.shared.getMockWeatherData()
+        let data = WeatherDataManager.shared.loadWeatherData(
+            for: configuration.location?.id
+        ) ?? WeatherDataManager.shared.getMockWeatherData()
         return CurrentWeatherEntry(date: Date(), weatherData: data, configuration: configuration)
     }
     
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<CurrentWeatherEntry> {
-        let data = WeatherDataManager.shared.loadWeatherData(for: configuration.location?.id) ?? WeatherDataManager.shared.getMockWeatherData()
+        let data = WeatherDataManager.shared.loadWeatherData(
+            for: configuration.location?.id
+        ) ?? WeatherDataManager.shared.getMockWeatherData()
         let now = Date()
         let entry = CurrentWeatherEntry(date: now, weatherData: data, configuration: configuration)
         
@@ -49,11 +53,26 @@ struct CurrentWeatherEntry: TimelineEntry {
 struct CurrentWeatherWidgetView: View {
     var entry: CurrentWeatherProvider.Entry
     @Environment(\.widgetFamily) var family
+
+    private var displayLocationName: String? {
+        entry.configuration.location?.name ?? entry.weatherData.locationName
+    }
+
+    private var todayAndFutureDays: [WeatherData.DailyForecast] {
+        let startOfToday = Calendar.current.startOfDay(for: Date())
+        return entry.weatherData.daily.filter {
+            Calendar.current.startOfDay(for: $0.date) >= startOfToday
+        }
+    }
+
+    private var upcomingDailyForecast: [WeatherData.DailyForecast] {
+        Array(todayAndFutureDays.dropFirst().prefix(4))
+    }
     
     var body: some View {
         if family == .systemSmall {
             smallWidgetView
-        } else if family == .systemLarge {
+        } else if family == .systemLarge || family == .systemExtraLarge {
             largeWidgetView
         } else {
             mediumWidgetView
@@ -61,46 +80,67 @@ struct CurrentWeatherWidgetView: View {
     }
     
     var smallWidgetView: some View {
-        VStack(spacing: 8) {
-            // Weather Icon
-            Image(weatherIconAsset(entry.weatherData.current?.weatherCode, isDay: entry.weatherData.current?.isDaylight))
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 60, height: 60)
-            
-            // Current Temperature
-            Text(formatTemp(entry.weatherData.current?.temperature))
-                .font(.system(size: 44, weight: .thin))
-                .foregroundColor(temperatureColor(entry.weatherData.current?.temperature))
+        let compactRowHeight: CGFloat = 20
+        let forecastTopPadding: CGFloat = 70
+
+        return ZStack(alignment: .topLeading) {
+            // Top-left: Current temperature
+            Text(formatLargeTempValue(entry.weatherData.current?.temperature))
+                .font(.system(size: 52, weight: .thin))
+                .foregroundColor(.white)
+                .lineLimit(1)
                 .minimumScaleFactor(0.5)
-                .lineLimit(1)
-            
-            // Weather condition
-            Text(entry.weatherData.current?.weatherText ?? "Unknown")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.white.opacity(0.9))
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-            
-            // Day/Night temps
-            if let today = entry.weatherData.daily.first {
-                HStack(spacing: 4) {
-                    Text(formatTemp(today.dayTemp))
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.8))
-                    Text("•")
-                        .font(.system(size: 11))
-                        .foregroundColor(.white.opacity(0.5))
-                    Text(formatTemp(today.nightTemp))
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.6))
+
+            // Top-right: Current conditions icon + today's high/low
+            VStack(alignment: .trailing, spacing: 6) {
+                Image(weatherIconAsset(entry.weatherData.current?.weatherCode, isDay: entry.weatherData.current?.isDaylight))
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 26, height: 26)
+
+                if let today = todayAndFutureDays.first {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        HStack(spacing: 2) {
+                            Image(systemName: "arrow.up")
+                                .font(.system(size: 9, weight: .semibold))
+                            Text(formatTempValue(today.dayTemp))
+                                .font(.system(size: 14, weight: .semibold))
+                                .monospacedDigit()
+                        }
+                        .foregroundColor(.white)
+
+                        HStack(spacing: 2) {
+                            Image(systemName: "arrow.down")
+                                .font(.system(size: 9, weight: .semibold))
+                            Text(formatTempValue(today.nightTemp))
+                                .font(.system(size: 14, weight: .semibold))
+                                .monospacedDigit()
+                        }
+                        .foregroundColor(.white.opacity(0.68))
+                    }
                 }
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
             }
+            .frame(maxWidth: .infinity, alignment: .topTrailing)
+            .padding(.top, 10)
+
+            // Bottom ~70%: Next 4 days forecast — icon only + highs/lows
+            VStack(spacing: 0) {
+                ForEach(Array(upcomingDailyForecast.enumerated()), id: \.offset) { index, day in
+                    SmallForecastRow(
+                        day: day,
+                        temperatureUnit: entry.weatherData.temperatureUnit ?? "fahrenheit",
+                        rowHeight: compactRowHeight,
+                        showsDivider: index < upcomingDailyForecast.count - 1
+                    )
+                }
+            }
+            .padding(.top, forecastTopPadding)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, 14)
+        .padding(.top, 8)
+        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
             LinearGradient(
                 gradient: Gradient(colors: [
@@ -164,10 +204,6 @@ struct CurrentWeatherWidgetView: View {
     }
     
     var largeWidgetView: some View {
-        let startOfToday = Calendar.current.startOfDay(for: Date())
-        let todayAndFutureDays = entry.weatherData.daily.filter {
-            Calendar.current.startOfDay(for: $0.date) >= startOfToday
-        }
         let allTemps = todayAndFutureDays.flatMap { [$0.dayTemp, $0.nightTemp].compactMap { $0 } }
         let minTemp = allTemps.min() ?? 0
         let maxTemp = allTemps.max() ?? 100
@@ -176,8 +212,8 @@ struct CurrentWeatherWidgetView: View {
 
         return VStack(spacing: 0) {
             // Location name
-            if let locationName = entry.weatherData.locationName {
-                Text(locationName)
+            if let displayLocationName = displayLocationName {
+                Text(displayLocationName)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -248,7 +284,7 @@ struct CurrentWeatherWidgetView: View {
 
             // Daily forecast rows
             VStack(spacing: 0) {
-                ForEach(Array(todayAndFutureDays.prefix(5).enumerated()), id: \.offset) { _, day in
+                ForEach(Array(todayAndFutureDays.prefix(3).enumerated()), id: \.offset) { _, day in
                     DayRow(
                         day: day,
                         minTemp: minTemp,
@@ -258,9 +294,7 @@ struct CurrentWeatherWidgetView: View {
                 }
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
             LinearGradient(
                 gradient: Gradient(colors: [
@@ -287,6 +321,22 @@ struct CurrentWeatherWidgetView: View {
         let unit = isFahrenheit ? "°F" : "°C"
         
         return "\(Int(round(displayTemp)))\(unit)"
+    }
+
+    func formatTempValue(_ temp: Double?) -> String {
+        guard let temp = temp else { return "--°" }
+
+        let isFahrenheit = entry.weatherData.temperatureUnit == "fahrenheit"
+        let displayTemp = isFahrenheit ? celsiusToFahrenheit(temp) : temp
+        return "\(Int(round(displayTemp)))°"
+    }
+
+    func formatLargeTempValue(_ temp: Double?) -> String {
+        guard let temp = temp else { return "--°" }
+
+        let isFahrenheit = entry.weatherData.temperatureUnit == "fahrenheit"
+        let displayTemp = isFahrenheit ? celsiusToFahrenheit(temp) : temp
+        return "\(Int(round(displayTemp)))°"
     }
     
     func celsiusToFahrenheit(_ celsius: Double) -> Double {
@@ -356,6 +406,86 @@ struct CurrentWeatherWidgetView: View {
     }
 }
 
+struct SmallForecastRow: View {
+    let day: WeatherData.DailyForecast
+    let temperatureUnit: String
+    let rowHeight: CGFloat
+    let showsDivider: Bool
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                // Weather icon only — no day name
+                Image(weatherIconAsset(day.dayWeatherCode))
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 22, height: 22)
+
+                Spacer(minLength: 4)
+
+                // Low temp (dimmed)
+                Text(formatTemp(day.nightTemp))
+                    .font(.system(size: 13, weight: .medium))
+                    .monospacedDigit()
+                    .foregroundColor(.white.opacity(0.55))
+                    .frame(width: 28, alignment: .trailing)
+
+                // High temp
+                Text(formatTemp(day.dayTemp))
+                    .font(.system(size: 13, weight: .semibold))
+                    .monospacedDigit()
+                    .foregroundColor(.white)
+                    .frame(width: 28, alignment: .trailing)
+            }
+            .frame(height: rowHeight, alignment: .center)
+
+            if showsDivider {
+                Divider()
+                    .overlay(Color.white.opacity(0.12))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    func formatTemp(_ temp: Double?) -> String {
+        guard let temp = temp else { return "--" }
+        let isFahrenheit = temperatureUnit == "fahrenheit"
+        let displayTemp = isFahrenheit ? temp * 9 / 5 + 32 : temp
+        return "\(Int(round(displayTemp)))"
+    }
+
+    func weatherIconAsset(_ code: String?) -> String {
+        guard let code = code, let weatherCode = WeatherCode(rawValue: code) else {
+            return "overcast-day"
+        }
+
+        switch weatherCode {
+        case .clear:
+            return "clear"
+        case .partlyCloudy:
+            return "partly-cloudy"
+        case .cloudy, .fog, .haze:
+            return "overcast-day"
+        case .rainLight:
+            return "drizzle"
+        case .rain:
+            return "rain"
+        case .rainHeavy:
+            return "storm"
+        case .snowLight, .snow, .snowHeavy:
+            return "snow"
+        case .sleet:
+            return "sleet"
+        case .hail:
+            return "hail"
+        case .thunderstorm:
+            return "lightning"
+        case .wind:
+            return "wind"
+        }
+    }
+}
+
 struct CurrentWeatherWidget: Widget {
     let kind: String = "CurrentWeatherWidget"
     
@@ -369,12 +499,10 @@ struct CurrentWeatherWidget: Widget {
     }
     
     private var supportedFamilies: [WidgetFamily] {
-        var families: [WidgetFamily] = [.systemSmall, .systemMedium]
-        #if targetEnvironment(macCatalyst) || os(macOS)
-        if #available(macCatalyst 17.0, macOS 14.0, *) {
-            families.append(.systemLarge)
+        var families: [WidgetFamily] = [.systemSmall, .systemMedium, .systemLarge]
+        if #available(iOS 15.0, macOS 12.0, *) {
+            families.append(.systemExtraLarge)
         }
-        #endif
         return families
     }
 }
