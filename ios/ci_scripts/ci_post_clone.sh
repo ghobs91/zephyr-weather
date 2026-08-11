@@ -41,6 +41,16 @@ if [ -d "$PODS_SUPPORT_DIR" ]; then
   find "$PODS_SUPPORT_DIR" -type f \
     -exec sed -i '' "s|/Users/andrewg/Projects/zephyr-weather|$CI_PRIMARY_REPOSITORY_PATH|g" {} \; || true
   echo "Paths updated in Pods support files."
+fi
+
+# Remove the Pods_ZephyrWeather.framework reference from the Xcode project.
+# With use_frameworks! :linkage => :static, individual pod frameworks are
+# linked via OTHER_LDFLAGS. The umbrella framework is unnecessary and
+# doesn't exist when pod install hasn't run.
+echo "--- Removing Pods_ZephyrWeather.framework link ---"
+cd "$CI_PRIMARY_REPOSITORY_PATH/ios"
+sed -i '' '/Pods_ZephyrWeather\.framework/d' ZephyrWeather.xcodeproj/project.pbxproj
+echo "Removed Pods_ZephyrWeather.framework reference."
 
   find "$PODS_SUPPORT_DIR" -type f \
     -exec sed -i '' "s|/Users/andrewg/Projects/zephyr-weather|$CI_PRIMARY_REPOSITORY_PATH|g" {} \; || true
