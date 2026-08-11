@@ -44,26 +44,11 @@ if [ -d "$PODS_SUPPORT_DIR" ]; then
   echo "Paths updated in Pods support files."
 
   # Copy the Expo configure script to a path without spaces.
-  # Xcode build phases cannot handle spaces in shell script paths.
   EXPO_SCRIPT=$(find "$PODS_SUPPORT_DIR" -name "expo-configure-project.sh" -type f | head -1)
   if [ -n "$EXPO_SCRIPT" ] && [ -f "$EXPO_SCRIPT" ]; then
     cp "$EXPO_SCRIPT" "$CI_PRIMARY_REPOSITORY_PATH/ios/Pods/expo-configure.sh"
     chmod +x "$CI_PRIMARY_REPOSITORY_PATH/ios/Pods/expo-configure.sh"
-    echo "Copied expo-configure script to path without spaces."
   fi
-
-  # Generate ExpoModulesProvider.swift now (instead of during the build).
-  # The [Expo] Configure project build phase can't run Node.js correctly
-  # due to working-directory and module resolution issues.
-  echo "Generating ExpoModulesProvider.swift..."
-  cd "$CI_PRIMARY_REPOSITORY_PATH"
-  npx expo-modules-autolinking generate-modules-provider \
-    --target "$PODS_SUPPORT_DIR/Pods-ZephyrWeather/ExpoModulesProvider.swift" \
-    --target-name "ZephyrWeather" \
-    --entitlement "$CI_PRIMARY_REPOSITORY_PATH/ios/ZephyrWeather/ZephyrWeather.entitlements" \
-    --platform "apple" \
-    --packages "@expo/dom-webview" "expo" "expo-asset" "expo-constants" "expo-file-system" "expo-font" "expo-keep-awake"
-  echo "ExpoModulesProvider.swift generated."
 
   find "$PODS_SUPPORT_DIR" -type f \
     -exec sed -i '' "s|/Users/andrewg/Projects/zephyr-weather|$CI_PRIMARY_REPOSITORY_PATH|g" {} \; || true
