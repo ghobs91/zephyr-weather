@@ -42,12 +42,14 @@ if [ -d "$PODS_SUPPORT_DIR" ]; then
     -exec sed -i '' "s|/Users/andrewg/Projects/zephyr-weather|$CI_PRIMARY_REPOSITORY_PATH|g" {} \;
   echo "Paths updated in Pods support files."
 
-  # Create a symlink to avoid spaces-in-path issues with Xcode build phases.
-  # The [Expo] Configure project phase runs expo-configure-project.sh which
-  # lives under "Target Support Files/" — Xcode's shell script generation
-  # mangles paths with spaces no matter how they're escaped.
-  ln -sfn "$PODS_SUPPORT_DIR" "$CI_PRIMARY_REPOSITORY_PATH/ios/Pods/TargetSupportFiles"
-  echo "Created symlink: Pods/TargetSupportFiles -> Target Support Files"
+  # Create a copy of the Expo configure script at a path without spaces,
+  # since Xcode's shell script generation cannot handle spaces in paths.
+  EXPO_SCRIPT="$PODS_SUPPORT_DIR/Pods-ZephyrWeather/expo-configure-project.sh"
+  if [ -f "$EXPO_SCRIPT" ]; then
+    cp "$EXPO_SCRIPT" "$CI_PRIMARY_REPOSITORY_PATH/ios/Pods/expo-configure.sh"
+    chmod +x "$CI_PRIMARY_REPOSITORY_PATH/ios/Pods/expo-configure.sh"
+    echo "Copied expo-configure script to path without spaces."
+  fi
 else
   echo "WARNING: Pods support directory not found, skipping path fix."
 fi

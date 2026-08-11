@@ -402,7 +402,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\n\"${SRCROOT}/Pods/TargetSupportFiles/Pods-ZephyrWeather/expo-configure-project.sh\"\n";
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\n\"${SRCROOT}/Pods/expo-configure.sh\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
