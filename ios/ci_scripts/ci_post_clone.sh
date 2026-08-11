@@ -34,17 +34,6 @@ npm ci
 
 # ------------------------------------------------------------------
 # 3. Fix hardcoded local machine paths in Pods support files
-#    80+ .xcconfig and script files in Pods/Target Support Files/
-#    contain absolute paths from the local dev machine (e.g.
-#    /Users/andrewg/Projects/zephyr-weather/...).
-#
-#    On Xcode Cloud the workspace is at /Volumes/workspace/repository/,
-#    so we rewrite all occurrences to use the CI workspace path.
-#
-#    We do this instead of running pod install because:
-#    - pod install requires Ruby/Bundler/CocoaPods gems
-#    - The xcodeproj gem doesn't yet support Xcode 26's object v70
-#    - The committed Pods are otherwise correct; only paths differ
 # ------------------------------------------------------------------
 echo "--- Fixing hardcoded paths ---"
 PODS_SUPPORT_DIR="$CI_PRIMARY_REPOSITORY_PATH/ios/Pods/Target Support Files"
@@ -52,6 +41,13 @@ if [ -d "$PODS_SUPPORT_DIR" ]; then
   find "$PODS_SUPPORT_DIR" -type f \
     -exec sed -i '' "s|/Users/andrewg/Projects/zephyr-weather|$CI_PRIMARY_REPOSITORY_PATH|g" {} \;
   echo "Paths updated in Pods support files."
+
+  # Create a symlink to avoid spaces-in-path issues with Xcode build phases.
+  # The [Expo] Configure project phase runs expo-configure-project.sh which
+  # lives under "Target Support Files/" — Xcode's shell script generation
+  # mangles paths with spaces no matter how they're escaped.
+  ln -sfn "$PODS_SUPPORT_DIR" "$CI_PRIMARY_REPOSITORY_PATH/ios/Pods/TargetSupportFiles"
+  echo "Created symlink: Pods/TargetSupportFiles -> Target Support Files"
 else
   echo "WARNING: Pods support directory not found, skipping path fix."
 fi
