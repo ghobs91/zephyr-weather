@@ -41,6 +41,8 @@ if [ -d "$PODS_SUPPORT_DIR" ]; then
   find "$PODS_SUPPORT_DIR" -type f \
     -exec sed -i '' "s|/Users/andrewg/Projects/zephyr-weather|$CI_PRIMARY_REPOSITORY_PATH|g" {} \; || true
   echo "Paths updated in Pods support files."
+else
+  echo "WARNING: Pods support directory not found, skipping path fix."
 fi
 
 # Remove the Pods_ZephyrWeather.framework reference from the Xcode project.
@@ -51,12 +53,5 @@ echo "--- Removing Pods_ZephyrWeather.framework link ---"
 cd "$CI_PRIMARY_REPOSITORY_PATH/ios"
 sed -i '' '/Pods_ZephyrWeather\.framework/d' ZephyrWeather.xcodeproj/project.pbxproj
 echo "Removed Pods_ZephyrWeather.framework reference."
-
-  find "$PODS_SUPPORT_DIR" -type f \
-    -exec sed -i '' "s|/Users/andrewg/Projects/zephyr-weather|$CI_PRIMARY_REPOSITORY_PATH|g" {} \; || true
-  echo "Paths updated in Pods support files."
-else
-  echo "WARNING: Pods support directory not found, skipping path fix."
-fi
 
 echo "=== ci_post_clone.sh: Complete ==="
