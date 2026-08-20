@@ -1,0 +1,12 @@
+app_identifier("com.zephyr.weather")
+apple_id("") # Your Apple ID email (only needed for 2FA sessions, leave empty for API key auth)
+team_id("XTXZ3CYRPX")
+
+# App Store Connect app ID — find this at https://appstoreconnect.apple.com/apps
+# It's the numeric ID in the URL: .../apps/1234567890/...
+# If you don't know it, Fastlane can look it up by bundle ID.
+# asc_app_id("")
+
+# For Apple Developer Portal operations (optional)
+# itc_team_id("")
+# team_name("")

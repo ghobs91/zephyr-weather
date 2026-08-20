@@ -1,0 +1,9 @@
+{
+  "id" : "5da7f9ed-269f-4f41-8d7c-4c82cefc1400",
+  "targets" : [
+    {
+      "id" : "b6c0437c-5efc-4c0f-9c6f-9c9054b46ccf",
+      "name" : "ZephyrWeather"
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+# ── iOS build & upload lanes for Zephyr Weather ──────────────────────
+
+default_platform(:ios)
+platform(:ios) do
+
+  desc "Build and upload to TestFlight (no App Review submission)"
+  lane :beta do
+    # Bump build number to avoid "already used" errors on App Store Connect
+    increment_build_number(
+      xcodeproj: "ios/ZephyrWeather.xcodeproj",
+      build_number: latest_testflight_build_number(
+        app_identifier: "com.zephyr.weather",
+      ) + 1,
+    )
+
+    # Build the archive
+    build_ios_app(
+      workspace: "ios/ZephyrWeather.xcworkspace",
+      scheme: "ZephyrWeather",
+      configuration: "Release",
+      export_method: "app-store",
+      clean: true,
+      include_symbols: true,
+      output_directory: "build",
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: false,
+      notify_external_testers: false,
+    )
+  end
+
+  desc "Build, upload, and submit for App Store Review (requires confirmation)"
+  lane :release do
+    # Bump marketing version — change this when cutting a release
+    # increment_version_number(
+    #   xcodeproj: "ios/ZephyrWeather.xcodeproj",
+    #   version_number: "1.7",
+    # )
+
+    increment_build_number(
+      xcodeproj: "ios/ZephyrWeather.xcodeproj",
+      build_number: latest_testflight_build_number(
+        app_identifier: "com.zephyr.weather",
+      ) + 1,
+    )
+
+    build_ios_app(
+      workspace: "ios/ZephyrWeather.xcworkspace",
+      scheme: "ZephyrWeather",
+      configuration: "Release",
+      export_method: "app-store",
+      clean: true,
+      include_symbols: true,
+      output_directory: "build",
+    )
+
+    upload_to_app_store(
+      force: false,
+      skip_metadata: true,
+      skip_screenshots: true,
+      # Submit for review must be confirmed interactively
+      automatic_release: false,
+    )
+  end
+
+end
