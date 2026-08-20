@@ -4,9 +4,10 @@ A beautifully simple weather app you can rely on!
 
 Inspired by [Breezy Weather](https://github.com/breezy-weather/breezy-weather).
 
-![React Native](https://img.shields.io/badge/React%20Native-0.79-blue)
+![Expo](https://img.shields.io/badge/Expo-SDK%2057-blue)
+![React Native](https://img.shields.io/badge/React%20Native-0.86-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)
-![iOS](https://img.shields.io/badge/iOS-13.4%2B-blue)
+![iOS](https://img.shields.io/badge/iOS-16.4%2B-blue)
 ![macOS](https://img.shields.io/badge/macOS-13.0%2B-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
@@ -22,7 +23,7 @@ Inspired by [Breezy Weather](https://github.com/breezy-weather/breezy-weather).
 ## Features
 
 ### Platforms
-- **iOS**: iPhone and iPad support (iOS 13.4+)
+- **iOS**: iPhone and iPad support (iOS 16.4+)
 - **macOS**: Full Mac Catalyst support with native macOS widgets (macOS 13.0+)
   - Two-column layout with sidebar and detail view
   - Optimized for desktop mouse/trackpad navigation
@@ -82,7 +83,7 @@ Inspired by [Breezy Weather](https://github.com/breezy-weather/breezy-weather).
 
 ## Weather Sources
 
-Currently integrated with **[The National Weather Service (NWS) API](https://www.weather.gov/documentation/services-web-api)** for US weather, and **[Open-Meteo](https://open-meteo.com/)** for global forecasts.
+Currently integrated with **[The National Weather Service (NWS) API](https://www.weather.gov/documentation/services-web-api)** for US weather, and **[Open-Meteo](https://open-meteo.com/)** for global forecasts. Additional sources (MET Norway, Bright Sky, NEXRAD radar, and a multi-source ensemble) are wired through the services layer.
 
 ### Open-Meteo Features
 - Weather forecast
@@ -103,26 +104,39 @@ src/
 ├── store/
 │   └── weatherStore.ts         # Zustand state management
 ├── services/
-│   └── openMeteoService.ts     # Open-Meteo API integration
+│   ├── preferredWeatherService.ts # Source dispatcher (US → NWS, else Open-Meteo)
+│   ├── openMeteoService.ts     # Open-Meteo API integration
+│   ├── nwsService.ts           # National Weather Service API
+│   ├── metnoService.ts         # MET Norway API
+│   ├── brightSkyService.ts     # Bright Sky API
+│   ├── nexradService.ts        # NEXRAD radar
+│   ├── ensembleService.ts      # Multi-source ensemble
+│   └── weatherCache.ts         # Response caching
 ├── navigation/
 │   └── RootNavigator.tsx       # React Navigation setup
 ├── screens/
 │   ├── HomeScreen.tsx          # Main weather display
+│   ├── MacOSHomeScreen.tsx     # macOS two-column layout
+│   ├── RadarScreen.tsx         # Radar view
 │   ├── LocationsScreen.tsx     # Location management
 │   ├── SettingsScreen.tsx      # App settings
 │   ├── SearchLocationScreen.tsx # Location search
 │   ├── DailyDetailScreen.tsx   # Detailed daily view
 │   └── AlertsScreen.tsx        # Weather alerts
 ├── components/
+│   ├── GlassSurface.tsx        # Glassmorphism design-system base
 │   ├── CurrentWeatherCard.tsx  # Current conditions
 │   ├── HourlyForecastCard.tsx  # Hourly scroll view
 │   ├── DailyForecastCard.tsx   # Daily forecast list
 │   ├── WeatherDetailCard.tsx   # Wind, humidity, etc.
 │   ├── AirQualityCard.tsx      # AQI display
-│   ├── PollenCard.tsx          # Pollen levels
-│   ├── SunMoonCard.tsx         # Sun/moon times
 │   └── AlertBanner.tsx         # Alert notification
+├── hooks/                      # useThemeColors, useWeatherRefresh, formatters…
+├── utils/
+│   ├── widgetManager.ts        # App Group sync + WidgetKit reloads
+│   └── formatting.ts           # Unit formatting
 └── theme/
+    ├── design.ts               # Design tokens & glass styles
     └── colors.ts               # Color system
 ```
 
@@ -138,7 +152,7 @@ src/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/zephyr-weather.git
+git clone https://github.com/ghobs91/zephyr-weather.git
 cd zephyr-weather
 ```
 
@@ -147,7 +161,7 @@ cd zephyr-weather
 npm install
 ```
 
-3. Install iOS/macOS pods:
+3. Install iOS/macOS pods (or run `npm run pod-install`):
 ```bash
 cd ios && pod install && cd ..
 ```
@@ -173,9 +187,17 @@ Or open `ios/ZephyrWeather.xcworkspace` in Xcode and select "My Mac (Designed fo
 
 For detailed macOS setup instructions, see [MACOS_SETUP.md](MACOS_SETUP.md).
 
+## Build & Release
+
+- **EAS Build**: `eas build --profile production` (App Store) or `--profile development` (internal dev client); configuration in `eas.json`.
+- **Xcode Cloud**: builds run through `ios/ci_scripts/ci_post_clone.sh` (installs Node, npm dependencies, pods, and generates Expo module stubs).
+- **Fastlane**: `cd ios && bundle exec fastlane beta` uploads to TestFlight; `fastlane release` builds and uploads for App Store review.
+- **Versioning**: version and build number live in `app.json`; Fastlane bumps build numbers per upload.
+
 ## Dependencies
 
 ### Core
+- `expo` - Expo SDK 57 (build tooling and native module autolinking)
 - `react-native` - Cross-platform mobile framework
 - `typescript` - Type safety
 
