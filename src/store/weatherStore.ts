@@ -3,7 +3,7 @@ import {persist, createJSONStorage} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Location, Weather} from '../types/weather';
 import {AppSettings, defaultSettings} from '../types/settings';
-import {updateLocationsList, updateAllLocationsWeatherData} from '../utils/widgetManager';
+import {updateLocationsList, updateAllLocationsWeatherData, restoreCachedWidgetData} from '../utils/widgetManager';
 
 interface WeatherState {
   locations: Location[];
@@ -164,6 +164,11 @@ export const useWeatherStore = create<WeatherState>()(
         if (state && !error && state.locations.length > 0) {
           updateLocationsList(state.locations).catch(err =>
             console.error('Failed to update locations list on rehydration:', err)
+          );
+          // Restore cached weather data immediately so widgets don't go blank
+          // while the network fetch is in progress.
+          restoreCachedWidgetData().catch(err =>
+            console.error('Failed to restore cached widget data on rehydration:', err)
           );
         }
       },

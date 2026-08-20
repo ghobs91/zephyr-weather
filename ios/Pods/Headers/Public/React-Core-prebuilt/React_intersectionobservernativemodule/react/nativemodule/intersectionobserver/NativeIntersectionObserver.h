@@ -1,0 +1,1 @@
+../../../../../../../React-Core-prebuilt/React.xcframework/Headers/React_intersectionobservernativemodule/react/nativemodule/intersectionobserver/NativeIntersectionObserver.h

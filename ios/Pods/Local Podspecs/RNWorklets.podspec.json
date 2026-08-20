@@ -1,0 +1,73 @@
+{
+  "name": "RNWorklets",
+  "version": "0.10.3",
+  "summary": "The React Native multithreading library",
+  "homepage": "https://github.com/software-mansion/react-native-reanimated",
+  "license": "MIT",
+  "authors": {
+    "author": "author@domain.com"
+  },
+  "platforms": {
+    "ios": "13.4",
+    "tvos": "9.0",
+    "osx": "10.14",
+    "visionos": "1.0"
+  },
+  "source": {
+    "git": "https://github.com/software-mansion/react-native-reanimated.git",
+    "tag": "0.10.3"
+  },
+  "header_dir": "worklets",
+  "compiler_flags": "-DRCT_NEW_ARCH_ENABLED=1",
+  "dependencies": {
+    "React-Core": [],
+    "React-RCTFabric": [],
+    "ReactCodegen": [],
+    "RCTRequired": [],
+    "RCTTypeSafety": [],
+    "ReactCommon/turbomodule/bridging": [],
+    "ReactCommon/turbomodule/core": [],
+    "React-NativeModulesApple": [],
+    "Yoga": [],
+    "React-Fabric": [],
+    "React-graphics": [],
+    "React-utils": [],
+    "React-featureflags": [],
+    "React-debug": [],
+    "React-ImageManager": [],
+    "React-rendererdebug": [],
+    "React-jsi": [],
+    "React-renderercss": [],
+    "hermes-engine": [],
+    "ReactNativeDependencies": [],
+    "React-Core-prebuilt": [],
+    "React-hermes": []
+  },
+  "pod_target_xcconfig": {
+    "USE_HEADERMAP": "YES",
+    "DEFINES_MODULE": "YES",
+    "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/ReactCommon\" \"$(PODS_TARGET_SRCROOT)\" \"$(PODS_ROOT)/RCT-Folly\" \"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/boost-for-react-native\" \"$(PODS_ROOT)/DoubleConversion\" \"$(PODS_ROOT)/Headers/Private/React-Core\" \"$(PODS_ROOT)/Headers/Private/Yoga\"",
+    "FRAMEWORK_SEARCH_PATHS": "\"${PODS_CONFIGURATION_BUILD_DIR}/React-hermes\"",
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++20",
+    "GCC_PREPROCESSOR_DEFINITIONS[config=*Debug*]": "$(inherited) HERMES_ENABLE_DEBUGGER=1",
+    "GCC_PREPROCESSOR_DEFINITIONS[config=*Release*]": "$(inherited)",
+    "OTHER_CFLAGS": "$(inherited) -DWORKLETS_FEATURE_FLAGS=\"[RUNTIME_TEST_FLAG:false][FETCH_PREVIEW_ENABLED:false][IOS_DYNAMIC_FRAMERATE_ENABLED:true][ENABLE_CROSS_RUNTIME_STACK_TRACES:true]\" -DWORKLETS_VERSION=0.10.3    -DHERMES_V1_ENABLED"
+  },
+  "xcconfig": {
+    "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/boost-for-react-native\" \"$(PODS_ROOT)/glog\" \"$(PODS_ROOT)/RCT-Folly\" \"$(PODS_ROOT)/Headers/Public/React-hermes\" \"$(PODS_ROOT)/Headers/Public/hermes-engine\" \"$(PODS_ROOT)/../../node_modules/react-native/ReactCommon\" \"$(PODS_ROOT)/../../node_modules/react-native/ReactCommon/jsitooling\""
+  },
+  "subspecs": [
+    {
+      "name": "common",
+      "source_files": "Common/cpp/worklets/**/*.{cpp,h}",
+      "public_header_files": "Common/cpp/worklets/**/*.h",
+      "header_mappings_dir": "Common/cpp/worklets"
+    },
+    {
+      "name": "apple",
+      "source_files": "apple/worklets/**/*.{mm,h,m}",
+      "public_header_files": "apple/worklets/**/*.h",
+      "header_mappings_dir": "apple/worklets"
+    }
+  ]
+}

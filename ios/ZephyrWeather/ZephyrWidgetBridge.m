@@ -19,14 +19,17 @@ RCT_EXPORT_METHOD(setItem:(NSString *)key
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+  NSLog(@"[ZephyrWidgetBridge] setItem called - key: %@, appGroup: %@, valueLen: %lu", key, appGroup, (unsigned long)value.length);
   NSUserDefaults *defaults = [[NSUserDefaults alloc] initWithSuiteName:appGroup];
   if (!defaults) {
+    NSLog(@"[ZephyrWidgetBridge] ERROR: Could not create UserDefaults for app group: %@", appGroup);
     reject(@"ERR_NO_DEFAULTS", @"Could not create UserDefaults for app group", nil);
     return;
   }
 
   [defaults setObject:value forKey:key];
-  [defaults synchronize];
+  BOOL synced = [defaults synchronize];
+  NSLog(@"[ZephyrWidgetBridge] setItem succeeded - key: %@, synced: %d", key, synced);
 
   resolve(nil);
 }

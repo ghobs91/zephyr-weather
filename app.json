@@ -1,4 +1,22 @@
 {
-  "name": "ZephyrWeather",
-  "displayName": "Zephyr Weather"
+  "expo": {
+    "name": "Zephyr Weather",
+    "slug": "zephyr-weather",
+    "version": "1.6.1",
+    "orientation": "portrait",
+    "ios": {
+      "bundleIdentifier": "com.zephyr.weather",
+      "buildNumber": "8",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Zephyr Weather uses your location to show local weather forecasts.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Zephyr Weather uses your location to provide accurate weather data."
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4b25d48b-1e04-458d-8436-05a8d691a73d"
+      }
+    }
+  }
 }

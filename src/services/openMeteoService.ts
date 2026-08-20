@@ -559,3 +559,41 @@ export async function fetchAirQuality(
     return undefined;
   }
 }
+
+/**
+ * Fetch 15-minute precipitation intensity forecast for the next hour.
+ * Uses Open-Meteo's minutely_15 endpoint (free, no API key).
+ */
+export async function fetchMinutelyPrecipitation(
+  latitude: number,
+  longitude: number,
+): Promise<Array<{date: Date; minuteInterval: number; precipitationIntensity?: number}>> {
+  try {
+    const params = new URLSearchParams({
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+      minutely_15: 'precipitation',
+      forecast_minutely_15_hours: '1',
+    });
+
+    const response = await axios.get(
+      `${OPEN_METEO_BASE_URL}/forecast?${params}`,
+    );
+
+    const data = response.data;
+    const minutely15 = data?.minutely_15;
+
+    if (!minutely15 || !minutely15.time || !minutely15.precipitation) {
+      return [];
+    }
+
+    return minutely15.time.map((time: string, i: number) => ({
+      date: new Date(time),
+      minuteInterval: 15,
+      precipitationIntensity: minutely15.precipitation[i],
+    }));
+  } catch (error) {
+    console.error('Error fetching minutely precipitation:', error);
+    return [];
+  }
+}

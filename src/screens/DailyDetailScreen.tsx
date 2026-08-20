@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  useColorScheme,
   useWindowDimensions,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -15,47 +14,44 @@ import {LineChart} from 'react-native-wagmi-charts';
 
 import {useWeatherStore} from '../store/weatherStore';
 import {colors, getTemperatureColor, getUvColor} from '../theme/colors';
+import {useThemeColors} from '../hooks/useThemeColors';
+import {AtmosphericBackground} from '../components/AtmosphericBackground';
+import {getCardStyle, withAlpha} from '../theme/design';
 import {WeatherCode, Daily} from '../types/weather';
 import {RootStackParamList} from '../navigation/RootNavigator';
 import {WeatherIcon} from '../components/WeatherIcon';
 import {useResponsiveLayout} from '../utils/platformDetect';
 import {formatTime} from '../utils/timeFormat';
+import {formatTemp as fmtTemp, formatSpeed as fmtSpeed} from '../utils/formatting';
 
 type DailyDetailRouteProp = RouteProp<RootStackParamList, 'DailyDetail'>;
 
 export function DailyDetailScreen() {
   const route = useRoute<DailyDetailRouteProp>();
   const insets = useSafeAreaInsets();
-  const isDarkMode = useColorScheme() === 'dark';
   const {width: screenWidth} = useWindowDimensions();
   const layout = useResponsiveLayout();
   
   const {dayIndex} = route.params;
   const {locations, currentLocationIndex, settings} = useWeatherStore();
   
-  const theme = settings.theme;
-  const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
-  const themeColors = useDark ? colors.dark : colors.light;
+  const {useDark, themeColors} = useThemeColors();
   
   const currentLocation = locations[currentLocationIndex];
   const day = currentLocation?.weather?.dailyForecast?.[dayIndex];
   const hourlyForecast = currentLocation?.weather?.hourlyForecast ?? [];
 
-  const formatTemp = (temp?: number): string => {
-    if (temp === undefined) return '--°';
-    if (settings.temperatureUnit === 'fahrenheit') {
-      return `${Math.round(temp * 9/5 + 32)}°`;
-    }
-    return `${Math.round(temp)}°`;
-  };
+  const formatTemp = (temp?: number): string => fmtTemp(temp, settings.temperatureUnit, {showUnit: false});
 
   if (!day) {
     return (
-      <View style={[styles.container, {backgroundColor: themeColors.background}]}>
+      <AtmosphericBackground isDark={useDark}>
+        <View style={styles.container}>
         <Text style={[styles.errorText, {color: themeColors.text}]}>
           No data available for this day
         </Text>
-      </View>
+        </View>
+      </AtmosphericBackground>
     );
   }
 
@@ -78,7 +74,8 @@ export function DailyDetailScreen() {
   const chartWidth = effectiveWidth - layout.contentPadding * 2 - 32;
 
   return (
-    <View style={[styles.container, {backgroundColor: themeColors.background}]}>
+    <AtmosphericBackground isDark={useDark}>
+      <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -98,10 +95,11 @@ export function DailyDetailScreen() {
           <Text style={[styles.dateText, {color: themeColors.text}]}>
             {format(day.date, 'EEEE, MMMM d')}
           </Text>
+          <Text style={[styles.dateSubtitle, {color: themeColors.textSecondary}]}>Detailed outlook, temperature trend, and sun timing.</Text>
         </View>
 
         {/* Main Weather Card */}
-        <View style={[styles.mainCard, {backgroundColor: themeColors.cardBackground}]}>
+        <View style={[styles.mainCard, getCardStyle(themeColors)]}>
           <View style={styles.halfDayRow}>
             {/* Daytime */}
             <View style={styles.halfDay}>
@@ -153,7 +151,7 @@ export function DailyDetailScreen() {
         </View>
 
         {/* Temperature Chart */}
-        <View style={[styles.card, {backgroundColor: themeColors.cardBackground}]}>
+        <View style={[styles.card, getCardStyle(themeColors)]}>
           <Text style={[styles.cardTitle, {color: themeColors.text}]}>
             Temperature Trend
           </Text>
@@ -253,7 +251,7 @@ export function DailyDetailScreen() {
         </View>
 
         {/* Precipitation */}
-        <View style={[styles.card, {backgroundColor: themeColors.cardBackground}]}>
+        <View style={[styles.card, getCardStyle(themeColors)]}>
           <View style={styles.cardHeader}>
             <Icon name="water" size={20} color={themeColors.primary} />
             <Text style={[styles.cardTitle, {color: themeColors.text}]}>
@@ -303,7 +301,7 @@ export function DailyDetailScreen() {
         </View>
 
         {/* Wind */}
-        <View style={[styles.card, {backgroundColor: themeColors.cardBackground}]}>
+        <View style={[styles.card, getCardStyle(themeColors)]}>
           <View style={styles.cardHeader}>
             <Icon name="weather-windy" size={20} color={themeColors.primary} />
             <Text style={[styles.cardTitle, {color: themeColors.text}]}>Wind</Text>
@@ -313,17 +311,7 @@ export function DailyDetailScreen() {
               Speed
             </Text>
             <Text style={[styles.detailValue, {color: themeColors.text}]}>
-              {(() => {
-                const speed = day.day?.wind?.speed ?? 0;
-                if (settings.speedUnit === 'mph') {
-                  return `${Math.round(speed * 0.621371)} mph`;
-                } else if (settings.speedUnit === 'ms') {
-                  return `${Math.round(speed / 3.6)} m/s`;
-                } else if (settings.speedUnit === 'kn') {
-                  return `${Math.round(speed * 0.539957)} kn`;
-                }
-                return `${Math.round(speed)} km/h`;
-              })()}
+              {fmtSpeed(day.day?.wind?.speed ?? 0, settings.speedUnit)}
             </Text>
           </View>
           <View style={styles.detailRow}>
@@ -331,25 +319,14 @@ export function DailyDetailScreen() {
               Gusts
             </Text>
             <Text style={[styles.detailValue, {color: themeColors.text}]}>
-              {(() => {
-                const gusts = day.day?.wind?.gusts;
-                if (gusts === undefined || gusts === null) return '--';
-                if (settings.speedUnit === 'mph') {
-                  return `${Math.round(gusts * 0.621371)} mph`;
-                } else if (settings.speedUnit === 'ms') {
-                  return `${Math.round(gusts / 3.6)} m/s`;
-                } else if (settings.speedUnit === 'kn') {
-                  return `${Math.round(gusts * 0.539957)} kn`;
-                }
-                return `${Math.round(gusts)} km/h`;
-              })()}
+              {fmtSpeed(day.day?.wind?.gusts, settings.speedUnit)}
             </Text>
           </View>
         </View>
 
         {/* UV Index */}
         {day.uv?.index !== undefined && (
-          <View style={[styles.card, {backgroundColor: themeColors.cardBackground}]}>
+          <View style={[styles.card, getCardStyle(themeColors)]}>
             <View style={styles.cardHeader}>
               <Icon name="white-balance-sunny" size={20} color={themeColors.primary} />
               <Text style={[styles.cardTitle, {color: themeColors.text}]}>UV Index</Text>
@@ -373,7 +350,7 @@ export function DailyDetailScreen() {
         )}
 
         {/* Sun & Moon */}
-        <View style={[styles.card, {backgroundColor: themeColors.cardBackground}]}>
+        <View style={[styles.card, getCardStyle(themeColors)]}>
           <View style={styles.sunMoonRow}>
             <View style={styles.sunMoonItem}>
               <Icon name="weather-sunset-up" size={24} color="#FFA500" />
@@ -416,7 +393,8 @@ export function DailyDetailScreen() {
         <View style={{height: insets.bottom + 24}} />
         </View>
       </ScrollView>
-    </View>
+      </View>
+    </AtmosphericBackground>
   );
 }
 
@@ -442,11 +420,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   dateText: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 30,
+    fontWeight: '700',
+  },
+  dateSubtitle: {
+    fontSize: 14,
+    marginTop: 6,
+    lineHeight: 20,
   },
   mainCard: {
-    borderRadius: 16,
     padding: 20,
     marginBottom: 16,
   },
@@ -484,9 +466,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   card: {
-    borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   cardHeader: {
     flexDirection: 'row',

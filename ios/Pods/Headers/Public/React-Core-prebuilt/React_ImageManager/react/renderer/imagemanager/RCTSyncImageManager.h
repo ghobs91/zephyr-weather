@@ -1,0 +1,1 @@
+../../../../../../../React-Core-prebuilt/React.xcframework/Headers/React_ImageManager/react/renderer/imagemanager/RCTSyncImageManager.h

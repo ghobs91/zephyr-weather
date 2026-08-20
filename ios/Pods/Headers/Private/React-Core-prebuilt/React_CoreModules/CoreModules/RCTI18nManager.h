@@ -1,0 +1,1 @@
+../../../../../React-Core-prebuilt/React.xcframework/Headers/React_CoreModules/CoreModules/RCTI18nManager.h

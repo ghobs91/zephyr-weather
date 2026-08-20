@@ -12,6 +12,7 @@
 #include <hermes/Support/SHA1.h>
 #include <hermes/SynthTrace.h>
 
+#include <jsi/instrumentation.h>
 #include <jsi/jsi.h>
 #include <llvh/Support/MemoryBuffer.h>
 #include <llvh/Support/raw_ostream.h>
@@ -46,6 +47,13 @@ class TraceInterpreter final {
     /// the trace.  If false, start from the default config.
     bool useTraceConfig{false};
 
+    /// Enable basic block profiling.
+    bool basicBlockProfiling{false};
+
+    // If non-empty, write profiling output to this file, rather than
+    // to stderr.
+    std::string profilingOutFile;
+
     /// Number of initial executions whose stats are discarded.
     int warmupReps{0};
 
@@ -53,9 +61,16 @@ class TraceInterpreter final {
     /// with the median totalTime.
     int reps{1};
 
+    /// If non-null, holds statistics for every garbage collection that occurs.
+    const std::vector<::hermes::vm::GCAnalyticsEvent> *gcAnalyticsEvents{
+        nullptr};
+
     /// If true, run a complete collection before printing stats. Useful for
     /// guaranteeing there's no garbage in heap size numbers.
     bool forceGCBeforeStats{false};
+
+    /// If true, use the Hermes VM JIT during execution.
+    bool enableJIT{false};
 
     /// If true, remove the requirement that the input bytecode was compiled
     /// from the same source used to record the trace. There must only be one
@@ -151,18 +166,18 @@ class TraceInterpreter final {
       const std::string &traceFile,
       const std::vector<std::string> &bytecodeFiles,
       const ExecuteOptions &options,
-      const std::function<std::unique_ptr<jsi::Runtime>(
+      const std::function<std::shared_ptr<jsi::Runtime>(
           const ::hermes::vm::RuntimeConfig &runtimeConfig)> &createRuntime);
 
   /// \param traceStream If non-null, write a trace of the execution into this
   /// stream.
   /// \return Tuple of GC stats and the runtime instance used for replaying.
-  static std::tuple<std::string, std::unique_ptr<jsi::Runtime>>
+  static std::tuple<std::string, std::shared_ptr<jsi::Runtime>>
   execFromMemoryBuffer(
       std::unique_ptr<llvh::MemoryBuffer> &&traceBuf,
       std::vector<std::unique_ptr<llvh::MemoryBuffer>> &&codeBufs,
       const ExecuteOptions &options,
-      const std::function<std::unique_ptr<jsi::Runtime>(
+      const std::function<std::shared_ptr<jsi::Runtime>(
           const ::hermes::vm::RuntimeConfig &runtimeConfig)> &createRuntime);
 
  private:

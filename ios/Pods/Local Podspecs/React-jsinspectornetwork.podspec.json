@@ -1,0 +1,31 @@
+{
+  "name": "React-jsinspectornetwork",
+  "version": "0.86.2",
+  "summary": "Network inspection for React Native DevTools",
+  "homepage": "https://reactnative.dev/",
+  "license": "MIT",
+  "authors": "Meta Platforms, Inc. and its affiliates",
+  "platforms": {
+    "ios": "15.1"
+  },
+  "source": {
+    "git": "https://github.com/react/react-native.git",
+    "tag": "v0.86.2"
+  },
+  "source_files": "*.h",
+  "header_dir": "jsinspector-modern/network",
+  "pod_target_xcconfig": {
+    "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/../..\" \"${PODS_ROOT}/React-jsinspectorcdp\"",
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++20",
+    "DEFINES_MODULE": "YES",
+    "OTHER_CFLAGS": "$(inherited) -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_CPLUSPLUSFLAGS": "$(inherited) -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_SWIFT_FLAGS": "$(inherited) -Xcc -ivfsoverlay -Xcc $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml"
+  },
+  "module_name": "jsinspector_modernnetwork",
+  "dependencies": {
+    "React-jsinspectorcdp": [],
+    "ReactNativeDependencies": [],
+    "React-Core-prebuilt": []
+  }
+}

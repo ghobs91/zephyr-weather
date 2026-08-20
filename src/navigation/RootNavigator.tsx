@@ -2,7 +2,7 @@ import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {useColorScheme, TouchableOpacity, View, Text, StyleSheet} from 'react-native';
+import {TouchableOpacity, View, Text, StyleSheet} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {HomeScreen} from '../screens/HomeScreen';
@@ -14,7 +14,9 @@ import {DailyDetailScreen} from '../screens/DailyDetailScreen';
 import {AlertsScreen} from '../screens/AlertsScreen';
 import {LocationsScreen} from '../screens/LocationsScreen';
 import {useWeatherStore} from '../store/weatherStore';
+import {useThemeColors} from '../hooks/useThemeColors';
 import {colors} from '../theme/colors';
+import {getGlassPillStyle, withAlpha} from '../theme/design';
 import {isMacOS} from '../utils/platformDetect';
 
 export type RootStackParamList = {
@@ -39,25 +41,18 @@ const TAB_CONFIG: Record<string, {icon: string; label: string}> = {
   Radar: {icon: 'radar', label: 'Radar'},
 };
 
-function GlassPill({children, style, useDark}: {children: React.ReactNode; style?: any; useDark: boolean}) {
+function GlassPill({children, style, useDark, themeColors}: {children: React.ReactNode; style?: any; useDark: boolean; themeColors: typeof colors.light}) {
   return (
-    <View style={[tabBarStyles.glassPill, useDark ? tabBarStyles.glassPillDark : tabBarStyles.glassPillLight, style]}>
-      {/* Bottom layer: tinted fill */}
-      <View style={[StyleSheet.absoluteFill, {borderRadius: 26, backgroundColor: useDark ? 'rgba(28,28,30,0.92)' : 'rgba(255,255,255,0.92)'}]} />
-      {/* Top highlight shimmer */}
-      <View style={[tabBarStyles.glassShimmer, {backgroundColor: useDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.55)'}]} />
-      {/* Inner border highlight */}
-      <View style={[StyleSheet.absoluteFill, tabBarStyles.glassBorder, {borderColor: useDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.8)'}]} />
+    <View style={[tabBarStyles.glassPill, getGlassPillStyle(themeColors), style]}>
+      {/* Front-light shimmer */}
+      <View style={[tabBarStyles.glassShimmer, {backgroundColor: withAlpha('#FFFFFF', useDark ? 0.06 : 0.28)}]} />
       <View style={tabBarStyles.glassContent}>{children}</View>
     </View>
   );
 }
 
 function CustomTabBar({state, navigation}: any) {
-  const isDarkMode = useColorScheme() === 'dark';
-  const theme = useWeatherStore((s: any) => s.settings.theme);
-  const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
-  const themeColors = useDark ? colors.dark : colors.light;
+  const {useDark, themeColors} = useThemeColors();
   const insets = useSafeAreaInsets();
 
   return (
@@ -65,7 +60,7 @@ function CustomTabBar({state, navigation}: any) {
       style={[tabBarStyles.container, {paddingBottom: (insets.bottom || 12) + 4}]}
       pointerEvents="box-none">
       {/* Left pill: Weather + Radar */}
-      <GlassPill useDark={useDark}>
+      <GlassPill useDark={useDark} themeColors={themeColors}>
         {state.routes.map((route: any, index: number) => {
           const config = TAB_CONFIG[route.name];
           if (!config) return null;
@@ -76,7 +71,7 @@ function CustomTabBar({state, navigation}: any) {
               onPress={() => navigation.navigate(route.name)}
               style={[
                 tabBarStyles.tabButton,
-                isFocused && {backgroundColor: themeColors.primary + 'DD'},
+                isFocused && {backgroundColor: withAlpha(themeColors.primary, 0.9)},
               ]}>
               <Icon
                 name={config.icon}
@@ -96,7 +91,7 @@ function CustomTabBar({state, navigation}: any) {
       </GlassPill>
 
       {/* Right pill: Search */}
-      <GlassPill useDark={useDark}>
+      <GlassPill useDark={useDark} themeColors={themeColors}>
         <TouchableOpacity
           onPress={() => navigation.navigate('SearchLocation')}
           style={tabBarStyles.searchButton}>
@@ -108,8 +103,8 @@ function CustomTabBar({state, navigation}: any) {
 }
 
 // Outer pill radius = 26, content padding = 5, so inner button radius = 26 - 5 = 21
-const PILL_RADIUS = 26;
-const PILL_PADDING = 5;
+const PILL_RADIUS = 28;
+const PILL_PADDING = 4;
 const BTN_RADIUS = PILL_RADIUS - PILL_PADDING;
 
 const tabBarStyles = StyleSheet.create({
@@ -127,20 +122,6 @@ const tabBarStyles = StyleSheet.create({
   glassPill: {
     borderRadius: PILL_RADIUS,
     overflow: 'hidden',
-    shadowOffset: {width: 0, height: 8},
-    shadowOpacity: 0.22,
-    shadowRadius: 20,
-    elevation: 16,
-  },
-  glassPillDark: {
-    shadowColor: '#000',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255,255,255,0.12)',
-  },
-  glassPillLight: {
-    shadowColor: '#000',
-    borderWidth: 0.5,
-    borderColor: 'rgba(0,0,0,0.08)',
   },
   glassShimmer: {
     position: 'absolute',
@@ -153,7 +134,7 @@ const tabBarStyles = StyleSheet.create({
   },
   glassBorder: {
     borderRadius: PILL_RADIUS,
-    borderWidth: 1,
+    borderWidth: 0,
   },
   glassContent: {
     flexDirection: 'row',
@@ -163,7 +144,7 @@ const tabBarStyles = StyleSheet.create({
   tabButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: BTN_RADIUS,
     gap: 6,
@@ -183,11 +164,7 @@ const tabBarStyles = StyleSheet.create({
 });
 
 function MainTabs() {
-  const isDarkMode = useColorScheme() === 'dark';
-  const theme = useWeatherStore(state => state.settings.theme);
-  const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
-  
-  const themeColors = useDark ? colors.dark : colors.light;
+  const {useDark, themeColors} = useThemeColors();
 
   return (
     <Tab.Navigator
@@ -208,11 +185,7 @@ function MainTabs() {
 }
 
 export function RootNavigator() {
-  const isDarkMode = useColorScheme() === 'dark';
-  const theme = useWeatherStore(state => state.settings.theme);
-  const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
-  
-  const themeColors = useDark ? colors.dark : colors.light;
+  const {useDark, themeColors} = useThemeColors();
   const isDesktop = isMacOS();
 
   console.log('[RootNavigator] isDesktop:', isDesktop, '- Using:', isDesktop ? 'MacOSHomeScreen' : 'MainTabs');
@@ -224,6 +197,11 @@ export function RootNavigator() {
           backgroundColor: themeColors.surface,
         },
         headerTintColor: themeColors.text,
+        headerShadowVisible: false,
+        headerTitleStyle: {
+          fontSize: 18,
+          fontWeight: '600',
+        },
         contentStyle: {
           backgroundColor: themeColors.background,
         },
@@ -237,7 +215,7 @@ export function RootNavigator() {
         name="DailyDetail"
         component={DailyDetailScreen}
         options={{
-          title: 'Daily Forecast',
+          title: 'Forecast Detail',
           headerBackTitle: 'Back',
         }}
       />

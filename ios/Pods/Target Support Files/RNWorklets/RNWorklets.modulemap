@@ -1,0 +1,6 @@
+framework module worklets {
+  umbrella header "RNWorklets-umbrella.h"
+
+  export *
+  module * { export * }
+}

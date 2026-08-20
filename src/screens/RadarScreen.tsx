@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  useColorScheme,
   Image,
   ActivityIndicator,
   LayoutChangeEvent,
@@ -20,7 +19,7 @@ import Animated, {
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {useWeatherStore} from '../store/weatherStore';
-import {colors} from '../theme/colors';
+import {useThemeColors} from '../hooks/useThemeColors';
 import {useResponsiveLayout} from '../utils/platformDetect';
 import {
   findNearestStation,
@@ -159,13 +158,10 @@ function formatTimeLabel(date: Date): string {
 
 export function RadarScreen() {
   const insets = useSafeAreaInsets();
-  const isDarkMode = useColorScheme() === 'dark';
   const layout = useResponsiveLayout();
 
   const {settings, getCurrentLocation} = useWeatherStore();
-  const theme = settings.theme;
-  const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
-  const themeColors = useDark ? colors.dark : colors.light;
+  const {useDark, themeColors} = useThemeColors();
 
   const location = getCurrentLocation();
   const lat = location?.latitude ?? 39.8283;
@@ -752,7 +748,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   radarOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   mapLoadingIndicator: {
     position: 'absolute',

@@ -2,14 +2,13 @@ import React, {useState} from 'react';
 import {
   View,
   StyleSheet,
-  useColorScheme,
   Modal,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 import {useWeatherStore} from '../store/weatherStore';
-import {colors} from '../theme/colors';
+import {useThemeColors} from '../hooks/useThemeColors';
 import {RootStackParamList} from '../navigation/RootNavigator';
 import {LocationSidebar} from '../components/LocationSidebar';
 import {HomeScreen} from './HomeScreen';
@@ -20,7 +19,6 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export function MacOSHomeScreen() {
   console.log('[MacOSHomeScreen] Rendering macOS layout');
   const navigation = useNavigation<NavigationProp>();
-  const isDarkMode = useColorScheme() === 'dark';
   const [showSettings, setShowSettings] = useState(false);
   
   const {
@@ -28,9 +26,7 @@ export function MacOSHomeScreen() {
     setCurrentLocationIndex,
   } = useWeatherStore();
   
-  const theme = settings.theme;
-  const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
-  const themeColors = useDark ? colors.dark : colors.light;
+  const {useDark, themeColors} = useThemeColors();
 
   const handleLocationSelect = (index: number) => {
     setCurrentLocationIndex(index);

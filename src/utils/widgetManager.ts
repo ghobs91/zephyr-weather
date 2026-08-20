@@ -1,46 +1,78 @@
 import {Platform, NativeModules} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Weather, WeatherCode, Location} from '../types/weather';
 import {AppSettings, TemperatureUnit} from '../types/settings';
 
 const APP_GROUP_IDENTIFIER = 'group.com.zephyrweather.shared';
 const WEATHER_DATA_KEY = 'weatherData';
 const LOCATIONS_LIST_KEY = 'locations';
+const WIDGET_CACHE_KEY = '@zephyr_widget_weather_cache';
 
-const {ZephyrWidgetBridge} = NativeModules;
-
-// Debounce timer for widget updates — prevents rapid successive reloadAllTimelines
-// calls which iOS rate-limits.
+// Coalesce WidgetKit reloads so the first refresh happens immediately while
+// rapid follow-up mutations stay within the iOS reload budget.
 let pendingWidgetUpdate: ReturnType<typeof setTimeout> | null = null;
-const WIDGET_UPDATE_DEBOUNCE_MS = 1500;
+let lastWidgetReloadAt = 0;
+const WIDGET_RELOAD_COOLDOWN_MS = 1500;
 
 async function setSharedItem(key: string, value: string): Promise<void> {
-  if (ZephyrWidgetBridge) {
-    await ZephyrWidgetBridge.setItem(key, value, APP_GROUP_IDENTIFIER);
+  const bridge = NativeModules.ZephyrWidgetBridge;
+  if (bridge) {
+    await bridge.setItem(key, value, APP_GROUP_IDENTIFIER);
   } else {
-    console.warn('ZephyrWidgetBridge not available');
+    console.warn('[WidgetManager] ZephyrWidgetBridge not available');
   }
 }
 
 async function reloadWidgets(): Promise<void> {
-  if (ZephyrWidgetBridge?.reloadWidgets) {
-    await ZephyrWidgetBridge.reloadWidgets();
+  const bridge = NativeModules.ZephyrWidgetBridge;
+  if (bridge?.reloadWidgets) {
+    // Small delay to allow UserDefaults disk flush to complete.
+    // synchronize() is a no-op on modern iOS, so we give the async
+    // write time to land before WidgetKit reads from disk.
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await bridge.reloadWidgets();
   }
 }
 
-// Writes data to the shared container immediately, then debounces the
-// WidgetKit timeline reload so rapid back-to-back store mutations don't
-// exhaust the iOS reload budget.
-function scheduleWidgetReload(): void {
+function clearPendingWidgetReload(): void {
   if (pendingWidgetUpdate) {
     clearTimeout(pendingWidgetUpdate);
-  }
-  pendingWidgetUpdate = setTimeout(() => {
     pendingWidgetUpdate = null;
+  }
+}
+
+// Writes data to the shared container immediately, then reloads widgets right
+// away on the first update. Additional mutations within the cooldown window
+// are coalesced into a single trailing reload.
+function scheduleWidgetReload(): void {
+  const now = Date.now();
+  const nextReloadAllowedAt = lastWidgetReloadAt + WIDGET_RELOAD_COOLDOWN_MS;
+
+  if (now >= nextReloadAllowedAt) {
+    clearPendingWidgetReload();
+    lastWidgetReloadAt = now;
     reloadWidgets().catch(err =>
       console.error('Failed to reload widgets:', err),
     );
-  }, WIDGET_UPDATE_DEBOUNCE_MS);
+    return;
+  }
+
+  clearPendingWidgetReload();
+  pendingWidgetUpdate = setTimeout(() => {
+    pendingWidgetUpdate = null;
+    lastWidgetReloadAt = Date.now();
+    reloadWidgets().catch(err =>
+      console.error('Failed to reload widgets:', err),
+    );
+  }, nextReloadAllowedAt - now);
 }
+
+export const __widgetManagerTestUtils = {
+  resetReloadScheduler(): void {
+    clearPendingWidgetReload();
+    lastWidgetReloadAt = 0;
+  },
+};
 
 // Convert weather code from TypeScript format (PARTLY_CLOUDY) to Swift format (partly_cloudy)
 function convertWeatherCode(code: string | null | undefined): string | null {
@@ -83,6 +115,43 @@ interface WidgetWeatherData {
 interface SharedLocation {
   id: string;
   name: string;
+}
+
+/**
+ * Cache the weather data JSON string in AsyncStorage so it can be restored
+ * on app re-launch, before new weather API data has finished loading.
+ * This prevents the widget from going blank / showing mock data while the
+ * user waits for a fresh forecast.
+ */
+async function cacheWidgetWeatherData(jsonData: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(WIDGET_CACHE_KEY, jsonData);
+  } catch (err) {
+    console.error('[WidgetManager] Failed to cache widget weather data:', err);
+  }
+}
+
+/**
+ * Restore cached widget weather data from AsyncStorage and push it into the
+ * shared UserDefaults container. Call this during app rehydration so the
+ * widget has *some* data to display even before the network fetch finishes.
+ */
+export async function restoreCachedWidgetData(): Promise<void> {
+  if (Platform.OS !== 'ios') return;
+  try {
+    const cached = await AsyncStorage.getItem(WIDGET_CACHE_KEY);
+    if (cached) {
+      console.log('[WidgetManager] Restoring cached widget weather data');
+      await setSharedItem(WEATHER_DATA_KEY, cached);
+      // Route through the cooldown scheduler instead of calling reloadWidgets()
+      // directly, so we don't double-reload when a fresh fetch completes shortly after.
+      scheduleWidgetReload();
+    } else {
+      console.log('[WidgetManager] No cached widget weather data to restore');
+    }
+  } catch (err) {
+    console.error('[WidgetManager] Error restoring cached widget data:', err);
+  }
 }
 
 // Update the list of available locations for widget configuration
@@ -131,7 +200,10 @@ export async function updateAllLocationsWeatherData(
 
     if (Object.keys(weatherDataMap).length > 0) {
       const jsonData = JSON.stringify(weatherDataMap);
+      console.log('[WidgetManager] Writing weather data map with keys:', Object.keys(weatherDataMap), 'size:', jsonData.length);
       await setSharedItem(WEATHER_DATA_KEY, jsonData);
+      // Cache for later rehydration
+      await cacheWidgetWeatherData(jsonData);
       scheduleWidgetReload();
     }
 
@@ -157,6 +229,8 @@ export async function updateWidgetData(location: Location, settings?: AppSetting
     
     // Write to shared container as JSON file
     await setSharedItem(WEATHER_DATA_KEY, jsonData);
+    // Cache for later rehydration
+    await cacheWidgetWeatherData(jsonData);
     scheduleWidgetReload();
 
     console.log('Widget data updated successfully');
@@ -171,11 +245,21 @@ function createWidgetWeatherData(location: Location, settings?: AppSettings): Wi
     throw new Error('Location has no weather data');
   }
 
+  const unit = settings?.temperatureUnit ?? 'fahrenheit';
+
+  // Convert from canonical Celsius to user's preferred display unit
+  const toUnit = (celsius: number | null | undefined): number | null => {
+    if (celsius === null || celsius === undefined) return null;
+    return unit === 'fahrenheit'
+      ? Math.round(celsius * 9 / 5 + 32)
+      : Math.round(celsius);
+  };
+
   return {
     current: location.weather.current
       ? {
-          temperature: location.weather.current.temperature?.temperature ?? null,
-          feelsLike: location.weather.current.temperature?.apparent ?? null,
+          temperature: toUnit(location.weather.current.temperature?.temperature),
+          feelsLike: toUnit(location.weather.current.temperature?.apparent),
           weatherCode: convertWeatherCode(location.weather.current.weatherCode),
           weatherText: location.weather.current.weatherText ?? null,
           humidity: location.weather.current.relativeHumidity ?? null,
@@ -184,19 +268,18 @@ function createWidgetWeatherData(location: Location, settings?: AppSettings): Wi
         }
       : null,
     daily: (() => {
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
+      // Send up to 10 days of forecast WITHOUT timezone-dependent filtering.
+      // The widget's Swift code already filters daily entries to only show
+      // "today and future" days using the device's local calendar, so we
+      // don't need to pre-filter here. Sending extra days ensures the
+      // widget has data even if there's a timezone mismatch between
+      // write time and read time.
       return location.weather.dailyForecast
-        .filter(day => {
-          const dayStart = new Date(day.date);
-          dayStart.setHours(0, 0, 0, 0);
-          return dayStart.getTime() >= todayStart.getTime();
-        })
-        .slice(0, 7)
+        .slice(0, 10)
         .map(day => ({
           date: day.date.toISOString(),
-          dayTemp: day.day?.temperature?.temperature ?? null,
-          nightTemp: day.night?.temperature?.temperature ?? null,
+          dayTemp: toUnit(day.day?.temperature?.temperature),
+          nightTemp: toUnit(day.night?.temperature?.temperature),
           dayWeatherCode: convertWeatherCode(day.day?.weatherCode),
           nightWeatherCode: convertWeatherCode(day.night?.weatherCode),
           dayWeatherText: day.day?.weatherText ?? null,
@@ -204,20 +287,32 @@ function createWidgetWeatherData(location: Location, settings?: AppSettings): Wi
         }));
     })(),
     hourly: (() => {
+      // Send up to 48 hours of forecast data starting from the beginning
+      // of the current hour. This ensures the widget always has "Now"
+      // data and doesn't go stale within an hour of write time.
+      // The widget's Swift code handles its own "upcoming hours" filtering.
       const now = new Date();
+      const currentHourStart = new Date(now);
+      currentHourStart.setMinutes(0, 0, 0);
       return location.weather.hourlyForecast
-        .filter(hour => hour.date.getTime() >= now.getTime())
-        .slice(0, 24)
+        .filter(hour => {
+          const hourStart = new Date(hour.date);
+          hourStart.setMinutes(0, 0, 0);
+          return hourStart.getTime() >= currentHourStart.getTime();
+        })
+        .slice(0, 48)
         .map(hour => ({
           date: hour.date.toISOString(),
-          temperature: hour.temperature?.temperature ?? null,
+          temperature: toUnit(hour.temperature?.temperature),
           weatherCode: convertWeatherCode(hour.weatherCode),
           precipProbability: hour.precipitationProbability?.total ?? null,
           isDaylight: hour.isDaylight ?? null,
         }));
     })(),
     locationName: location.city ?? 'Unknown Location',
-    temperatureUnit: settings?.temperatureUnit ?? 'fahrenheit',
+    temperatureUnit: unit,
     lastUpdated: new Date().toISOString(),
   };
 }
+
+

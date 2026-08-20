@@ -7,7 +7,6 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  useColorScheme,
   Keyboard,
   Platform,
   PermissionsAndroid,
@@ -21,7 +20,9 @@ import Geolocation from '@react-native-community/geolocation';
 
 import {useWeatherStore} from '../store/weatherStore';
 import {searchLocations} from '../services/openMeteoService';
-import {colors} from '../theme/colors';
+import {useThemeColors} from '../hooks/useThemeColors';
+import {AtmosphericBackground} from '../components/AtmosphericBackground';
+import {getInsetPanelStyle, withAlpha} from '../theme/design';
 import {Location} from '../types/weather';
 import {useResponsiveLayout} from '../utils/platformDetect';
 
@@ -98,7 +99,6 @@ async function requestLocationPermission(): Promise<boolean> {
 export function SearchLocationScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const isDarkMode = useColorScheme() === 'dark';
   
   const {settings, addLocation, locations} = useWeatherStore();
   
@@ -111,9 +111,7 @@ export function SearchLocationScreen() {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<any>(null);
   
-  const theme = settings.theme;
-  const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
-  const themeColors = useDark ? colors.dark : colors.light;
+  const {useDark, themeColors} = useThemeColors();
   const layout = useResponsiveLayout();
 
   // Handle ESC key to close modal (for web and macOS)
@@ -322,7 +320,11 @@ export function SearchLocationScreen() {
       },
     ]}>
       <TouchableOpacity
-      style={[styles.resultItem, {borderBottomColor: themeColors.border}]}
+      style={[
+        styles.resultItem,
+        getInsetPanelStyle(themeColors),
+        {backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.06 : 0.56)},
+      ]}
       onPress={() => handleSelectLocation(item)}>
       <Icon name="map-marker" size={24} color={themeColors.textSecondary} />
       <View style={styles.resultContent}>
@@ -339,19 +341,45 @@ export function SearchLocationScreen() {
   ), [themeColors, handleSelectLocation, layout]);
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, {backgroundColor: themeColors.background}]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 44 : 0}>
-      <View style={[
-        styles.innerContainer,
-        {
-          maxWidth: layout.maxContentWidth,
-          alignSelf: layout.maxContentWidth ? 'center' : undefined,
-          width: layout.maxContentWidth ? '100%' : undefined,
-          paddingHorizontal: layout.contentPadding,
-        },
-      ]}>
+    <AtmosphericBackground isDark={useDark}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 44 : 0}>
+        <View style={[
+          styles.innerContainer,
+          {
+            maxWidth: layout.maxContentWidth,
+            alignSelf: layout.maxContentWidth ? 'center' : undefined,
+            width: layout.maxContentWidth ? '100%' : undefined,
+            paddingHorizontal: layout.contentPadding,
+          },
+        ]}>
+
+      <View style={styles.heroHeader}>
+        <Text style={[styles.title, {color: themeColors.text}]}>Add location</Text>
+        <Text style={[styles.subtitle, {color: themeColors.textSecondary}]}>Search any city or use your current location.</Text>
+      </View>
+
+      <View style={[styles.searchContainer, getInsetPanelStyle(themeColors), {backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.08 : 0.56)}]}>
+        <Icon name="magnify" size={24} color={themeColors.textSecondary} />
+        <TextInput
+          ref={inputRef}
+          style={[styles.searchInput, {color: themeColors.text}]}
+          placeholder="Search for a city..."
+          placeholderTextColor={themeColors.textTertiary}
+          value={query}
+          onChangeText={handleSearch}
+          returnKeyType="search"
+          autoCorrect={false}
+          autoCapitalize="words"
+        />
+        {query.length > 0 && (
+          <TouchableOpacity onPress={() => handleSearch('')}>
+            <Icon name="close-circle" size={20} color={themeColors.textSecondary} />
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Error Message */}
       {error && (
@@ -428,7 +456,8 @@ export function SearchLocationScreen() {
       ]}>
       <TouchableOpacity
         style={[
-          styles.currentLocationButton, 
+          styles.currentLocationButton,
+          getInsetPanelStyle(themeColors),
           {backgroundColor: themeColors.primary},
           isLoadingCurrentLocation && styles.buttonDisabled,
         ]}
@@ -445,30 +474,10 @@ export function SearchLocationScreen() {
       </TouchableOpacity>
       </View>
 
-      {/* Search Input */}
-      <View style={[styles.searchContainer, {backgroundColor: themeColors.surface}]}>
-        <Icon name="magnify" size={24} color={themeColors.textSecondary} />
-        <TextInput
-          ref={inputRef}
-          style={[styles.searchInput, {color: themeColors.text}]}
-          placeholder="Search for a city..."
-          placeholderTextColor={themeColors.textTertiary}
-          value={query}
-          onChangeText={handleSearch}
-          returnKeyType="search"
-          autoCorrect={false}
-          autoCapitalize="words"
-        />
-        {query.length > 0 && (
-          <TouchableOpacity onPress={() => handleSearch('')}>
-            <Icon name="close-circle" size={20} color={themeColors.textSecondary} />
-          </TouchableOpacity>
-        )}
-      </View>
-
       <View style={{height: insets.bottom}} />
-      </View>
-    </KeyboardAvoidingView>
+        </View>
+      </KeyboardAvoidingView>
+    </AtmosphericBackground>
   );
 }
 
@@ -479,14 +488,26 @@ const styles = StyleSheet.create({
   innerContainer: {
     flex: 1,
   },
+  heroHeader: {
+    marginTop: 8,
+    marginBottom: 14,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+  },
+  subtitle: {
+    fontSize: 14,
+    marginTop: 6,
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
-    marginBottom: 8,
+    marginBottom: 14,
     paddingHorizontal: 16,
-    borderRadius: 12,
-    height: 48,
+    borderRadius: 24,
+    height: 56,
     gap: 12,
   },
   searchInput: {
@@ -506,6 +527,7 @@ const styles = StyleSheet.create({
   },
   resultsList: {
     paddingBottom: 16,
+    gap: 10,
   },
   resultWrapper: {
     // Centering wrapper for each result
@@ -520,7 +542,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
-    borderBottomWidth: 1,
+    paddingHorizontal: 14,
+    borderRadius: 22,
     gap: 12,
   },
   resultContent: {
@@ -548,7 +571,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginVertical: 16,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 22,
     gap: 12,
   },
   buttonDisabled: {

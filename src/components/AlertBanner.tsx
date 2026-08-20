@@ -4,6 +4,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {format} from 'date-fns';
 import {Alert, AlertSeverity} from '../types/weather';
 import {colors} from '../theme/colors';
+import {getCardStyle, withAlpha} from '../theme/design';
+import {GlassSurface} from './GlassSurface';
 
 interface Props {
   alerts: Alert[];
@@ -64,35 +66,46 @@ export function AlertBanner({alerts, onPress, isDark}: Props) {
   const bannerColor = primaryAlert.color || getSeverityColor(primaryAlert.severity);
 
   return (
-    <TouchableOpacity
-      style={[styles.container, {backgroundColor: bannerColor}]}
-      onPress={onPress}
-      activeOpacity={0.8}>
-      <Icon
-        name={getSeverityIcon(primaryAlert.severity)}
-        size={24}
-        color="#FFFFFF"
-      />
-      
-      <View style={styles.content}>
-        <Text style={styles.headline} numberOfLines={1}>
-          {primaryAlert.headline || 'Weather Alert'}
-        </Text>
-        
-        {primaryAlert.startDate && primaryAlert.endDate && (
-          <Text style={styles.timeRange}>
-            {format(primaryAlert.startDate, 'MMM d, HH:mm')} — {format(primaryAlert.endDate, 'MMM d, HH:mm')}
-          </Text>
-        )}
-      </View>
-
-      {alerts.length > 1 && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>+{alerts.length - 1}</Text>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+      <GlassSurface
+        isDark={isDark}
+        themeColors={themeColors}
+        radius={24}
+        style={[
+          styles.container,
+          getCardStyle(themeColors),
+          {
+            backgroundColor: withAlpha(bannerColor, isDark ? 0.14 : 0.10),
+          },
+        ]}>
+        <View style={[styles.iconBadge, {backgroundColor: withAlpha(bannerColor, isDark ? 0.24 : 0.18)}]}>
+          <Icon
+            name={getSeverityIcon(primaryAlert.severity)}
+            size={22}
+            color={bannerColor}
+          />
         </View>
-      )}
+        
+        <View style={styles.content}>
+          <Text style={[styles.headline, {color: themeColors.text}]} numberOfLines={1}>
+            {primaryAlert.headline || 'Weather Alert'}
+          </Text>
+          
+          {primaryAlert.startDate && primaryAlert.endDate && (
+            <Text style={[styles.timeRange, {color: themeColors.textSecondary}]}>
+              {format(primaryAlert.startDate, 'MMM d, HH:mm')} — {format(primaryAlert.endDate, 'MMM d, HH:mm')}
+            </Text>
+          )}
+        </View>
 
-      <Icon name="chevron-right" size={24} color="#FFFFFF" />
+        {alerts.length > 1 && (
+          <View style={[styles.badge, {backgroundColor: withAlpha(bannerColor, isDark ? 0.24 : 0.18)}]}>
+            <Text style={[styles.badgeText, {color: bannerColor}]}>+{alerts.length - 1}</Text>
+          </View>
+        )}
+
+        <Icon name="chevron-right" size={24} color={themeColors.textSecondary} />
+      </GlassSurface>
     </TouchableOpacity>
   );
 }
@@ -102,31 +115,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    borderRadius: 12,
     marginBottom: 16,
     gap: 12,
+  },
+  iconBadge: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
     flex: 1,
   },
   headline: {
-    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '600',
   },
   timeRange: {
-    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 12,
     marginTop: 2,
   },
   badge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
   },
   badgeText: {
-    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600',
   },

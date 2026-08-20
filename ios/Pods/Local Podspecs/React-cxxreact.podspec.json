@@ -1,6 +1,6 @@
 {
   "name": "React-cxxreact",
-  "version": "0.79.0",
+  "version": "0.86.2",
   "summary": "-",
   "homepage": "https://reactnative.dev/",
   "license": "MIT",
@@ -9,54 +9,45 @@
     "ios": "15.1"
   },
   "source": {
-    "git": "https://github.com/facebook/react-native.git",
-    "tag": "v0.79.0"
+    "git": "https://github.com/react/react-native.git",
+    "tag": "v0.86.2"
   },
-  "source_files": "*.{cpp,h}",
-  "exclude_files": "SampleCxxModule.*",
-  "compiler_flags": "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -Wno-comma -Wno-shorten-64-to-32 -Wno-documentation",
+  "source_files": "*.h",
   "pod_target_xcconfig": {
-    "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/RCT-Folly\" \"$(PODS_ROOT)/DoubleConversion\" \"$(PODS_ROOT)/fas_float/include\" \"$(PODS_ROOT)/fmt/include\" \"$(PODS_CONFIGURATION_BUILD_DIR)/React-debug/React_debug.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-jsinspector/jsinspector_modern.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-jsinspectortracing/jsinspector_moderntracing.framework/Headers\"",
-    "CLANG_CXX_LANGUAGE_STANDARD": "c++20"
+    "HEADER_SEARCH_PATHS": "\"$(PODS_CONFIGURATION_BUILD_DIR)/React-debug/React_debug.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimeexecutor/React_runtimeexecutor.framework/Headers\" \"${PODS_ROOT}/React-jsinspector\" \"${PODS_ROOT}/React-jsinspectorcdp\" \"${PODS_ROOT}/React-jsinspectortracing\" \"${PODS_ROOT}/React-runtimeexecutor\" \"${PODS_ROOT}/React-runtimeexecutor/platform/ios\" \"${PODS_ROOT}/React-utils\" \"${PODS_ROOT}/React-utils/react/utils/platform/ios\"",
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++20",
+    "OTHER_CFLAGS": "$(inherited) -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_CPLUSPLUSFLAGS": "$(inherited) -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_SWIFT_FLAGS": "$(inherited) -Xcc -ivfsoverlay -Xcc $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml"
   },
   "header_dir": "cxxreact",
   "dependencies": {
-    "boost": [],
-    "DoubleConversion": [],
-    "fast_float": [
-      "6.1.4"
-    ],
-    "fmt": [
-      "11.0.2"
-    ],
-    "RCT-Folly": [
-      "2024.11.18.00"
-    ],
-    "glog": [],
     "React-jsinspector": [],
+    "React-jsinspectorcdp": [],
     "React-jsinspectortracing": [],
     "React-callinvoker": [
-      "0.79.0"
+      "0.86.2"
     ],
-    "React-runtimeexecutor": [
-      "0.79.0"
-    ],
+    "React-runtimeexecutor": [],
     "React-perflogger": [
-      "0.79.0"
+      "0.86.2"
     ],
     "React-jsi": [
-      "0.79.0"
+      "0.86.2"
     ],
     "React-logger": [
-      "0.79.0"
+      "0.86.2"
     ],
     "React-debug": [
-      "0.79.0"
+      "0.86.2"
     ],
     "React-timing": [
-      "0.79.0"
+      "0.86.2"
     ],
-    "hermes-engine": []
+    "React-utils": [],
+    "hermes-engine": [],
+    "ReactNativeDependencies": [],
+    "React-Core-prebuilt": []
   },
   "resource_bundles": {
     "React-cxxreact_privacy": "PrivacyInfo.xcprivacy"

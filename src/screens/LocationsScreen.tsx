@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  useColorScheme,
   Alert,
   Animated,
 } from 'react-native';
@@ -16,18 +15,20 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {useWeatherStore} from '../store/weatherStore';
-import {colors} from '../theme/colors';
+import {useThemeColors} from '../hooks/useThemeColors';
+import {AtmosphericBackground} from '../components/AtmosphericBackground';
+import {getCardStyle, withAlpha} from '../theme/design';
 import {Location} from '../types/weather';
 import {RootStackParamList} from '../navigation/RootNavigator';
 import {WeatherIcon} from '../components/WeatherIcon';
 import {useResponsiveLayout} from '../utils/platformDetect';
+import {formatTempShort} from '../utils/formatting';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export function LocationsScreen() {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
-  const isDarkMode = useColorScheme() === 'dark';
   
   const {
     locations,
@@ -37,18 +38,10 @@ export function LocationsScreen() {
     removeLocation,
   } = useWeatherStore();
   
-  const theme = settings.theme;
-  const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
-  const themeColors = useDark ? colors.dark : colors.light;
+  const {useDark, themeColors} = useThemeColors();
   const layout = useResponsiveLayout();
 
-  const formatTemp = (temp?: number): string => {
-    if (temp === undefined) return '--°';
-    if (settings.temperatureUnit === 'fahrenheit') {
-      return `${Math.round(temp * 9/5 + 32)}°`;
-    }
-    return `${Math.round(temp)}°`;
-  };
+  const formatTemp = (temp?: number): string => formatTempShort(temp, settings.temperatureUnit);
 
   const handleDeleteLocation = (location: Location) => {
     Alert.alert(
@@ -104,10 +97,13 @@ export function LocationsScreen() {
         <TouchableOpacity
         style={[
           styles.locationCard,
+          getCardStyle(themeColors),
           {
-            backgroundColor: themeColors.cardBackground,
-            borderColor: isSelected ? themeColors.primary : 'transparent',
-            borderWidth: isSelected ? 2 : 0,
+            backgroundColor: isSelected
+              ? withAlpha(themeColors.primary, useDark ? 0.18 : 0.12)
+              : themeColors.cardBackground,
+            borderColor: isSelected ? withAlpha(themeColors.primary, 0.40) : themeColors.cardBorder,
+            borderWidth: 1,
           },
         ]}
         onPress={() => {
@@ -166,9 +162,13 @@ export function LocationsScreen() {
   };
 
   return (
-    <View style={[styles.container, {backgroundColor: themeColors.background}]}>
-      <View style={[styles.header, {paddingTop: insets.top + 16}]}>
-        <Text style={[styles.title, {color: themeColors.text}]}>Locations</Text>
+    <AtmosphericBackground isDark={useDark}>
+      <View style={styles.container}>
+      <View style={[styles.header, {paddingTop: insets.top + 16}]}> 
+        <View>
+          <Text style={[styles.title, {color: themeColors.text}]}>Locations</Text>
+          <Text style={[styles.subtitle, {color: themeColors.textSecondary}]}>Choose a city, reorder by use, or remove old places.</Text>
+        </View>
         <TouchableOpacity
           style={[styles.addButton, {backgroundColor: themeColors.primary}]}
           onPress={() => navigation.navigate('SearchLocation')}>
@@ -205,7 +205,8 @@ export function LocationsScreen() {
       />
 
       <View style={{height: insets.bottom}} />
-    </View>
+      </View>
+    </AtmosphericBackground>
   );
 }
 
@@ -221,8 +222,14 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '700',
+  },
+  subtitle: {
+    fontSize: 14,
+    marginTop: 6,
+    maxWidth: 260,
+    lineHeight: 20,
   },
   addButton: {
     width: 44,
@@ -241,13 +248,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   locationCard: {
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   locationHeader: {
     marginBottom: 12,
@@ -301,7 +303,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: 72,
-    borderRadius: 16,
+    borderRadius: 24,
     alignSelf: 'stretch',
   },
   emptyContainer: {

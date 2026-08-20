@@ -1,0 +1,39 @@
+{
+  "name": "React-webperformancenativemodule",
+  "version": "0.86.2",
+  "summary": "React Native idle callbacks native module",
+  "homepage": "https://reactnative.dev/",
+  "license": "MIT",
+  "authors": "Meta Platforms, Inc. and its affiliates",
+  "platforms": {
+    "ios": "15.1"
+  },
+  "source": {
+    "git": "https://github.com/react/react-native.git",
+    "tag": "v0.86.2"
+  },
+  "source_files": "*.h",
+  "header_dir": "react/nativemodule/webperformance",
+  "pod_target_xcconfig": {
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++20",
+    "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/../../..\" \"${PODS_ROOT}/React-RCTFBReactNativeSpec\" \"${PODS_ROOT}/React-performancetimeline\" \"${PODS_ROOT}/React-runtimeexecutor\" \"${PODS_ROOT}/React-runtimeexecutor/platform/ios\"",
+    "OTHER_CFLAGS": "$(inherited) -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "DEFINES_MODULE": "YES",
+    "OTHER_CPLUSPLUSFLAGS": "$(inherited) -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_SWIFT_FLAGS": "$(inherited) -Xcc -ivfsoverlay -Xcc $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml"
+  },
+  "module_name": "webperformancenativemodule",
+  "header_mappings_dir": "../..",
+  "dependencies": {
+    "React-jsi": [],
+    "React-jsiexecutor": [],
+    "React-cxxreact": [],
+    "hermes-engine": [],
+    "ReactNativeDependencies": [],
+    "React-Core-prebuilt": [],
+    "ReactCommon/turbomodule/core": [],
+    "React-RCTFBReactNativeSpec": [],
+    "React-performancetimeline": [],
+    "React-runtimeexecutor": []
+  }
+}

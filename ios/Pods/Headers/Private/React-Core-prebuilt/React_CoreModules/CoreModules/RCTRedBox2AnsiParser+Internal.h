@@ -1,0 +1,1 @@
+../../../../../React-Core-prebuilt/React.xcframework/Headers/React_CoreModules/CoreModules/RCTRedBox2AnsiParser+Internal.h

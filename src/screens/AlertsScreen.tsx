@@ -4,30 +4,24 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
-  useColorScheme,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {format} from 'date-fns';
 
 import {useWeatherStore} from '../store/weatherStore';
-import {colors} from '../theme/colors';
+import {useThemeColors} from '../hooks/useThemeColors';
+import {AtmosphericBackground} from '../components/AtmosphericBackground';
+import {getCardStyle, withAlpha} from '../theme/design';
 import {Alert, AlertSeverity} from '../types/weather';
 import {useResponsiveLayout} from '../utils/platformDetect';
 
 export function AlertsScreen() {
-  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const isDarkMode = useColorScheme() === 'dark';
+  const {useDark, themeColors} = useThemeColors();
   
   const {locations, currentLocationIndex, settings} = useWeatherStore();
   const layout = useResponsiveLayout();
-  
-  const theme = settings.theme;
-  const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
-  const themeColors = useDark ? colors.dark : colors.light;
   
   const currentLocation = locations[currentLocationIndex];
   const alerts = currentLocation?.weather?.alerts ?? [];
@@ -80,8 +74,9 @@ export function AlertsScreen() {
       key={alertIndex}
       style={[
         styles.alertCard,
+        getCardStyle(themeColors),
         {
-          backgroundColor: themeColors.cardBackground,
+          backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.07 : 0.56),
           borderLeftColor: getSeverityColor(alert.severity ?? undefined),
         },
       ]}>
@@ -153,7 +148,8 @@ export function AlertsScreen() {
   );
 
   return (
-    <View style={[styles.container, {backgroundColor: themeColors.background}]}>
+    <AtmosphericBackground isDark={useDark}>
+      <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}>
@@ -169,12 +165,8 @@ export function AlertsScreen() {
         ]}>
         
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}>
-            <Icon name="arrow-left" size={24} color={themeColors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.title, {color: themeColors.text}]}>Weather Alerts</Text>
+          <Text style={[styles.title, {color: themeColors.text}]}>Weather alerts</Text>
+          <Text style={[styles.subtitle, {color: themeColors.textSecondary}]}>Warnings, watches, and advisories for {currentLocation?.city ?? 'this location'}.</Text>
         </View>
 
         {alerts.length > 0 ? (
@@ -196,7 +188,8 @@ export function AlertsScreen() {
         <View style={{height: insets.bottom + 24}} />
         </View>
       </ScrollView>
-    </View>
+      </View>
+    </AtmosphericBackground>
   );
 }
 
@@ -214,29 +207,24 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginBottom: 24,
   },
-  backButton: {
-    marginRight: 16,
-  },
   title: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: '700',
+  },
+  subtitle: {
+    fontSize: 14,
+    marginTop: 6,
+    lineHeight: 20,
   },
   alertsList: {
     gap: 16,
   },
   alertCard: {
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 16,
     borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   alertHeader: {
     flexDirection: 'row',

@@ -1,13 +1,13 @@
 {
   "name": "RNSVG",
-  "version": "15.15.1",
+  "version": "15.15.4",
   "summary": "SVG library for react-native",
   "license": "MIT",
   "homepage": "https://github.com/react-native-community/react-native-svg",
   "authors": "Horcrux Chen",
   "source": {
     "git": "https://github.com/react-native-community/react-native-svg.git",
-    "tag": "v15.15.1"
+    "tag": "v15.15.4"
   },
   "source_files": "apple/**/*.{h,m,mm}",
   "ios": {
@@ -50,10 +50,47 @@
     "visionos": "1.0"
   },
   "xcconfig": {
-    "OTHER_CFLAGS": "$(inherited) -DREACT_NATIVE_MINOR_VERSION=79"
+    "OTHER_CFLAGS": "$(inherited) -DREACT_NATIVE_MINOR_VERSION=86"
   },
-  "exclude_files": "apple/Utils/RNSVGFabricConversions.h",
+  "compiler_flags": "-DRCT_NEW_ARCH_ENABLED=1",
   "dependencies": {
-    "React-Core": []
-  }
+    "React-Core": [],
+    "React-RCTFabric": [],
+    "ReactCodegen": [],
+    "RCTRequired": [],
+    "RCTTypeSafety": [],
+    "ReactCommon/turbomodule/bridging": [],
+    "ReactCommon/turbomodule/core": [],
+    "React-NativeModulesApple": [],
+    "Yoga": [],
+    "React-Fabric": [],
+    "React-graphics": [],
+    "React-utils": [],
+    "React-featureflags": [],
+    "React-debug": [],
+    "React-ImageManager": [],
+    "React-rendererdebug": [],
+    "React-jsi": [],
+    "React-renderercss": [],
+    "hermes-engine": [],
+    "ReactNativeDependencies": [],
+    "React-Core-prebuilt": []
+  },
+  "pod_target_xcconfig": {
+    "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/Headers/Private/Yoga\" \"${PODS_ROOT}/React-graphics\" \"${PODS_ROOT}/React-graphics/react/renderer/graphics/platform/ios\" \"${PODS_ROOT}/React-Fabric\" \"${PODS_ROOT}/React-Fabric/react/renderer/components/view/platform/cxx\" \"${PODS_ROOT}/React-FabricImage\" \"${PODS_ROOT}/ReactCommon\" \"${PODS_ROOT}/ReactCommon/react/nativemodule/core\" \"${PODS_ROOT}/React-runtimeexecutor\" \"${PODS_ROOT}/React-runtimeexecutor/platform/ios\" \"${PODS_ROOT}/React-NativeModulesApple\" \"${PODS_ROOT}/React-RCTFabric\" \"${PODS_ROOT}/React-utils\" \"${PODS_ROOT}/React-featureflags\" \"${PODS_ROOT}/React-debug\" \"${PODS_ROOT}/React-ImageManager\" \"${PODS_ROOT}/React-rendererdebug\" \"${PODS_ROOT}/React-renderercss\"",
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++20",
+    "OTHER_CPLUSPLUSFLAGS": "$(inherited) -DRCT_NEW_ARCH_ENABLED=1  -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_SWIFT_FLAGS": "$(inherited) -DRCT_NEW_ARCH_ENABLED -Xcc -ivfsoverlay -Xcc $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_CFLAGS": "$(inherited) -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml"
+  },
+  "subspecs": [
+    {
+      "name": "common",
+      "source_files": "common/cpp/**/*.{cpp,h}",
+      "header_dir": "rnsvg",
+      "pod_target_xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/common/cpp\""
+      }
+    }
+  ]
 }

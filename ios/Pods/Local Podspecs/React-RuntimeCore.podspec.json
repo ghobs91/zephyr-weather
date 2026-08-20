@@ -1,6 +1,6 @@
 {
   "name": "React-RuntimeCore",
-  "version": "0.79.0",
+  "version": "0.86.2",
   "summary": "The React Native Runtime.",
   "homepage": "https://reactnative.dev/",
   "license": "MIT",
@@ -9,12 +9,12 @@
     "ios": "15.1"
   },
   "source": {
-    "git": "https://github.com/facebook/react-native.git",
-    "tag": "v0.79.0"
+    "git": "https://github.com/react/react-native.git",
+    "tag": "v0.86.2"
   },
   "source_files": [
-    "*.{cpp,h}",
-    "nativeviewconfig/*.{cpp,h}"
+    "*.h",
+    "nativeviewconfig/*.h"
   ],
   "exclude_files": [
     "iostests/*",
@@ -22,20 +22,19 @@
   ],
   "header_dir": "react/runtime",
   "pod_target_xcconfig": {
-    "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/Headers/Private/React-Core\" \"${PODS_TARGET_SRCROOT}/../..\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-Fabric/React_Fabric.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-jsitooling/JSITooling.framework/Headers\"",
+    "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/Headers/Private/React-Core\" \"${PODS_TARGET_SRCROOT}/../..\" \"${PODS_ROOT}/React-runtimeexecutor\" \"${PODS_ROOT}/React-runtimeexecutor/platform/ios\" \"${PODS_ROOT}/React-Fabric\" \"${PODS_ROOT}/React-jsitooling\"",
     "USE_HEADERMAP": "YES",
     "CLANG_CXX_LANGUAGE_STANDARD": "c++20",
-    "GCC_WARN_PEDANTIC": "YES"
+    "GCC_WARN_PEDANTIC": "YES",
+    "OTHER_CFLAGS": "$(inherited) -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_CPLUSPLUSFLAGS": "$(inherited) -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_SWIFT_FLAGS": "$(inherited) -Xcc -ivfsoverlay -Xcc $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml"
   },
-  "compiler_flags": "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -Wno-comma -Wno-shorten-64-to-32 -Wno-documentation",
+  "module_name": "React_RuntimeCore",
   "dependencies": {
-    "RCT-Folly/Fabric": [
-      "2024.11.18.00"
-    ],
     "React-jsiexecutor": [],
     "React-cxxreact": [],
     "React-runtimeexecutor": [],
-    "glog": [],
     "React-jsi": [],
     "React-jserrorhandler": [],
     "React-performancetimeline": [],
@@ -44,7 +43,8 @@
     "React-featureflags": [],
     "React-Fabric": [],
     "hermes-engine": [],
-    "React-hermes": [],
+    "ReactNativeDependencies": [],
+    "React-Core-prebuilt": [],
     "React-jsinspector": [],
     "React-jsitooling": []
   }

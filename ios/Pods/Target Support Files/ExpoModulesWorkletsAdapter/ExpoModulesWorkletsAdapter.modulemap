@@ -1,0 +1,6 @@
+framework module ExpoModulesWorkletsAdapter {
+  umbrella header "ExpoModulesWorkletsAdapter-umbrella.h"
+
+  export *
+  module * { export * }
+}

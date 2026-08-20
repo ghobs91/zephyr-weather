@@ -1,1 +1,1 @@
-../../../../build/generated/ios/RCTAppDependencyProvider.h
+../../../../build/generated/ios/ReactAppDependencyProvider/RCTAppDependencyProvider.h

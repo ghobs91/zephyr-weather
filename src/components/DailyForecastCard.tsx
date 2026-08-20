@@ -11,6 +11,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {format, isPast, startOfDay, isToday} from 'date-fns';
 import {Daily, WeatherCode} from '../types/weather';
 import {colors} from '../theme/colors';
+import {getCardStyle, getInsetPanelStyle, withAlpha} from '../theme/design';
+import {GlassSurface} from './GlassSurface';
 import {WeatherIcon} from './WeatherIcon';
 
 // Absolute temperature scale in Celsius:
@@ -77,12 +79,6 @@ export function DailyForecastCard({
     }
     return `${snowCm < 1 ? snowCm.toFixed(1) : Math.round(snowCm)} cm`;
   };
-  // Debug: log snow data for visible days
-  dailyForecast.forEach((day, i) => {
-    if (day.day?.precipitation?.snow !== undefined) {
-      console.log(`[DailyCard] day ${i} snow=${day.day.precipitation.snow} rain=${day.day.precipitation.rain} total=${day.day.precipitation.total}`);
-    }
-  });
   const getDayLabel = (date: Date): string => {
     return format(date, 'EEE');
   };
@@ -92,13 +88,16 @@ export function DailyForecastCard({
   };
 
   // Get min and max temperatures for the chart
+  // Use reduce to avoid RangeError on very large arrays (Math.min/max spread
+  // crashes with >65K args). Current data is small (~14 items), but making
+  // this safe also handles edge cases from degenerate data.
   const allTemps = dailyForecast.flatMap(day => [
     day.day?.temperature?.temperature,
     day.night?.temperature?.temperature,
   ]).filter((t): t is number => t !== undefined);
-  
-  const minTemp = Math.min(...allTemps);
-  const maxTemp = Math.max(...allTemps);
+
+  const minTemp = allTemps.reduce((a, b) => Math.min(a, b), Infinity);
+  const maxTemp = allTemps.reduce((a, b) => Math.max(a, b), -Infinity);
   const tempRange = maxTemp - minTemp || 1;
 
   const getBarPosition = (temp?: number): number => {
@@ -106,11 +105,36 @@ export function DailyForecastCard({
     return ((temp - minTemp) / tempRange) * 100;
   };
 
+  // Returns a [start, size] pair for the temperature bar, ensuring a
+  // minimum visual size even when dayTemp === nightTemp (tropical/stable
+  // climates) and protecting against reversed data where night > day.
+  const getBarRange = (day?: number, night?: number): [number, number] => {
+    const dayPos = day !== undefined ? getBarPosition(day) : 0;
+    const nightPos = night !== undefined ? getBarPosition(night) : 0;
+    const lo = Math.min(dayPos, nightPos);
+    const hi = Math.max(dayPos, nightPos);
+    // Guarantee a minimum bar size (at least 4% of range) so it's always visible
+    const size = Math.max(hi - lo, 4);
+    return [lo, size];
+  };
+
+  const visibleDays = dailyForecast
+    .map((day, originalIndex) => ({day, originalIndex}))
+    .filter(({day}) => !isPast(startOfDay(day.date)) || isToday(day.date))
+    .filter(({day}) => day.night?.temperature?.temperature !== undefined)
+    .slice(0, 7);
+
   return (
-    <View style={[styles.container, {backgroundColor: themeColors.cardBackground}]}>
+    <GlassSurface
+      isDark={isDark}
+      themeColors={themeColors}
+      style={[styles.container, getCardStyle(themeColors)]}>
       <View style={styles.header}>
         <Icon name="calendar-month" size={20} color={themeColors.textSecondary} />
-        <Text style={[styles.title, {color: themeColors.text}]}>Daily forecast</Text>
+        <View>
+          <Text style={[styles.eyebrow, {color: themeColors.textSecondary}]}>Week ahead</Text>
+          <Text style={[styles.title, {color: themeColors.text}]}>Daily forecast</Text>
+        </View>
       </View>
 
       {/* Daily List */}
@@ -118,12 +142,7 @@ export function DailyForecastCard({
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.daysContainerVertical}>
-          {dailyForecast
-            .map((day, originalIndex) => ({day, originalIndex}))
-            .filter(({day}) => !isPast(startOfDay(day.date)) || isToday(day.date))
-            .filter(({day}) => day.night?.temperature?.temperature !== undefined)
-            .slice(0, 7)
-            .map(({day, originalIndex}) => {
+          {visibleDays.map(({day, originalIndex}, visibleIndex) => {
             const dayTemp = day.day?.temperature?.temperature;
             const nightTemp = day.night?.temperature?.temperature;
             const precipProb = day.day?.precipitationProbability?.total;
@@ -131,7 +150,13 @@ export function DailyForecastCard({
             return (
               <TouchableOpacity
                 key={day.date.toISOString()}
-                style={styles.dayRow}
+                style={[
+                  styles.dayRow,
+                  visibleIndex < visibleDays.length - 1 && {
+                    borderBottomWidth: StyleSheet.hairlineWidth,
+                    borderBottomColor: withAlpha(themeColors.textTertiary, 0.22),
+                  },
+                ]}
                 onPress={() => onDayPress?.(originalIndex)}>
                 {/* Main alignment row: left labels + right content, heights match */}
                 <View style={styles.dayMainRow}>
@@ -165,8 +190,8 @@ export function DailyForecastCard({
                             style={[
                               styles.tempBarFillHorizontal,
                               {
-                                left: `${getBarPosition(nightTemp)}%`,
-                                width: `${getBarPosition(dayTemp) - getBarPosition(nightTemp)}%`,
+                                left: `${getBarRange(dayTemp, nightTemp)[0]}%`,
+                                width: `${getBarRange(dayTemp, nightTemp)[1]}%`,
                               },
                             ]}
                           />
@@ -209,12 +234,7 @@ export function DailyForecastCard({
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.daysContainer}>
-          {dailyForecast
-            .map((day, originalIndex) => ({day, originalIndex}))
-            .filter(({day}) => !isPast(startOfDay(day.date)) || isToday(day.date))
-            .filter(({day}) => day.night?.temperature?.temperature !== undefined)
-            .slice(0, 7)
-            .map(({day, originalIndex}) => {
+          {visibleDays.map(({day, originalIndex}) => {
             const dayTemp = day.day?.temperature?.temperature;
             const nightTemp = day.night?.temperature?.temperature;
             const precipProb = day.day?.precipitationProbability?.total;
@@ -222,7 +242,11 @@ export function DailyForecastCard({
             return (
               <TouchableOpacity
                 key={day.date.toISOString()}
-                style={styles.dayColumn}
+                style={[
+                  styles.dayColumn,
+                  getInsetPanelStyle(themeColors),
+                  {backgroundColor: withAlpha(themeColors.surfaceElevated, isDark ? 0.04 : 0.36)},
+                ]}
                 onPress={() => onDayPress?.(originalIndex)}>
                 <Text style={[styles.dayLabel, {color: themeColors.text}]} numberOfLines={1}>
                   {getDayLabel(day.date)}
@@ -252,8 +276,8 @@ export function DailyForecastCard({
                           style={[
                             styles.tempBarFill,
                             {
-                              bottom: `${getBarPosition(nightTemp)}%`,
-                              height: `${getBarPosition(dayTemp) - getBarPosition(nightTemp)}%`,
+                              bottom: `${getBarRange(dayTemp, nightTemp)[0]}%`,
+                              height: `${getBarRange(dayTemp, nightTemp)[1]}%`,
                             },
                           ]}
                         />
@@ -290,26 +314,26 @@ export function DailyForecastCard({
           })}
         </ScrollView>
       )}
-    </View>
+    </GlassSurface>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginBottom: 12,
+  },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   title: {
     fontSize: 17,
@@ -321,101 +345,93 @@ const styles = StyleSheet.create({
   },
   daysContainerVertical: {
     paddingVertical: 8,
-    gap: 8,
-  },
-  dayColumn: {
-    alignItems: 'center',
-    width: 70,
+    gap: 0,
   },
   dayRow: {
-    flexDirection: 'column',
-    paddingVertical: 8,
+    paddingHorizontal: 0,
+    paddingVertical: 16,
   },
   dayMainRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
   dayRowLeft: {
-    width: 70,
-    justifyContent: 'center',
+    width: 72,
   },
   dayRowRight: {
     flex: 1,
-    alignItems: 'flex-end',
   },
   tempRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  tempBarHorizontal: {
-    width: 140,
-    height: 6,
-    borderRadius: 3,
-    overflow: 'hidden',
-    position: 'relative',
+  precipRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+    paddingLeft: 72,
   },
-  tempBarFillHorizontal: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    borderRadius: 3,
-  },
-  windContainerRow: {
+  precipContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
   },
-  dayLabel: {
-    fontSize: 15,
+  precipText: {
+    fontSize: 12,
     fontWeight: '600',
   },
-  daySubLabel: {
-    fontSize: 13,
-    marginTop: 2,
+  dayColumn: {
+    width: 112,
+    borderRadius: 22,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  dayLabel: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   weatherIcon: {
-    width: 32,
-    height: 32,
+    width: 34,
+    height: 34,
+    marginVertical: 8,
   },
   tempBarContainer: {
     alignItems: 'center',
-    height: 100,
-    justifyContent: 'space-between',
-  },
-  tempLabel: {
-    fontSize: 15,
-    fontWeight: '500',
+    width: '100%',
   },
   tempBar: {
-    width: 6,
-    height: 50,
-    borderRadius: 3,
+    width: 8,
+    height: 82,
+    borderRadius: 999,
+    marginVertical: 8,
     overflow: 'hidden',
-    position: 'relative',
   },
   tempBarFill: {
     position: 'absolute',
     left: 0,
     right: 0,
-    borderRadius: 3,
+    borderRadius: 999,
   },
-  precipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 4,
-    paddingLeft: 78,
-    justifyContent: 'flex-end',
+  tempBarHorizontal: {
+    flex: 1,
+    height: 8,
+    borderRadius: 999,
+    overflow: 'hidden',
   },
-  precipContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
+  tempBarFillHorizontal: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    borderRadius: 999,
   },
-  precipText: {
-    fontSize: 12,
+  tempLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    minWidth: 38,
+    textAlign: 'center',
   },
   windContainer: {
     alignItems: 'center',

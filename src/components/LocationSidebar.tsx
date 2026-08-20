@@ -14,10 +14,13 @@ import {useWeatherStore} from '../store/weatherStore';
 import {Location} from '../types/weather';
 import {isMacOS} from '../utils/platformDetect';
 import {formatTime} from '../utils/timeFormat';
+import {formatTempShort} from '../utils/formatting';
+import {ColorTheme} from '../theme/colors';
+import {withAlpha} from '../theme/design';
 
 interface LocationSidebarProps {
   isDark: boolean;
-  themeColors: any;
+  themeColors: ColorTheme;
   onLocationSelect: (index: number) => void;
   onSearchPress: () => void;
   onSettingsPress: () => void;
@@ -37,13 +40,7 @@ export function LocationSidebar({
     removeLocation,
   } = useWeatherStore();
 
-  const formatTemp = (temp?: number): string => {
-    if (temp === undefined) return '--°';
-    if (settings.temperatureUnit === 'fahrenheit') {
-      return `${Math.round(temp * 9/5 + 32)}°`;
-    }
-    return `${Math.round(temp)}°`;
-  };
+  const formatTemp = (temp?: number): string => formatTempShort(temp, settings.temperatureUnit);
 
   const handleDeleteLocation = (item: Location, index: number) => {
     const locationName = item.city || 'this location';
@@ -79,7 +76,7 @@ export function LocationSidebar({
           styles.locationItem,
           {
             backgroundColor: isSelected 
-              ? (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)')
+              ? withAlpha(themeColors.surfaceElevated, isDark ? 0.12 : 0.06)
               : 'transparent',
           },
         ]}
@@ -128,19 +125,19 @@ export function LocationSidebar({
   };
 
   return (
-    <View style={[styles.container, {backgroundColor: isDark ? '#1c1c1e' : '#f2f2f7'}]}>
+    <View style={[styles.container, {backgroundColor: themeColors.background}]}>
       {isMacOS() ? (
         // macOS: Floating container style
         <>
           <View style={styles.macOSFloatingContainer}>
             <View style={[
               styles.macOSCard,
-              {backgroundColor: isDark ? 'rgba(58, 58, 60, 0.95)' : 'rgba(255, 255, 255, 0.95)'},
+              {backgroundColor: isDark ? withAlpha('#3a3a3c', 0.95) : withAlpha('#ffffff', 0.95)},
             ]}>
               {/* Search Bar */}
               <View style={styles.macOSSearchContainer}>
                 <TouchableOpacity 
-                  style={[styles.searchBar, {backgroundColor: isDark ? 'rgba(118, 118, 128, 0.24)' : 'rgba(0, 0, 0, 0.06)'}]}
+                  style={[styles.searchBar, {backgroundColor: isDark ? withAlpha('#767680', 0.24) : withAlpha('#000000', 0.06)}]}
                   onPress={onSearchPress}>
                   <Icon name="magnify" size={16} color={themeColors.textSecondary} />
                   <Text style={[styles.searchPlaceholder, {color: themeColors.textSecondary}]}>
@@ -186,7 +183,7 @@ export function LocationSidebar({
           {/* Search Bar */}
           <View style={styles.searchContainer}>
             <TouchableOpacity 
-              style={[styles.searchBar, {backgroundColor: isDark ? '#2c2c2e' : '#e5e5ea'}]}
+              style={[styles.searchBar, {backgroundColor: themeColors.surfaceVariant}]}
               onPress={onSearchPress}>
               <Icon name="magnify" size={18} color={themeColors.textSecondary} />
               <Text style={[styles.searchPlaceholder, {color: themeColors.textSecondary}]}>
@@ -213,7 +210,7 @@ export function LocationSidebar({
           />
 
           {/* Settings Button */}
-          <View style={[styles.footer, {borderTopColor: isDark ? '#2c2c2e' : '#e5e5ea'}]}>
+          <View style={[styles.footer, {borderTopColor: withAlpha(themeColors.border, 0.5)}]}>
             <TouchableOpacity
               style={styles.settingsButton}
               onPress={onSettingsPress}>
@@ -233,7 +230,7 @@ const styles = StyleSheet.create({
   container: {
     width: 280,
     borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: 'rgba(0,0,0,0.1)',
+    borderRightColor: withAlpha('#000000', 0.1),
   },
   macOSFloatingContainer: {
     flex: 1,

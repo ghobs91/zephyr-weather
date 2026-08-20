@@ -112,6 +112,10 @@ class RuntimeDecorator : public Base, private jsi::Instrumentation {
     return plain_;
   }
 
+  ICast* castInterface(const UUID& interfaceUUID) override {
+    return plain().castInterface(interfaceUUID);
+  }
+
   Value evaluateJavaScript(
       const std::shared_ptr<const Buffer>& buffer,
       const std::string& sourceURL) override {
@@ -307,12 +311,18 @@ class RuntimeDecorator : public Base, private jsi::Instrumentation {
   Value getProperty(const Object& o, const String& name) override {
     return plain_.getProperty(o, name);
   };
+  Value getProperty(const Object& o, const Value& name) override {
+    return plain_.getProperty(o, name);
+  }
   bool hasProperty(const Object& o, const PropNameID& name) override {
     return plain_.hasProperty(o, name);
   };
   bool hasProperty(const Object& o, const String& name) override {
     return plain_.hasProperty(o, name);
   };
+  bool hasProperty(const Object& o, const Value& name) override {
+    return plain_.hasProperty(o, name);
+  }
   void setPropertyValue(
       const Object& o,
       const PropNameID& name,
@@ -323,6 +333,22 @@ class RuntimeDecorator : public Base, private jsi::Instrumentation {
       override {
     plain_.setPropertyValue(o, name, value);
   };
+  void setPropertyValue(const Object& o, const Value& name, const Value& value)
+      override {
+    plain_.setPropertyValue(o, name, value);
+  }
+
+  void deleteProperty(const Object& object, const PropNameID& name) override {
+    plain_.deleteProperty(object, name);
+  }
+
+  void deleteProperty(const Object& object, const String& name) override {
+    plain_.deleteProperty(object, name);
+  }
+
+  void deleteProperty(const Object& object, const Value& name) override {
+    plain_.deleteProperty(object, name);
+  }
 
   bool isArray(const Object& o) const override {
     return plain_.isArray(o);
@@ -330,6 +356,12 @@ class RuntimeDecorator : public Base, private jsi::Instrumentation {
   bool isArrayBuffer(const Object& o) const override {
     return plain_.isArrayBuffer(o);
   };
+  bool isTypedArray(const Object& o) const override {
+    return plain_.isTypedArray(o);
+  }
+  bool isUint8Array(const Object& o) const override {
+    return plain_.isUint8Array(o);
+  }
   bool isFunction(const Object& o) const override {
     return plain_.isFunction(o);
   };
@@ -366,6 +398,9 @@ class RuntimeDecorator : public Base, private jsi::Instrumentation {
   uint8_t* data(const ArrayBuffer& ab) override {
     return plain_.data(ab);
   };
+  bool detached(const ArrayBuffer& ab) override {
+    return plain_.detached(ab);
+  }
   Value getValueAtIndex(const Array& a, size_t i) override {
     return plain_.getValueAtIndex(a, i);
   };
@@ -373,6 +408,10 @@ class RuntimeDecorator : public Base, private jsi::Instrumentation {
       override {
     plain_.setValueAtIndexImpl(a, i, value);
   };
+
+  size_t push(const Array& a, const Value* elements, size_t count) override {
+    return plain_.push(a, elements, count);
+  }
 
   Function createFunctionFromHostFunction(
       const PropNameID& name,
@@ -392,6 +431,46 @@ class RuntimeDecorator : public Base, private jsi::Instrumentation {
       override {
     return plain_.callAsConstructor(f, args, count);
   };
+
+  void setRuntimeDataImpl(
+      const UUID& uuid,
+      const void* data,
+      void (*deleter)(const void* data)) override {
+    return plain_.setRuntimeDataImpl(uuid, data, deleter);
+  }
+
+  const void* getRuntimeDataImpl(const UUID& uuid) override {
+    return plain_.getRuntimeDataImpl(uuid);
+  }
+
+  std::shared_ptr<MutableBuffer> tryGetMutableBuffer(
+      const jsi::ArrayBuffer& arrayBuffer) override {
+    return plain_.tryGetMutableBuffer(arrayBuffer);
+  }
+
+  ArrayBuffer buffer(const TypedArray& typedArray) override {
+    return plain_.buffer(typedArray);
+  }
+  size_t byteOffset(const TypedArray& typedArray) override {
+    return plain_.byteOffset(typedArray);
+  }
+  size_t byteLength(const TypedArray& typedArray) override {
+    return plain_.byteLength(typedArray);
+  }
+  size_t length(const TypedArray& typedArray) override {
+    return plain_.length(typedArray);
+  }
+
+  Uint8Array createUint8Array(size_t length) override {
+    return plain_.createUint8Array(length);
+  }
+
+  Uint8Array createUint8Array(
+      const ArrayBuffer& buffer,
+      size_t offset,
+      size_t length) override {
+    return plain_.createUint8Array(buffer, offset, length);
+  }
 
   // Private data for managing scopes.
   Runtime::ScopeState* pushScope() override {
@@ -477,6 +556,10 @@ class RuntimeDecorator : public Base, private jsi::Instrumentation {
     const_cast<Plain&>(plain())
         .instrumentation()
         .writeBasicBlockProfileTraceToFile(fileName);
+  }
+
+  void dumpOpcodeStats(std::ostream& os) const override {
+    const_cast<Plain&>(plain()).instrumentation().dumpOpcodeStats(os);
   }
 
   /// Dump external profiler symbols to the given file name.
@@ -575,6 +658,11 @@ class WithRuntimeDecorator : public RuntimeDecorator<Plain, Base> {
   // the ctor, and there is no ctor, so they can be passed members of
   // the derived class.
   WithRuntimeDecorator(Plain& plain, With& with) : RD(plain), with_(with) {}
+
+  ICast* castInterface(const UUID& interfaceUUID) override {
+    Around around{with_};
+    return RD::castInterface(interfaceUUID);
+  }
 
   Value evaluateJavaScript(
       const std::shared_ptr<const Buffer>& buffer,
@@ -811,6 +899,10 @@ class WithRuntimeDecorator : public RuntimeDecorator<Plain, Base> {
     Around around{with_};
     return RD::getProperty(o, name);
   };
+  Value getProperty(const Object& o, const Value& name) override {
+    Around around{with_};
+    return RD::getProperty(o, name);
+  }
   bool hasProperty(const Object& o, const PropNameID& name) override {
     Around around{with_};
     return RD::hasProperty(o, name);
@@ -819,6 +911,10 @@ class WithRuntimeDecorator : public RuntimeDecorator<Plain, Base> {
     Around around{with_};
     return RD::hasProperty(o, name);
   };
+  bool hasProperty(const Object& o, const Value& name) override {
+    Around around{with_};
+    return RD::hasProperty(o, name);
+  }
   void setPropertyValue(
       const Object& o,
       const PropNameID& name,
@@ -831,6 +927,26 @@ class WithRuntimeDecorator : public RuntimeDecorator<Plain, Base> {
     Around around{with_};
     RD::setPropertyValue(o, name, value);
   };
+  void setPropertyValue(const Object& o, const Value& name, const Value& value)
+      override {
+    Around around{with_};
+    RD::setPropertyValue(o, name, value);
+  }
+
+  void deleteProperty(const Object& object, const PropNameID& name) override {
+    Around around{with_};
+    RD::deleteProperty(object, name);
+  }
+
+  void deleteProperty(const Object& object, const String& name) override {
+    Around around{with_};
+    RD::deleteProperty(object, name);
+  }
+
+  void deleteProperty(const Object& object, const Value& name) override {
+    Around around{with_};
+    RD::deleteProperty(object, name);
+  }
 
   bool isArray(const Object& o) const override {
     Around around{with_};
@@ -840,6 +956,14 @@ class WithRuntimeDecorator : public RuntimeDecorator<Plain, Base> {
     Around around{with_};
     return RD::isArrayBuffer(o);
   };
+  bool isTypedArray(const Object& o) const override {
+    Around around{with_};
+    return RD::isTypedArray(o);
+  }
+  bool isUint8Array(const Object& o) const override {
+    Around around{with_};
+    return RD::isUint8Array(o);
+  }
   bool isFunction(const Object& o) const override {
     Around around{with_};
     return RD::isFunction(o);
@@ -886,6 +1010,10 @@ class WithRuntimeDecorator : public RuntimeDecorator<Plain, Base> {
     Around around{with_};
     return RD::data(ab);
   };
+  bool detached(const ArrayBuffer& ab) override {
+    Around around{with_};
+    return RD::detached(ab);
+  }
   Value getValueAtIndex(const Array& a, size_t i) override {
     Around around{with_};
     return RD::getValueAtIndex(a, i);
@@ -895,6 +1023,10 @@ class WithRuntimeDecorator : public RuntimeDecorator<Plain, Base> {
     Around around{with_};
     RD::setValueAtIndexImpl(a, i, value);
   };
+  size_t push(const Array& a, const Value* elements, size_t count) override {
+    Around around{with_};
+    return RD::push(a, elements, count);
+  }
 
   Function createFunctionFromHostFunction(
       const PropNameID& name,
@@ -917,6 +1049,41 @@ class WithRuntimeDecorator : public RuntimeDecorator<Plain, Base> {
     Around around{with_};
     return RD::callAsConstructor(f, args, count);
   };
+
+  std::shared_ptr<MutableBuffer> tryGetMutableBuffer(
+      const jsi::ArrayBuffer& arrayBuffer) override {
+    Around around{with_};
+    return RD::tryGetMutableBuffer(arrayBuffer);
+  }
+
+  ArrayBuffer buffer(const TypedArray& typedArray) override {
+    Around around{with_};
+    return RD::buffer(typedArray);
+  }
+  size_t byteOffset(const TypedArray& typedArray) override {
+    Around around{with_};
+    return RD::byteOffset(typedArray);
+  }
+  size_t byteLength(const TypedArray& typedArray) override {
+    Around around{with_};
+    return RD::byteLength(typedArray);
+  }
+  size_t length(const TypedArray& typedArray) override {
+    Around around{with_};
+    return RD::length(typedArray);
+  }
+
+  Uint8Array createUint8Array(size_t length) override {
+    Around around{with_};
+    return RD::createUint8Array(length);
+  }
+  Uint8Array createUint8Array(
+      const ArrayBuffer& buffer,
+      size_t offset,
+      size_t length) override {
+    Around around{with_};
+    return RD::createUint8Array(buffer, offset, length);
+  }
 
   // Private data for managing scopes.
   Runtime::ScopeState* pushScope() override {
@@ -956,6 +1123,19 @@ class WithRuntimeDecorator : public RuntimeDecorator<Plain, Base> {
     Around around{with_};
     RD::setExternalMemoryPressure(obj, amount);
   };
+
+  void setRuntimeDataImpl(
+      const UUID& uuid,
+      const void* data,
+      void (*deleter)(const void* data)) override {
+    Around around{with_};
+    RD::setRuntimeDataImpl(uuid, data, deleter);
+  }
+
+  const void* getRuntimeDataImpl(const UUID& uuid) override {
+    Around around{with_};
+    return RD::getRuntimeDataImpl(uuid);
+  }
 
  private:
   // Wrap an RAII type around With& to guarantee after always happens.

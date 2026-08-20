@@ -6,9 +6,11 @@ import {
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {isSameHour} from 'date-fns';
+import {isSameHour, startOfHour} from 'date-fns';
 import {Hourly, WeatherCode} from '../types/weather';
 import {colors} from '../theme/colors';
+import {getCardStyle, getInsetPanelStyle, withAlpha} from '../theme/design';
+import {GlassSurface} from './GlassSurface';
 import {WeatherIcon} from './WeatherIcon';
 import {TimeFormat} from '../types/settings';
 import {formatHourlyTime} from '../utils/timeFormat';
@@ -31,17 +33,28 @@ export function HourlyForecastCard({
   const themeColors = isDark ? colors.dark : colors.light;
 
   const now = new Date();
-  
+
+  // Include the current hour even if `now` is past the top of the hour,
+  // so the "Now" marker always appears. We compare against the start of
+  // the current hour instead of the raw timestamp.
+  const currentHourStart = startOfHour(now);
+
   // Filter to show from current hour onwards, limit to 24 hours
   const filteredHours = hourlyForecast
-    .filter(hour => hour.date >= now)
+    .filter(hour => startOfHour(hour.date) >= currentHourStart)
     .slice(0, 24);
 
   return (
-    <View style={[styles.container, {backgroundColor: themeColors.cardBackground}]}>
+    <GlassSurface
+      isDark={isDark}
+      themeColors={themeColors}
+      style={[styles.container, getCardStyle(themeColors)]}>
       <View style={styles.header}>
         <Icon name="clock-outline" size={20} color={themeColors.textSecondary} />
-        <Text style={[styles.title, {color: themeColors.text}]}>Hourly forecast</Text>
+        <View>
+          <Text style={[styles.eyebrow, {color: themeColors.textSecondary}]}>Timeline</Text>
+          <Text style={[styles.title, {color: themeColors.text}]}>Hourly forecast</Text>
+        </View>
       </View>
 
       <ScrollView
@@ -54,7 +67,20 @@ export function HourlyForecastCard({
           const precipProb = hour.precipitationProbability?.total;
 
           return (
-            <View key={hour.date.toISOString()} style={styles.hourColumn}>
+            <View
+              key={hour.date.toISOString()}
+              style={[
+                styles.hourColumn,
+                getInsetPanelStyle(themeColors),
+                {
+                  backgroundColor: isNow
+                    ? withAlpha(themeColors.primary, isDark ? 0.16 : 0.12)
+                    : withAlpha(themeColors.surfaceElevated, isDark ? 0.04 : 0.36),
+                  borderColor: isNow
+                    ? withAlpha(themeColors.primary, 0.35)
+                    : 'transparent',
+                },
+              ]}>
               <Text
                 style={[
                   styles.hourLabel,
@@ -90,31 +116,29 @@ export function HourlyForecastCard({
         })}
       </ScrollView>
 
-      {/* Normal range indicator */}
-      <View style={styles.normalRange}>
-        <View style={[styles.normalLine, {backgroundColor: themeColors.border}]} />
-        <Text style={[styles.normalText, {color: themeColors.textTertiary}]}>Normal</Text>
+      <View style={styles.footer}>
+        <Text style={[styles.footerText, {color: themeColors.textTertiary}]}>Next 24 hours</Text>
       </View>
-    </View>
+    </GlassSurface>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 14,
+  },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   title: {
     fontSize: 17,
@@ -126,7 +150,9 @@ const styles = StyleSheet.create({
   },
   hourColumn: {
     alignItems: 'center',
-    width: 66,
+    width: 78,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
   },
   hourLabel: {
     fontSize: 12,
@@ -156,21 +182,15 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   windText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
     marginTop: 2,
   },
-  normalRange: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  footer: {
+    alignItems: 'flex-end',
     marginTop: 8,
-    gap: 8,
   },
-  normalLine: {
-    flex: 1,
-    height: 1,
-  },
-  normalText: {
-    fontSize: 10,
+  footerText: {
+    fontSize: 11,
   },
 });

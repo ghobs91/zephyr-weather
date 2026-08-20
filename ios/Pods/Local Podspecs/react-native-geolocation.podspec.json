@@ -15,13 +15,9 @@
   },
   "source_files": "ios/**/*.{h,m,mm}",
   "frameworks": "CoreLocation",
-  "compiler_flags": "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -Wno-comma -Wno-shorten-64-to-32",
+  "compiler_flags": "-DRCT_NEW_ARCH_ENABLED=1",
   "dependencies": {
     "React-Core": [],
-    "RCT-Folly": [
-      "2024.11.18.00"
-    ],
-    "glog": [],
     "React-RCTFabric": [],
     "ReactCodegen": [],
     "RCTRequired": [],
@@ -37,16 +33,17 @@
     "React-debug": [],
     "React-ImageManager": [],
     "React-rendererdebug": [],
-    "DoubleConversion": [],
     "React-jsi": [],
     "React-renderercss": [],
     "hermes-engine": [],
-    "React-hermes": []
+    "ReactNativeDependencies": [],
+    "React-Core-prebuilt": []
   },
   "pod_target_xcconfig": {
-    "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/Headers/Private/Yoga\"",
+    "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/Headers/Private/Yoga\" \"${PODS_ROOT}/React-graphics\" \"${PODS_ROOT}/React-graphics/react/renderer/graphics/platform/ios\" \"${PODS_ROOT}/React-Fabric\" \"${PODS_ROOT}/React-Fabric/react/renderer/components/view/platform/cxx\" \"${PODS_ROOT}/React-FabricImage\" \"${PODS_ROOT}/ReactCommon\" \"${PODS_ROOT}/ReactCommon/react/nativemodule/core\" \"${PODS_ROOT}/React-runtimeexecutor\" \"${PODS_ROOT}/React-runtimeexecutor/platform/ios\" \"${PODS_ROOT}/React-NativeModulesApple\" \"${PODS_ROOT}/React-RCTFabric\" \"${PODS_ROOT}/React-utils\" \"${PODS_ROOT}/React-featureflags\" \"${PODS_ROOT}/React-debug\" \"${PODS_ROOT}/React-ImageManager\" \"${PODS_ROOT}/React-rendererdebug\" \"${PODS_ROOT}/React-renderercss\"",
     "CLANG_CXX_LANGUAGE_STANDARD": "c++20",
-    "OTHER_CPLUSPLUSFLAGS": "$(inherited) -DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -Wno-comma -Wno-shorten-64-to-32",
-    "OTHER_SWIFT_FLAGS": "$(inherited)"
+    "OTHER_CPLUSPLUSFLAGS": "$(inherited) -DRCT_NEW_ARCH_ENABLED=1  -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_SWIFT_FLAGS": "$(inherited) -DRCT_NEW_ARCH_ENABLED -Xcc -ivfsoverlay -Xcc $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_CFLAGS": "$(inherited) -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml"
   }
 }

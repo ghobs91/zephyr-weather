@@ -1,11 +1,11 @@
 {
   "name": "ReactCodegen",
-  "version": "0.79.0",
+  "version": "0.86.2",
   "summary": "Temp pod for generated files for React Native",
   "homepage": "https://facebook.com/",
   "license": "Unlicense",
   "authors": "Facebook",
-  "compiler_flags": "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -Wno-comma -Wno-shorten-64-to-32 -Wno-documentation -Wno-nullability-completeness -std=c++20",
+  "compiler_flags": "-DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -Wno-comma -Wno-shorten-64-to-32 -Wno-documentation -Wno-nullability-completeness -std=c++20",
   "source": {
     "git": ""
   },
@@ -16,13 +16,14 @@
   "source_files": "**/*.{h,mm,cpp}",
   "exclude_files": "RCTAppDependencyProvider.{h,mm}",
   "pod_target_xcconfig": {
-    "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/RCT-Folly\" \"$(PODS_ROOT)/DoubleConversion\" \"$(PODS_ROOT)/fast_float/include\" \"$(PODS_ROOT)/fmt/include\" \"${PODS_ROOT}/Headers/Public/ReactCodegen/react/renderer/components\" \"$(PODS_ROOT)/Headers/Private/React-Fabric\" \"$(PODS_ROOT)/Headers/Private/React-RCTFabric\" \"$(PODS_ROOT)/Headers/Private/Yoga\" \"$(PODS_TARGET_SRCROOT)\"",
+    "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/ReactNativeDependencies\" \"${PODS_ROOT}/Headers/Public/ReactCodegen/react/renderer/components\" \"$(PODS_ROOT)/Headers/Private/React-Fabric\" \"$(PODS_ROOT)/Headers/Private/React-RCTFabric\" \"$(PODS_ROOT)/Headers/Private/Yoga\" \"$(PODS_TARGET_SRCROOT)\" \"${PODS_ROOT}/React-Fabric\" \"${PODS_ROOT}/React-Fabric/react/renderer/components/view/platform/cxx\" \"${PODS_ROOT}/React-FabricImage\" \"${PODS_ROOT}/React-graphics\" \"${PODS_ROOT}/React-graphics/react/renderer/graphics/platform/ios\" \"${PODS_ROOT}/ReactCommon\" \"${PODS_ROOT}/ReactCommon/react/nativemodule/core\" \"${PODS_ROOT}/React-runtimeexecutor\" \"${PODS_ROOT}/React-runtimeexecutor/platform/ios\" \"${PODS_ROOT}/React-NativeModulesApple\" \"${PODS_ROOT}/React-RCTFabric\" \"${PODS_ROOT}/React-debug\" \"${PODS_ROOT}/React-rendererdebug\" \"${PODS_ROOT}/React-utils\" \"${PODS_ROOT}/React-featureflags\"",
     "FRAMEWORK_SEARCH_PATHS": [],
-    "OTHER_CPLUSPLUSFLAGS": "$(inherited) -DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -Wno-comma -Wno-shorten-64-to-32 -Wno-documentation"
+    "OTHER_CPLUSPLUSFLAGS": "$(inherited) -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -Wno-comma -Wno-shorten-64-to-32 -Wno-documentation -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_CFLAGS": "$(inherited) -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_SWIFT_FLAGS": "$(inherited) -Xcc -ivfsoverlay -Xcc $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml"
   },
   "dependencies": {
     "React-jsiexecutor": [],
-    "RCT-Folly": [],
     "RCTRequired": [],
     "RCTTypeSafety": [],
     "React-Core": [],
@@ -30,8 +31,6 @@
     "ReactCommon/turbomodule/bridging": [],
     "ReactCommon/turbomodule/core": [],
     "React-NativeModulesApple": [],
-    "glog": [],
-    "DoubleConversion": [],
     "React-graphics": [],
     "React-rendererdebug": [],
     "React-Fabric": [],
@@ -41,7 +40,8 @@
     "React-featureflags": [],
     "React-RCTAppDelegate": [],
     "hermes-engine": [],
-    "React-hermes": []
+    "ReactNativeDependencies": [],
+    "React-Core-prebuilt": []
   },
   "script_phases": {
     "name": "Generate Specs",
@@ -51,6 +51,6 @@
     "output_files": [
       "${DERIVED_FILE_DIR}/react-codegen.log"
     ],
-    "script": "pushd \"$PODS_ROOT/../\" > /dev/null\nRCT_SCRIPT_POD_INSTALLATION_ROOT=$(pwd)\npopd >/dev/null\n\nexport RCT_SCRIPT_RN_DIR=\"$RCT_SCRIPT_POD_INSTALLATION_ROOT/../node_modules/react-native\"\nexport RCT_SCRIPT_APP_PATH=\"$RCT_SCRIPT_POD_INSTALLATION_ROOT/..\"\nexport RCT_SCRIPT_OUTPUT_DIR=\"$RCT_SCRIPT_POD_INSTALLATION_ROOT\"\nexport RCT_SCRIPT_TYPE=\"withCodegenDiscovery\"\n\nSCRIPT_PHASES_SCRIPT=\"$RCT_SCRIPT_RN_DIR/scripts/react_native_pods_utils/script_phases.sh\"\nWITH_ENVIRONMENT=\"$RCT_SCRIPT_RN_DIR/scripts/xcode/with-environment.sh\"\n/bin/sh -c \"$WITH_ENVIRONMENT $SCRIPT_PHASES_SCRIPT\"\n"
+    "script": "if [ -n \"$PODFILE_DIR\" ]; then\n  RCT_SCRIPT_POD_INSTALLATION_ROOT=\"$PODFILE_DIR\"\nelse\n  pushd \"$PODS_ROOT/../\" > /dev/null\n  RCT_SCRIPT_POD_INSTALLATION_ROOT=$(pwd)\n  popd >/dev/null\nfi\n\nexport RCT_SCRIPT_RN_DIR=\"$RCT_SCRIPT_POD_INSTALLATION_ROOT/../node_modules/react-native\"\nexport RCT_SCRIPT_APP_PATH=\"$RCT_SCRIPT_POD_INSTALLATION_ROOT/..\"\nexport RCT_SCRIPT_OUTPUT_DIR=\"$RCT_SCRIPT_POD_INSTALLATION_ROOT\"\nexport RCT_SCRIPT_TYPE=\"withCodegenDiscovery\"\n\nexport SCRIPT_PHASES_SCRIPT=\"$RCT_SCRIPT_RN_DIR/scripts/react_native_pods_utils/script_phases.sh\"\nexport WITH_ENVIRONMENT=\"$RCT_SCRIPT_RN_DIR/scripts/xcode/with-environment.sh\"\n/bin/sh -c '\"$WITH_ENVIRONMENT\" \"$SCRIPT_PHASES_SCRIPT\"'\n"
   }
 }

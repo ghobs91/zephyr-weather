@@ -1,0 +1,1 @@
+../../../../../../../React-Core-prebuilt/React.xcframework/Headers/React_FabricComponents/react/renderer/textlayoutmanager/RCTTextLayoutManager.h

@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import os.log
 
 enum WeatherCode: String, Codable {
     case clear = "clear"
@@ -94,11 +95,33 @@ class WeatherDataManager {
     
     private let appGroupIdentifier = "group.com.zephyrweather.shared"
     private let weatherDataKey = "weatherData"
+    private let locationsKey = "locations"
     
-    /// ISO8601 formatter that handles fractional seconds (.000Z) from JavaScript's toISOString()
+    /// ISO8601 formatter that handles fractional seconds with UTC "Z" suffix
+    /// from JavaScript's toISOString() (e.g. "2026-04-30T12:00:00.000Z")
+    private static let iso8601WithFractionalAndZ: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return formatter
+    }()
+    
+    /// ISO8601 formatter that handles fractional seconds with numeric offset
+    /// (e.g. "2026-04-30T12:00:00.000+0500")
     private static let iso8601WithFractionalSeconds: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return formatter
+    }()
+    
+    /// ISO8601 formatter that handles plain seconds with UTC "Z" suffix
+    /// (e.g. "2026-04-30T12:00:00Z")
+    private static let iso8601PlainZ: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         return formatter
@@ -114,14 +137,19 @@ class WeatherDataManager {
     
     func loadWeatherData(for locationId: String? = nil) -> WeatherData? {
         guard let userDefaults = UserDefaults(suiteName: appGroupIdentifier) else {
+            print("[Widget] loadWeatherData: FAILED to create UserDefaults for suite \(appGroupIdentifier)")
             return nil
         }
+        print("[Widget] loadWeatherData: UserDefaults accessible, suite: \(appGroupIdentifier)")
         
         guard let jsonString = userDefaults.string(forKey: weatherDataKey) else {
+            print("[Widget] loadWeatherData: NO data found for key '\(weatherDataKey)' in UserDefaults")
             return nil
         }
+        print("[Widget] loadWeatherData: Found data for key '\(weatherDataKey)', length: \(jsonString.count) chars")
         
         guard let data = jsonString.data(using: .utf8) else {
+            print("[Widget] loadWeatherData: FAILED to convert string to UTF-8 data")
             return nil
         }
         
@@ -130,37 +158,81 @@ class WeatherDataManager {
             decoder.dateDecodingStrategy = .custom { decoder in
                 let container = try decoder.singleValueContainer()
                 let dateString = try container.decode(String.self)
+                if let date = WeatherDataManager.iso8601WithFractionalAndZ.date(from: dateString) {
+                    return date
+                }
                 if let date = WeatherDataManager.iso8601WithFractionalSeconds.date(from: dateString) {
+                    return date
+                }
+                if let date = WeatherDataManager.iso8601PlainZ.date(from: dateString) {
                     return date
                 }
                 if let date = WeatherDataManager.iso8601Plain.date(from: dateString) {
                     return date
                 }
+                print("[Widget] FAILED to parse date string: '\(dateString)'")
                 throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date: \(dateString)")
             }
             
             // If a location ID is provided, try to load from the map
             if let locationId = locationId {
-                // Try to decode as a map of location IDs to weather data
-                if let weatherDataMap = try? decoder.decode([String: WeatherData].self, from: data) {
-                    return weatherDataMap[locationId]
+                print("[Widget] loadWeatherData: trying map decode for locationId: \(locationId)")
+                do {
+                    let weatherDataMap = try decoder.decode([String: WeatherData].self, from: data)
+                    print("[Widget] loadWeatherData: map decoded with \(weatherDataMap.count) entries, keys: \(weatherDataMap.keys)")
+                    if let match = weatherDataMap[locationId] {
+                        print("[Widget] loadWeatherData: MATCH found for locationId: \(locationId)")
+                        return match
+                    }
+                    print("[Widget] loadWeatherData: locationId '\(locationId)' not found in map, falling back to first entry")
+                    if let firstEntry = weatherDataMap.values.first {
+                        return firstEntry
+                    }
+                    print("[Widget] loadWeatherData: map is empty")
+                } catch {
+                    print("[Widget] loadWeatherData: map decode FAILED: \(error)")
                 }
             } else {
-                // No location specified — try to decode as map and return first entry
-                if let weatherDataMap = try? decoder.decode([String: WeatherData].self, from: data),
-                   let firstEntry = weatherDataMap.values.first {
-                    return firstEntry
+                print("[Widget] loadWeatherData: no locationId, trying map and returning first entry")
+                do {
+                    let weatherDataMap = try decoder.decode([String: WeatherData].self, from: data)
+                    print("[Widget] loadWeatherData: map decoded with \(weatherDataMap.count) entries, returning first")
+                    if let firstEntry = weatherDataMap.values.first {
+                        return firstEntry
+                    }
+                } catch {
+                    print("[Widget] loadWeatherData: map decode FAILED: \(error)")
                 }
             }
             
             // Fallback: try to decode as a single WeatherData object (backward compatibility)
-            return try decoder.decode(WeatherData.self, from: data)
+            print("[Widget] loadWeatherData: trying single-object decode fallback")
+            let singleResult = try decoder.decode(WeatherData.self, from: data)
+            print("[Widget] loadWeatherData: single-object decode SUCCEEDED")
+            return singleResult
         } catch {
-            print("Error loading weather data: \(error)")
+            print("[Widget] loadWeatherData: DECODE ERROR: \(error)")
+            if let decodingError = error as? DecodingError {
+                switch decodingError {
+                case .dataCorrupted(let context):
+                    print("[Widget]   dataCorrupted: \(context.debugDescription), codingPath: \(context.codingPath)")
+                case .keyNotFound(let key, let context):
+                    print("[Widget]   keyNotFound: \(key.stringValue), codingPath: \(context.codingPath)")
+                case .typeMismatch(let type, let context):
+                    print("[Widget]   typeMismatch: expected \(type), codingPath: \(context.codingPath)")
+                case .valueNotFound(let type, let context):
+                    print("[Widget]   valueNotFound: expected \(type), codingPath: \(context.codingPath)")
+                @unknown default:
+                    print("[Widget]   unknown decoding error")
+                }
+            }
+            // Print the first 500 chars of JSON for context
+            let preview = String(jsonString.prefix(500))
+            print("[Widget] JSON preview (first 500 chars): \(preview)")
             return nil
         }
     }
-    
+
     func getMockWeatherData() -> WeatherData {
         let now = Date()
         let calendar = Calendar.current

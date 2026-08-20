@@ -4,6 +4,9 @@ CONFIGURATION_BUILD_DIR = ${PODS_CONFIGURATION_BUILD_DIR}/React-debug
 DEFINES_MODULE = YES
 GCC_PREPROCESSOR_DEFINITIONS = $(inherited) COCOAPODS=1
 HEADER_SEARCH_PATHS = $(inherited) "${PODS_ROOT}/Headers/Private" "${PODS_ROOT}/Headers/Private/React-debug" "${PODS_ROOT}/Headers/Public" "${PODS_ROOT}/Headers/Public/React-debug"
+OTHER_CFLAGS = $(inherited) -ivfsoverlay "/Users/andrewg/Projects/zephyr-weather/ios/Pods/React-Core-prebuilt/React-VFS.yaml" -isystem "${PODS_ROOT}/Headers/Private" -isystem "${PODS_ROOT}/Headers/Private/React-debug" -isystem "${PODS_ROOT}/Headers/Public" -isystem "${PODS_ROOT}/Headers/Public/React-debug" -isystem "${PODS_ROOT}/React-Core-prebuilt/React.xcframework/Headers" -fmodule-map-file="${PODS_ROOT}/Target\ Support\ Files/React-Core-prebuilt/React-use-frameworks.modulemap"
+OTHER_CPLUSPLUSFLAGS = $(inherited) -ivfsoverlay "/Users/andrewg/Projects/zephyr-weather/ios/Pods/React-Core-prebuilt/React-VFS.yaml"
+OTHER_SWIFT_FLAGS = $(inherited) -Xcc -ivfsoverlay -Xcc "/Users/andrewg/Projects/zephyr-weather/ios/Pods/React-Core-prebuilt/React-VFS.yaml" -Xcc -Wno-incomplete-umbrella -Xcc -isystem -Xcc "${PODS_ROOT}/Headers/Private" -Xcc -isystem -Xcc "${PODS_ROOT}/Headers/Private/React-debug" -Xcc -isystem -Xcc "${PODS_ROOT}/Headers/Public" -Xcc -isystem -Xcc "${PODS_ROOT}/Headers/Public/React-debug" -Xcc -isystem -Xcc "${PODS_ROOT}/React-Core-prebuilt/React.xcframework/Headers" -Xcc -fmodule-map-file="${PODS_ROOT}/Target\ Support\ Files/React-Core-prebuilt/React-use-frameworks.modulemap"
 PODS_BUILD_DIR = ${BUILD_DIR}
 PODS_CONFIGURATION_BUILD_DIR = ${PODS_BUILD_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)
 PODS_DEVELOPMENT_LANGUAGE = ${DEVELOPMENT_LANGUAGE}
@@ -13,3 +16,4 @@ PODS_XCFRAMEWORKS_BUILD_DIR = $(PODS_CONFIGURATION_BUILD_DIR)/XCFrameworkInterme
 PRODUCT_BUNDLE_IDENTIFIER = org.cocoapods.${PRODUCT_NAME:rfc1034identifier}
 SKIP_INSTALL = YES
 USE_RECURSIVE_SCRIPT_INPUTS_IN_SCRIPT_PHASES = YES
+SWIFT_EMIT_MODULE_INTERFACE = NO

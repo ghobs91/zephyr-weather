@@ -1,0 +1,34 @@
+{
+  "name": "ExpoModulesWorkletsAdapter",
+  "version": "57.0.9",
+  "summary": "Companion pod for ExpoModulesWorklets — links the runtime worklets:: bridge when react-native-worklets is installed.",
+  "description": "Companion pod for ExpoModulesWorklets — links the runtime worklets:: bridge when react-native-worklets is installed.",
+  "license": "MIT",
+  "authors": "650 Industries, Inc.",
+  "homepage": "https://github.com/expo/expo/tree/main/packages/expo-modules-core",
+  "platforms": {
+    "ios": "16.4",
+    "osx": "13.4",
+    "tvos": "16.4"
+  },
+  "swift_versions": "6.0",
+  "source": {
+    "git": "https://github.com/expo/expo.git"
+  },
+  "static_framework": true,
+  "header_dir": "ExpoModulesWorkletsAdapter",
+  "dependencies": {
+    "ExpoModulesJSI": [],
+    "ExpoModulesCore": [],
+    "ExpoModulesWorklets": [],
+    "RNWorklets": []
+  },
+  "pod_target_xcconfig": {
+    "USE_HEADERMAP": "YES",
+    "DEFINES_MODULE": "YES",
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++20",
+    "HEADER_SEARCH_PATHS": "\"${PODS_CONFIGURATION_BUILD_DIR}/React-jsinspector/jsinspector_modern.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-jsinspectortracing/jsinspector_moderntracing.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-jsinspectorcdp/jsinspector_moderncdp.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-runtimescheduler/React_runtimescheduler.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon/ReactCommon.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-utils/React_utils.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-jsitooling/JSITooling.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-performancetimeline/React_performancetimeline.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-rendererconsistency/React_rendererconsistency.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-timing/React_timing.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-debug/React_debug.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/RCT-Folly/folly.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/fmt/fmt.framework/Headers\" \"$(PODS_ROOT)/DoubleConversion\" \"$(PODS_ROOT)/../../node_modules/react-native-worklets/apple\" \"$(PODS_ROOT)/../../node_modules/react-native-worklets/Common/cpp\" \"$(PODS_ROOT)/Headers/Private/ExpoModulesWorklets\""
+  },
+  "source_files": "ios/WorkletsAdapter/**/*.{h,m,mm}",
+  "swift_version": "6.0"
+}

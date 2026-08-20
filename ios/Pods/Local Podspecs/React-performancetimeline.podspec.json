@@ -1,6 +1,6 @@
 {
   "name": "React-performancetimeline",
-  "version": "0.79.0",
+  "version": "0.86.2",
   "summary": "React performance timeline utilities",
   "homepage": "https://reactnative.dev/",
   "license": "MIT",
@@ -9,25 +9,27 @@
     "ios": "15.1"
   },
   "source": {
-    "git": "https://github.com/facebook/react-native.git",
-    "tag": "v0.79.0"
+    "git": "https://github.com/react/react-native.git",
+    "tag": "v0.86.2"
   },
-  "source_files": "**/*.{cpp,h}",
-  "compiler_flags": "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -DFOLLY_HAVE_CLOCK_GETTIME=1 -Wno-comma -Wno-shorten-64-to-32",
+  "source_files": "**/*.h",
   "header_dir": "react/performance/timeline",
   "exclude_files": "tests",
   "pod_target_xcconfig": {
     "CLANG_CXX_LANGUAGE_STANDARD": "c++20",
-    "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/RCT-Folly\" \"$(PODS_ROOT)/boost\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-jsinspectortracing/jsinspector_moderntracing.framework/Headers\""
+    "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/../../..\" \"${PODS_ROOT}/React-jsinspector\" \"${PODS_ROOT}/React-jsinspectortracing\"",
+    "OTHER_CFLAGS": "$(inherited) -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_CPLUSPLUSFLAGS": "$(inherited) -ivfsoverlay $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml",
+    "OTHER_SWIFT_FLAGS": "$(inherited) -Xcc -ivfsoverlay -Xcc $(PODS_ROOT)/React-Core-prebuilt/React-VFS.yaml"
   },
+  "module_name": "React_performancetimeline",
   "dependencies": {
     "React-featureflags": [],
+    "React-jsinspector": [],
     "React-jsinspectortracing": [],
     "React-timing": [],
-    "React-cxxreact": [],
     "React-perflogger": [],
-    "RCT-Folly": [
-      "2024.11.18.00"
-    ]
+    "ReactNativeDependencies": [],
+    "React-Core-prebuilt": []
   }
 }

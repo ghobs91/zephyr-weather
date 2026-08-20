@@ -16,12 +16,16 @@ struct DailyForecastProvider: AppIntentTimelineProvider {
     }
     
     func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> DailyForecastEntry {
-        let data = WeatherDataManager.shared.loadWeatherData(for: configuration.location?.id) ?? WeatherDataManager.shared.getMockWeatherData()
+        let data = WeatherDataManager.shared.loadWeatherData(
+            for: configuration.location?.id
+        ) ?? WeatherDataManager.shared.getMockWeatherData()
         return DailyForecastEntry(date: Date(), weatherData: data, configuration: configuration)
     }
     
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<DailyForecastEntry> {
-        let data = WeatherDataManager.shared.loadWeatherData(for: configuration.location?.id) ?? WeatherDataManager.shared.getMockWeatherData()
+        let data = WeatherDataManager.shared.loadWeatherData(
+            for: configuration.location?.id
+        ) ?? WeatherDataManager.shared.getMockWeatherData()
         let now = Date()
         let entry = DailyForecastEntry(date: now, weatherData: data, configuration: configuration)
         
@@ -49,6 +53,10 @@ struct DailyForecastEntry: TimelineEntry {
 struct DailyForecastWidgetView: View {
     var entry: DailyForecastProvider.Entry
     @Environment(\.widgetFamily) var family
+
+    private var displayLocationName: String? {
+        entry.configuration.location?.name ?? entry.weatherData.locationName
+    }
     
     // Only show today and future days — past days may be present in cached data.
     var todayAndFutureDays: [WeatherData.DailyForecast] {
@@ -100,9 +108,7 @@ struct DailyForecastWidgetView: View {
                     DayColumn(day: day, minTemp: minTemp, maxTemp: maxTemp, temperatureUnit: entry.weatherData.temperatureUnit ?? "fahrenheit")
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 18)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .containerBackground(for: .widget) {
                 LinearGradient(
                     gradient: Gradient(colors: [
@@ -124,8 +130,8 @@ struct DailyForecastWidgetView: View {
 
         return VStack(spacing: 0) {
             // Location name
-            if let locationName = entry.weatherData.locationName {
-                Text(locationName)
+            if let displayLocationName = displayLocationName {
+                Text(displayLocationName)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -196,7 +202,7 @@ struct DailyForecastWidgetView: View {
 
             // Daily forecast rows (vertical)
             VStack(spacing: 0) {
-                ForEach(Array(todayAndFutureDays.prefix(5).enumerated()), id: \.offset) { _, day in
+                ForEach(Array(todayAndFutureDays.prefix(3).enumerated()), id: \.offset) { _, day in
                     DayRow(
                         day: day,
                         minTemp: minTemp,
@@ -206,9 +212,7 @@ struct DailyForecastWidgetView: View {
                 }
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
             LinearGradient(
                 gradient: Gradient(colors: [
@@ -382,31 +386,31 @@ struct HorizontalTemperatureBar: View {
     let maxTemp: Double
     
     var body: some View {
-        let range = maxTemp - minTemp
-        let lowPercent = range > 0 ? (lowTemp - minTemp) / range : 0
-        let highPercent = range > 0 ? (highTemp - minTemp) / range : 1
-        
-        GeometryReader { geometry in
-            ZStack(alignment: .leading) {
-                // Background bar
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(Color.white.opacity(0.15))
-                    .frame(height: 6)
-                
-                // Filled portion with gradient
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [temperatureColor(lowTemp), temperatureColor(highTemp)]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
+        Canvas { context, size in
+            let range = maxTemp - minTemp
+            let lowPct = range > 0 ? CGFloat((lowTemp - minTemp) / range) : 0
+            let highPct = range > 0 ? CGFloat((highTemp - minTemp) / range) : 1
+            let cornerRadius: CGFloat = 3
+            let barHeight: CGFloat = 6
+            
+            let bgRect = CGRect(x: 0, y: 0, width: size.width, height: barHeight)
+            context.fill(
+                Path(roundedRect: bgRect, cornerRadius: cornerRadius),
+                with: .color(.white.opacity(0.15))
+            )
+            
+            let barWidth = size.width * (highPct - lowPct)
+            if barWidth > 0 {
+                let barX = size.width * lowPct
+                let barRect = CGRect(x: barX, y: 0, width: barWidth, height: barHeight)
+                context.fill(
+                    Path(roundedRect: barRect, cornerRadius: cornerRadius),
+                    with: .linearGradient(
+                        Gradient(colors: [temperatureColor(lowTemp), temperatureColor(highTemp)]),
+                        startPoint: CGPoint(x: barX, y: 0),
+                        endPoint: CGPoint(x: barX + barWidth, y: 0)
                     )
-                    .frame(
-                        width: geometry.size.width * (highPercent - lowPercent),
-                        height: 6
-                    )
-                    .offset(x: geometry.size.width * lowPercent)
+                )
             }
         }
         .frame(height: 6)
@@ -542,33 +546,33 @@ struct TemperatureBar: View {
     let maxTemp: Double
     
     var body: some View {
-        let range = maxTemp - minTemp
-        let lowPercent = range > 0 ? (lowTemp - minTemp) / range : 0
-        let highPercent = range > 0 ? (highTemp - minTemp) / range : 1
-        
-        GeometryReader { geometry in
-            ZStack(alignment: .bottom) {
-                // Background bar
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.white.opacity(0.2))
-                    .frame(width: 8)
-                
-                // Filled portion with gradient
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [temperatureColor(lowTemp), temperatureColor(highTemp)]),
-                            startPoint: .bottom,
-                            endPoint: .top
-                        )
+        Canvas { context, size in
+            let range = maxTemp - minTemp
+            let lowPct = range > 0 ? CGFloat((lowTemp - minTemp) / range) : 0
+            let highPct = range > 0 ? CGFloat((highTemp - minTemp) / range) : 1
+            let cornerRadius: CGFloat = 4
+            let barWidth: CGFloat = 8
+            
+            let bgRect = CGRect(x: 0, y: 0, width: barWidth, height: size.height)
+            context.fill(
+                Path(roundedRect: bgRect, cornerRadius: cornerRadius),
+                with: .color(.white.opacity(0.2))
+            )
+            
+            let barTop = size.height * (1 - highPct)
+            let barBottom = size.height * (1 - lowPct)
+            let barHeight = barBottom - barTop
+            if barHeight > 0 {
+                let fillRect = CGRect(x: 0, y: barTop, width: barWidth, height: barHeight)
+                context.fill(
+                    Path(roundedRect: fillRect, cornerRadius: cornerRadius),
+                    with: .linearGradient(
+                        Gradient(colors: [temperatureColor(lowTemp), temperatureColor(highTemp)]),
+                        startPoint: CGPoint(x: 0, y: barBottom),
+                        endPoint: CGPoint(x: 0, y: barTop)
                     )
-                    .frame(
-                        width: 8,
-                        height: geometry.size.height * (highPercent - lowPercent)
-                    )
-                    .offset(y: -geometry.size.height * lowPercent)
+                )
             }
-            .frame(maxWidth: .infinity)
         }
     }
     
@@ -603,11 +607,9 @@ struct DailyForecastWidget: Widget {
     
     private var supportedFamilies: [WidgetFamily] {
         var families: [WidgetFamily] = [.systemMedium, .systemLarge]
-        #if targetEnvironment(macCatalyst) || os(macOS)
-        if #available(macCatalyst 17.0, macOS 14.0, *) {
+        if #available(iOS 15.0, macOS 12.0, *) {
             families.append(.systemExtraLarge)
         }
-        #endif
         return families
     }
 }

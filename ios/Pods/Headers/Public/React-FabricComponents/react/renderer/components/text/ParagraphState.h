@@ -1,1 +1,1 @@
-../../../../../../../../../node_modules/react-native/ReactCommon/react/renderer/components/text/ParagraphState.h
+../../../../../../../../../node_modules/react-native/ReactCommon/react/renderer/components/text/platform/cxx/react/renderer/components/text/ParagraphState.h

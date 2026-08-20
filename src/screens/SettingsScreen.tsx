@@ -6,13 +6,14 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
-  useColorScheme,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {useWeatherStore} from '../store/weatherStore';
-import {colors} from '../theme/colors';
+import {useThemeColors} from '../hooks/useThemeColors';
+import {AtmosphericBackground} from '../components/AtmosphericBackground';
+import {getInsetPanelStyle, withAlpha} from '../theme/design';
 import {useResponsiveLayout} from '../utils/platformDetect';
 import {
   ThemeMode,
@@ -30,19 +31,16 @@ interface SettingsScreenProps {
 
 export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
   const insets = useSafeAreaInsets();
-  const isDarkMode = useColorScheme() === 'dark';
   const layout = useResponsiveLayout();
   
   const {settings, updateSettings} = useWeatherStore();
   
-  const theme = settings.theme;
-  const useDark = theme === 'dark' || (theme === 'system' && isDarkMode);
-  const themeColors = useDark ? colors.dark : colors.light;
+  const {useDark, themeColors} = useThemeColors();
 
   const renderSectionHeader = (title: string, icon: string) => (
     <View style={styles.sectionHeader}>
       <Icon name={icon} size={20} color={themeColors.primary} />
-      <Text style={[styles.sectionTitle, {color: themeColors.text}]}>{title}</Text>
+      <Text style={[styles.sectionTitle, {color: themeColors.textSecondary}]}>{title}</Text>
     </View>
   );
 
@@ -52,7 +50,12 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
     options: {label: string; value: string}[],
     onSelect: (value: string) => void
   ) => (
-    <View style={[styles.optionRow, {backgroundColor: themeColors.cardBackground}]}>
+    <View
+      style={[
+        styles.optionRow,
+        getInsetPanelStyle(themeColors),
+        {backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.07 : 0.56)},
+      ]}>
       <Text style={[styles.optionLabel, {color: themeColors.text}]}>{label}</Text>
       <View style={styles.optionButtons}>
         {options.map((option) => (
@@ -63,7 +66,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
               {
                 backgroundColor: value === option.value
                   ? themeColors.primary
-                  : themeColors.surfaceVariant,
+                  : withAlpha(themeColors.surfaceElevated, useDark ? 0.05 : 0.50),
               },
             ]}
             onPress={() => onSelect(option.value)}>
@@ -86,7 +89,12 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
     value: boolean,
     onToggle: (value: boolean) => void
   ) => (
-    <View style={[styles.switchRow, {backgroundColor: themeColors.cardBackground}]}>
+    <View
+      style={[
+        styles.switchRow,
+        getInsetPanelStyle(themeColors),
+        {backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.07 : 0.56)},
+      ]}>
       <View style={styles.switchContent}>
         <Text style={[styles.switchLabel, {color: themeColors.text}]}>{label}</Text>
         <Text style={[styles.switchSubtitle, {color: themeColors.textSecondary}]}>
@@ -103,9 +111,10 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
   );
 
   return (
-    <View style={[styles.container, {backgroundColor: themeColors.background}]}>
+    <AtmosphericBackground isDark={useDark}>
+      <View style={styles.container}>
       {onClose && (
-        <View style={[styles.modalHeader, {paddingTop: insets.top + 8, backgroundColor: themeColors.surface}]}>
+        <View style={[styles.modalHeader, {paddingTop: insets.top + 8, backgroundColor: withAlpha(themeColors.surface, 0.92), borderBottomColor: withAlpha(themeColors.cardBorder, 0.55)}]}>
           <Text style={[styles.modalTitle, {color: themeColors.text}]}>Settings</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Icon name="close" size={24} color={themeColors.text} />
@@ -125,7 +134,12 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
             width: layout.maxContentWidth ? '100%' : undefined,
           },
         ]}>
-        {!onClose && <Text style={[styles.title, {color: themeColors.text}]}>Settings</Text>}
+        {!onClose && (
+          <View style={styles.heroHeader}>
+            <Text style={[styles.title, {color: themeColors.text}]}>Settings</Text>
+            <Text style={[styles.heroSubtitle, {color: themeColors.textSecondary}]}>Tune theme, units, alerts, and data sources.</Text>
+          </View>
+        )}
 
         {/* Appearance Section */}
         {renderSectionHeader('Appearance', 'palette')}
@@ -242,7 +256,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
         {/* Weather Sources Section */}
         {renderSectionHeader('Weather Sources', 'cloud-outline')}
         
-        <View style={[styles.sourceCard, {backgroundColor: themeColors.cardBackground}]}>
+        <View style={[styles.sourceCard, getInsetPanelStyle(themeColors), {backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.07 : 0.56)}]}>
           <View style={styles.sourceHeader}>
             <View style={[styles.sourceIcon, {backgroundColor: '#1E40AF'}]}>
               <Icon name="flag-variant" size={20} color="#FFFFFF" />
@@ -261,7 +275,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
           </Text>
         </View>
 
-        <View style={[styles.sourceCard, {backgroundColor: themeColors.cardBackground}]}>
+        <View style={[styles.sourceCard, getInsetPanelStyle(themeColors), {backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.07 : 0.56)}]}>
           <View style={styles.sourceHeader}>
             <View style={[styles.sourceIcon, {backgroundColor: '#FF6B35'}]}>
               <Icon name="weather-partly-cloudy" size={20} color="#FFFFFF" />
@@ -283,7 +297,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
         {/* About Section */}
         {renderSectionHeader('About', 'information-outline')}
         
-        <View style={[styles.aboutCard, {backgroundColor: themeColors.cardBackground}]}>
+        <View style={[styles.aboutCard, getInsetPanelStyle(themeColors), {backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.07 : 0.56)}]}>
           <Text style={[styles.appName, {color: themeColors.text}]}>
             Zephyr Weather
           </Text>
@@ -301,7 +315,8 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
         <View style={{height: insets.bottom + 24}} />
         </View>
       </ScrollView>
-    </View>
+      </View>
+    </AtmosphericBackground>
   );
 }
 
@@ -318,10 +333,17 @@ const styles = StyleSheet.create({
   innerContent: {
     paddingBottom: 16,
   },
+  heroHeader: {
+    marginBottom: 12,
+  },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '700',
-    marginBottom: 24,
+  },
+  heroSubtitle: {
+    fontSize: 14,
+    marginTop: 6,
+    lineHeight: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -331,13 +353,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   optionRow: {
-    borderRadius: 12,
+    borderRadius: 24,
     padding: 16,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   optionLabel: {
     fontSize: 15,
@@ -351,8 +375,8 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: 10,
+    borderRadius: 999,
   },
   optionButtonText: {
     fontSize: 14,
@@ -361,9 +385,9 @@ const styles = StyleSheet.create({
   switchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: 24,
     padding: 16,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   switchContent: {
     flex: 1,
@@ -377,9 +401,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   sourceCard: {
-    borderRadius: 12,
+    borderRadius: 24,
     padding: 16,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   sourceHeader: {
     flexDirection: 'row',
@@ -410,7 +434,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   aboutCard: {
-    borderRadius: 12,
+    borderRadius: 24,
     padding: 16,
     alignItems: 'center',
   },
@@ -439,8 +463,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+    borderBottomWidth: 1,
   },
   modalTitle: {
     fontSize: 20,
