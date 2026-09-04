@@ -28,6 +28,16 @@ import {
   buildRadarImageUrl,
   NexradScan,
 } from '../services/nexradService';
+import {
+  selectRadarProvider,
+  wmsTimeSteps,
+  buildEcccRadarUrl,
+  buildDwdRadarUrl,
+  selectSatelliteLayer,
+  buildGibsSatUrl,
+} from '../services/radarProviders';
+import {WeatherCode} from '../types/weather';
+import {t} from '../i18n';
 
 const TIMELINE_HOURS = 2;
 const PLAYBACK_INTERVAL_MS = 750; // ms per frame
@@ -173,6 +183,7 @@ export function RadarScreen() {
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [framesLoadedCount, setFramesLoadedCount] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [overlayMode, setOverlayMode] = useState<'radar' | 'satellite'>('radar');
   const playbackStepRef = useRef(0);
 
   // NEXRAD scan data from AWS S3
@@ -182,14 +193,84 @@ export function RadarScreen() {
   const now = useMemo(() => Date.now(), []);
   const timeStart = now - TIMELINE_HOURS * 60 * 60 * 1000;
 
-  // Nearest NEXRAD station
+  // Government radar provider for this location (NEXRAD / ECCC / DWD).
+  // Null where no gov tile source is wired yet — the UI shows an honest
+  // empty state rather than a third-party fallback (see radarProviders.ts).
+  const provider = useMemo(
+    () => selectRadarProvider(lat, lon, location?.countryCode),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lat, lon, location?.countryCode],
+  );
+
+  // ECCC serves separate rain/snow composites — pick by current conditions.
+  const currentCode = location?.weather?.current?.weatherCode;
+  const precipType: 'rain' | 'snow' =
+    currentCode === WeatherCode.SNOW ||
+    currentCode === WeatherCode.SNOW_LIGHT ||
+    currentCode === WeatherCode.SNOW_HEAVY ||
+    currentCode === WeatherCode.SLEET
+      ? 'snow'
+      : 'rain';
+
+  // NASA GIBS satellite layer for this longitude (gov source).
+  // Available everywhere — it is the fallback overlay where no
+  // gov radar is wired yet.
+  const satLayer = useMemo(() => selectSatelliteLayer(lon), [lon]);
+
+  // Nearest NEXRAD station (NEXRAD provider only)
   const nearestStation = useMemo(() => findNearestStation(lat, lon), [lat, lon]);
 
-  // Fetch real scan timestamps from the NEXRAD S3 bucket
+  // Fetch animation frames: S3 scan listing for NEXRAD, TIME-stepped
+  // WMS frames for ECCC/DWD (no listing API — the server snaps TIME
+  // to the nearest available run).
   useEffect(() => {
     let cancelled = false;
     setScanStatus('loading');
     setIsPlaying(false);
+
+    if (!provider) {
+      // No gov radar for this region — still build a time-stepped frame
+      // list so the global satellite overlay works, and default to it.
+      const steps = wmsTimeSteps(TIMELINE_HOURS, 10);
+      if (!cancelled) {
+        const picked: NexradScan[] = steps.map(epochMs => ({
+          key: `sat-${epochMs}`,
+          epochMs,
+        }));
+        setFrames(picked);
+        setScanStatus(picked.length > 0 ? 'ready' : 'error');
+        setFramesLoadedCount(0);
+        if (picked.length > 0) {
+          playbackStepRef.current = picked.length - 1;
+          setCurrentFrameIndex(picked.length - 1);
+        }
+        setOverlayMode('satellite');
+      }
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (provider.kind === 'wms') {
+      const steps = wmsTimeSteps(TIMELINE_HOURS, 10);
+      if (!cancelled) {
+        const picked: NexradScan[] = steps.map(epochMs => ({
+          key: `${provider.id}-${epochMs}`,
+          epochMs,
+        }));
+        setFrames(picked);
+        setScanStatus(picked.length > 0 ? 'ready' : 'error');
+        setFramesLoadedCount(0);
+        if (picked.length > 0) {
+          // Start at most recent frame
+          playbackStepRef.current = picked.length - 1;
+          setCurrentFrameIndex(picked.length - 1);
+        }
+      }
+      return () => {
+        cancelled = true;
+      };
+    }
 
     getAvailableScans(nearestStation.code, TIMELINE_HOURS)
       .then(scans => {
@@ -211,7 +292,7 @@ export function RadarScreen() {
     return () => {
       cancelled = true;
     };
-  }, [nearestStation.code]);
+  }, [provider?.id, nearestStation.code]);
 
   // Map pan/zoom state (shared values for gesture handling)
   const mapCenterLat = useSharedValue(lat);
@@ -327,9 +408,53 @@ export function RadarScreen() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expandedBbox, mapSize.width, mapSize.height, committedMap.zoom, useDark]);
 
-  // Pre-compute URLs for every frame — rendered all at once in the overlay.
-  const allRadarUrls = useMemo(() => {
+  // Pre-compute overlay URLs for every frame — rendered all at once.
+  // Radar comes from the gov radar provider; satellite always comes
+  // from NASA GIBS (global, so it also covers regions without radar).
+  const overlayUrls = useMemo(() => {
     if (frames.length === 0 || mapSize.width === 0 || mapSize.height === 0) return [];
+    if (overlayMode === 'satellite') {
+      return frames.map(f =>
+        buildGibsSatUrl(
+          satLayer,
+          expandedBbox.west,
+          expandedBbox.south,
+          expandedBbox.east,
+          expandedBbox.north,
+          expandedW * 2,
+          expandedH * 2,
+          f.epochMs,
+        ),
+      );
+    }
+    if (!provider) return [];
+    if (provider.id === 'eccc') {
+      return frames.map(f =>
+        buildEcccRadarUrl(
+          expandedBbox.west,
+          expandedBbox.south,
+          expandedBbox.east,
+          expandedBbox.north,
+          expandedW * 2,
+          expandedH * 2,
+          f.epochMs,
+          precipType,
+        ),
+      );
+    }
+    if (provider.id === 'dwd') {
+      return frames.map(f =>
+        buildDwdRadarUrl(
+          expandedBbox.west,
+          expandedBbox.south,
+          expandedBbox.east,
+          expandedBbox.north,
+          expandedW * 2,
+          expandedH * 2,
+          f.epochMs,
+        ),
+      );
+    }
     return frames.map(f =>
       buildRadarImageUrl(
         expandedBbox.west,
@@ -342,15 +467,15 @@ export function RadarScreen() {
       ),
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [frames, expandedBbox, mapSize.width, mapSize.height]);
+  }, [overlayMode, satLayer.id, provider?.id, precipType, frames, expandedBbox, mapSize.width, mapSize.height]);
 
-  // Reset loaded count whenever the frame URL set changes (new station / bbox).
+  // Reset loaded count whenever the frame URL set changes (new station / bbox / layer).
   useEffect(() => {
     setFramesLoadedCount(0);
     setIsPlaying(false);
-  }, [allRadarUrls]);
+  }, [overlayUrls]);
 
-  const framesPreloaded = framesLoadedCount >= allRadarUrls.length && allRadarUrls.length > 0;
+  const framesPreloaded = framesLoadedCount >= overlayUrls.length && overlayUrls.length > 0;
 
   // -- Frame-based timeline helpers --
 
@@ -502,8 +627,52 @@ export function RadarScreen() {
         <Text style={[styles.title, {color: themeColors.text}]}>Radar</Text>
         <Text style={[styles.subtitle, {color: themeColors.textSecondary}]}>
           {location?.city || 'Weather Radar'}
-          {nearestStation ? ` · ${nearestStation.code}` : ''}
+          {provider?.id === 'nexrad'
+            ? ` · ${nearestStation.code}`
+            : provider
+              ? ` · ${provider.label} gov radar`
+              : ` · ${satLayer.label} satellite`}
         </Text>
+
+        {/* Overlay toggle: gov radar vs NASA satellite */}
+        <View style={styles.layerToggle}>
+          {(['radar', 'satellite'] as const).map(mode => {
+            const active = overlayMode === mode;
+            const label = mode === 'radar' ? t('radar.layerRadar') : t('radar.layerSatellite');
+            return (
+              <TouchableOpacity
+                key={mode}
+                onPress={() => setOverlayMode(mode)}
+                disabled={mode === 'radar' && !provider}
+                accessibilityRole="button"
+                accessibilityLabel={`${label} layer`}
+                accessibilityState={{selected: active, disabled: mode === 'radar' && !provider}}
+                style={[
+                  styles.layerButton,
+                  {
+                    backgroundColor: active
+                      ? themeColors.primary
+                      : themeColors.surface,
+                    opacity: mode === 'radar' && !provider ? 0.4 : 1,
+                  },
+                ]}
+                activeOpacity={0.75}>
+                <Icon
+                  name={mode === 'radar' ? 'radar' : 'satellite-variant'}
+                  size={16}
+                  color={active ? '#fff' : themeColors.textSecondary}
+                />
+                <Text
+                  style={[
+                    styles.layerButtonText,
+                    {color: active ? '#fff' : themeColors.textSecondary},
+                  ]}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
 
       {/* Map */}
@@ -540,13 +709,16 @@ export function RadarScreen() {
               />
             ))}
 
-            {/* Radar overlay — all frames mounted, only current one visible.
+            {/* Overlay — all frames mounted, only current one visible.
                 This avoids any re-decode / network fetch during playback. */}
-            {allRadarUrls.map((url, i) => (
+            {overlayUrls.map((url, i) => (
               <Image
-                key={url}
+                key={frames[i]?.key ?? `${url}-${i}`}
                 source={{uri: url}}
-                style={[styles.radarOverlay, {opacity: i === currentFrameIndex ? 0.7 : 0}]}
+                style={[
+                  styles.radarOverlay,
+                  {opacity: i === currentFrameIndex ? (overlayMode === 'satellite' ? 1 : 0.7) : 0},
+                ]}
                 resizeMode="stretch"
                 onLoad={() => setFramesLoadedCount(c => c + 1)}
                 onError={() => setFramesLoadedCount(c => c + 1)}
@@ -555,7 +727,7 @@ export function RadarScreen() {
           </Animated.View>
 
           {/* Loading indicator */}
-          {(!framesPreloaded || scanStatus === 'loading') && (
+          {overlayUrls.length > 0 && (!framesPreloaded || scanStatus === 'loading') && (
             <View style={styles.mapLoadingIndicator}>
               <ActivityIndicator size="small" color={themeColors.primary} />
             </View>
@@ -566,26 +738,40 @@ export function RadarScreen() {
             <View style={[styles.scanBanner, {backgroundColor: useDark ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.85)'}]}>
               <ActivityIndicator size="small" color={themeColors.primary} />
               <Text style={[styles.scanBannerText, {color: themeColors.text}]}>
-                Loading NEXRAD scans from {nearestStation.code}…
+                {overlayMode === 'satellite'
+                  ? `Loading ${satLayer.label} satellite…`
+                  : provider?.id === 'nexrad'
+                    ? `Loading NEXRAD scans from ${nearestStation.code}…`
+                    : provider
+                      ? `Loading ${provider.label} government radar…`
+                      : 'Loading radar…'}
               </Text>
             </View>
           )}
 
-          {scanStatus === 'error' && (
+          {(overlayMode === 'radar' ? !provider || scanStatus === 'error' : scanStatus === 'error') && (
             <View style={[styles.scanBanner, {backgroundColor: useDark ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.85)'}]}>
               <Icon name="alert-circle-outline" size={18} color={themeColors.textSecondary} />
               <Text style={[styles.scanBannerText, {color: themeColors.textSecondary}]}>
-                No radar data available for {nearestStation.code}
+                {!provider && overlayMode === 'radar'
+                  ? 'Government radar isn\u2019t available for this region yet'
+                  : overlayMode === 'satellite'
+                    ? `No satellite data available from ${satLayer.label}`
+                    : `No radar data available from ${provider?.label ?? 'government source'}`}
               </Text>
             </View>
           )}
 
-          {/* Station marker */}
-          {scanStatus === 'ready' && (
+          {/* Provider badge */}
+          {scanStatus === 'ready' && (overlayMode === 'satellite' || provider) && (
             <View style={[styles.stationBadge, {backgroundColor: useDark ? 'rgba(15,23,42,0.7)' : 'rgba(255,255,255,0.7)'}]}>
               <Icon name="radar" size={12} color={themeColors.primary} />
               <Text style={[styles.stationBadgeText, {color: themeColors.textSecondary}]}>
-                {nearestStation.code} · {nearestStation.distanceKm} km · {frames.length} scans
+                {overlayMode === 'satellite'
+                  ? `${satLayer.label} · ${frames.length} frames`
+                  : provider?.id === 'nexrad'
+                    ? `${nearestStation.code} · ${nearestStation.distanceKm} km · ${frames.length} scans`
+                    : `${provider?.label} · ${frames.length} frames`}
               </Text>
             </View>
           )}
@@ -593,7 +779,11 @@ export function RadarScreen() {
           {/* Attribution */}
           <View style={[styles.attribution, {backgroundColor: useDark ? 'rgba(15,23,42,0.7)' : 'rgba(255,255,255,0.7)'}]}>
             <Text style={[styles.attributionText, {color: themeColors.textTertiary}]}>
-              NOAA NEXRAD via AWS · © OpenStreetMap · CARTO
+              {overlayMode === 'satellite'
+                ? satLayer.attribution
+                : provider
+                  ? provider.attribution
+                  : '© OpenStreetMap · CARTO'}
             </Text>
           </View>
         </View>{/* mapContainer */}
@@ -612,6 +802,8 @@ export function RadarScreen() {
         <View style={styles.timeDisplay}>
           <TouchableOpacity
             onPress={handleTogglePlayback}
+            accessibilityRole="button"
+            accessibilityLabel={isPlaying ? t('radar.pause') : t('radar.play')}
             style={[
               styles.playButton,
               {backgroundColor: frames.length > 0 && framesPreloaded ? themeColors.primary : themeColors.border},
@@ -739,6 +931,23 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     marginTop: 2,
+  },
+  layerToggle: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  layerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  layerButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   mapContainer: {
     flex: 1,
