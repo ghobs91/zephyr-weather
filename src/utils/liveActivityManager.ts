@@ -73,13 +73,26 @@ function bridge() {
 }
 
 /**
+ * Live Activities need iOS 16.2+ (the ActivityKit request/update shapes
+ * used natively). Below that the bridge reports failure — hide the
+ * Settings toggle there instead of offering a dead switch.
+ */
+export function isLiveActivitySupported(): boolean {
+  if (Platform.OS !== 'ios') return false;
+  const parts = String(Platform.Version ?? '').split('.').map(Number);
+  const major = parts[0] ?? 0;
+  const minor = parts[1] ?? 0;
+  return major > 16 || (major === 16 && minor >= 2);
+}
+
+/**
  * Reconcile the Live Activity with the selected location's weather:
  * update when active, start when missing, end when disabled/dataless.
  * Safe to call after every refresh — no-ops without the native bridge.
  */
 export async function syncLiveActivity(): Promise<void> {
   const b = bridge();
-  if (!b?.startLiveActivity) return;
+  if (!b?.startLiveActivity || !isLiveActivitySupported()) return;
 
   const {locations, currentLocationIndex, settings} = useWeatherStore.getState();
   const location = locations[currentLocationIndex];

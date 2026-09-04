@@ -11,6 +11,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {useWeatherStore} from '../store/weatherStore';
 import {useThemeColors} from '../hooks/useThemeColors';
+import {isLiveActivitySupported} from '../utils/liveActivityManager';
 import {AtmosphericBackground} from '../components/AtmosphericBackground';
 import {getInsetPanelStyle, withAlpha} from '../theme/design';
 import {useResponsiveLayout} from '../utils/platformDetect';
@@ -235,17 +236,21 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
           </Text>
         </View>
 
-        {/* Lock Screen Section */}
-        {renderSectionHeader('Lock Screen', 'lock-outline')}
+        {/* Lock Screen Section (Live Activities need iOS 16.2+) */}
+        {isLiveActivitySupported() && (
+          <>
+            {renderSectionHeader('Lock Screen', 'lock-outline')}
 
-        {renderOptionRow(
-          'Live Activity',
-          settings.liveActivityEnabled ? 'on' : 'off',
-          [
-            {label: 'On', value: 'on'},
-            {label: 'Off', value: 'off'},
-          ],
-          (value) => updateSettings({liveActivityEnabled: value === 'on'})
+            {renderOptionRow(
+              'Live Activity',
+              settings.liveActivityEnabled ? 'on' : 'off',
+              [
+                {label: 'On', value: 'on'},
+                {label: 'Off', value: 'off'},
+              ],
+              (value) => updateSettings({liveActivityEnabled: value === 'on'})
+            )}
+          </>
         )}
 
         {/* About Section */}

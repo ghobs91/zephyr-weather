@@ -4,7 +4,7 @@ const mockEnd = jest.fn();
 const mockIsActive = jest.fn();
 
 jest.mock('react-native', () => ({
-  Platform: {OS: 'ios'},
+  Platform: {OS: 'ios', Version: '17.0'},
   NativeModules: {
     ZephyrWidgetBridge: {
       startLiveActivity: (...args) => mockStart(...args),
@@ -15,11 +15,13 @@ jest.mock('react-native', () => ({
   },
 }));
 
+const {Platform} = require('react-native');
 const {WeatherCode} = require('../../types/weather');
 const {useWeatherStore} = require('../../store/weatherStore');
 const {
   buildLiveActivityPayload,
   weatherCodeToSFSymbol,
+  isLiveActivitySupported,
   syncLiveActivity,
   endLiveActivity,
 } = require('../liveActivityManager');
@@ -77,6 +79,19 @@ describe('buildLiveActivityPayload', () => {
 
   test('returns null without current conditions', () => {
     expect(buildLiveActivityPayload({id: 'x'}, 'fahrenheit')).toBeNull();
+  });
+});
+
+describe('isLiveActivitySupported', () => {
+  test('requires iOS 16.2+', () => {
+    expect(isLiveActivitySupported()).toBe(true);
+    Platform.Version = '16.2';
+    expect(isLiveActivitySupported()).toBe(true);
+    Platform.Version = '16.1';
+    expect(isLiveActivitySupported()).toBe(false);
+    Platform.Version = '15.7';
+    expect(isLiveActivitySupported()).toBe(false);
+    Platform.Version = '17.0';
   });
 });
 
