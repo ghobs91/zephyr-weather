@@ -13,5 +13,6 @@ struct ZephyrWeatherWidgetsBundle: WidgetBundle {
     var body: some Widget {
         CurrentWeatherWidget()
         DailyForecastWidget()
+        ZephyrLiveActivity()
     }
 }

@@ -70,7 +70,9 @@ struct CurrentWeatherWidgetView: View {
     }
     
     var body: some View {
-        if family == .systemSmall {
+        if family == .accessoryInline || family == .accessoryCircular || family == .accessoryRectangular {
+            CurrentWeatherAccessoryView(data: entry.weatherData, locationName: displayLocationName)
+        } else if family == .systemSmall {
             smallWidgetView
         } else if family == .systemLarge || family == .systemExtraLarge {
             largeWidgetView
@@ -317,7 +319,9 @@ struct CurrentWeatherWidgetView: View {
         guard let temp = temp else { return "--°" }
         
         let isFahrenheit = entry.weatherData.temperatureUnit == "fahrenheit"
-        let displayTemp = isFahrenheit ? celsiusToFahrenheit(temp) : temp
+        // Shared-container temps arrive pre-converted to the user's unit
+        // (see widgetManager.createWidgetWeatherData) — format only.
+        let displayTemp = temp
         let unit = isFahrenheit ? "°F" : "°C"
         
         return "\(Int(round(displayTemp)))\(unit)"
@@ -326,29 +330,22 @@ struct CurrentWeatherWidgetView: View {
     func formatTempValue(_ temp: Double?) -> String {
         guard let temp = temp else { return "--°" }
 
-        let isFahrenheit = entry.weatherData.temperatureUnit == "fahrenheit"
-        let displayTemp = isFahrenheit ? celsiusToFahrenheit(temp) : temp
-        return "\(Int(round(displayTemp)))°"
+        return "\(Int(round(temp)))°"
     }
 
     func formatLargeTempValue(_ temp: Double?) -> String {
         guard let temp = temp else { return "--°" }
 
-        let isFahrenheit = entry.weatherData.temperatureUnit == "fahrenheit"
-        let displayTemp = isFahrenheit ? celsiusToFahrenheit(temp) : temp
-        return "\(Int(round(displayTemp)))°"
-    }
-    
-    func celsiusToFahrenheit(_ celsius: Double) -> Double {
-        return celsius * 9 / 5 + 32
+        return "\(Int(round(temp)))°"
     }
     
     func temperatureColor(_ temp: Double?) -> Color {
         guard let temp = temp else { return .white }
         
-        // Temperature color based on Fahrenheit scale
+        // Thresholds are Fahrenheit-scale: convert only when the stored
+        // (display-unit) value is Celsius.
         let isFahrenheit = entry.weatherData.temperatureUnit == "fahrenheit"
-        let tempF = isFahrenheit ? celsiusToFahrenheit(temp) : temp
+        let tempF = isFahrenheit ? temp : temp * 9 / 5 + 32
         
         if tempF >= 90 {
             return Color(red: 1.0, green: 0.3, blue: 0.3)
@@ -449,9 +446,7 @@ struct SmallForecastRow: View {
 
     func formatTemp(_ temp: Double?) -> String {
         guard let temp = temp else { return "--" }
-        let isFahrenheit = temperatureUnit == "fahrenheit"
-        let displayTemp = isFahrenheit ? temp * 9 / 5 + 32 : temp
-        return "\(Int(round(displayTemp)))"
+        return "\(Int(round(temp)))"
     }
 
     func weatherIconAsset(_ code: String?) -> String {
@@ -502,6 +497,12 @@ struct CurrentWeatherWidget: Widget {
         var families: [WidgetFamily] = [.systemSmall, .systemMedium, .systemLarge]
         if #available(iOS 15.0, macOS 12.0, *) {
             families.append(.systemExtraLarge)
+        }
+        if #available(iOS 16.0, *) {
+            // Lock Screen families (also what StandBy offers on iPhone).
+            families.append(.accessoryInline)
+            families.append(.accessoryCircular)
+            families.append(.accessoryRectangular)
         }
         return families
     }

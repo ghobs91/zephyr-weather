@@ -3,6 +3,7 @@ import {AppState} from 'react-native';
 import {useWeatherStore} from '../store/weatherStore';
 import {fetchPreferredWeather} from '../services/preferredWeatherService';
 import {cacheWeatherData, getCachedWeatherData} from '../services/weatherCache';
+import {syncLiveActivity} from '../utils/liveActivityManager';
 import {Location, Weather} from '../types/weather';
 
 /**
@@ -41,6 +42,11 @@ export function useWeatherRefresh(location: Location | undefined) {
       // Cache for offline use
       cacheWeatherData(latitude, longitude, weather).catch(err =>
         console.error('Failed to cache weather:', err),
+      );
+
+      // Reconcile the Lock Screen / Dynamic Island Live Activity.
+      syncLiveActivity().catch(err =>
+        console.error('Failed to sync Live Activity:', err),
       );
     } catch (error) {
       // If we showed cached data, don't overwrite with an error

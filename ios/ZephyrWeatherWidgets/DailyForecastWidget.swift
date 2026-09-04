@@ -81,7 +81,9 @@ struct DailyForecastWidgetView: View {
     }
     
     var body: some View {
-        if family == .systemMedium {
+        if family == .accessoryInline || family == .accessoryRectangular {
+            DailyForecastAccessoryView(data: entry.weatherData)
+        } else if family == .systemMedium {
             // Compact horizontal layout for medium widget
             VStack(spacing: 4) {
                 ForEach(Array(todayAndFutureDays.prefix(4).enumerated()), id: \.offset) { index, day in
@@ -228,22 +230,21 @@ struct DailyForecastWidgetView: View {
     func formatCurrentTemp(_ temp: Double?) -> String {
         guard let temp = temp else { return "--°" }
         let isFahrenheit = entry.weatherData.temperatureUnit == "fahrenheit"
-        let displayTemp = isFahrenheit ? temp * 9 / 5 + 32 : temp
+        // Stored temps are pre-converted to the user's unit — format only.
+        let displayTemp = temp
         let unit = isFahrenheit ? "°F" : "°C"
         return "\(Int(round(displayTemp)))\(unit)"
     }
 
     func formatTempValue(_ temp: Double?) -> String {
         guard let temp = temp else { return "--" }
-        let isFahrenheit = entry.weatherData.temperatureUnit == "fahrenheit"
-        let displayTemp = isFahrenheit ? temp * 9 / 5 + 32 : temp
-        return "\(Int(round(displayTemp)))°"
+        return "\(Int(round(temp)))°"
     }
 
     func currentTempColor(_ temp: Double?) -> Color {
         guard let temp = temp else { return .white }
         let isFahrenheit = entry.weatherData.temperatureUnit == "fahrenheit"
-        let tempF = isFahrenheit ? temp * 9 / 5 + 32 : temp
+        let tempF = isFahrenheit ? temp : temp * 9 / 5 + 32
         if tempF >= 90 { return Color(red: 1.0, green: 0.3, blue: 0.3) }
         if tempF >= 80 { return Color(red: 1.0, green: 0.6, blue: 0.2) }
         if tempF >= 70 { return Color(red: 1.0, green: 0.8, blue: 0.3) }
@@ -338,13 +339,7 @@ struct DayRow: View {
     
     func formatTempNumber(_ temp: Double?) -> String {
         guard let temp = temp else { return "--" }
-        let isFahrenheit = temperatureUnit == "fahrenheit"
-        let displayTemp = isFahrenheit ? celsiusToFahrenheit(temp) : temp
-        return "\(Int(round(displayTemp)))"
-    }
-    
-    func celsiusToFahrenheit(_ celsius: Double) -> Double {
-        return celsius * 9 / 5 + 32
+        return "\(Int(round(temp)))"
     }
     
     func weatherIconAsset(_ code: String?) -> String {
@@ -498,13 +493,7 @@ struct DayColumn: View {
     
     func formatTemp(_ temp: Double?) -> String {
         guard let temp = temp else { return "--°" }
-        let isFahrenheit = temperatureUnit == "fahrenheit"
-        let displayTemp = isFahrenheit ? celsiusToFahrenheit(temp) : temp
-        return "\(Int(round(displayTemp)))°"
-    }
-    
-    func celsiusToFahrenheit(_ celsius: Double) -> Double {
-        return celsius * 9 / 5 + 32
+        return "\(Int(round(temp)))°"
     }
     
     func weatherIconAsset(_ code: String?) -> String {
@@ -609,6 +598,11 @@ struct DailyForecastWidget: Widget {
         var families: [WidgetFamily] = [.systemMedium, .systemLarge]
         if #available(iOS 15.0, macOS 12.0, *) {
             families.append(.systemExtraLarge)
+        }
+        if #available(iOS 16.0, *) {
+            // Lock Screen families.
+            families.append(.accessoryInline)
+            families.append(.accessoryRectangular)
         }
         return families
     }

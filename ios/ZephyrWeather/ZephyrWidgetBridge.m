@@ -5,6 +5,13 @@
 // ObjC/Swift class-interop header generation chicken-and-egg problem.
 extern void ZephyrReloadAllWidgets(void);
 
+// Defined in ZephyrLiveActivityManager.swift via @_cdecl (same pattern).
+// Single-activity model: the app manages at most one Live Activity.
+extern BOOL ZephyrLiveActivityStart(const char *json);
+extern BOOL ZephyrLiveActivityUpdate(const char *json);
+extern void ZephyrLiveActivityEnd(void);
+extern BOOL ZephyrLiveActivityIsActive(void);
+
 @implementation ZephyrWidgetBridge
 
 RCT_EXPORT_MODULE();
@@ -42,6 +49,43 @@ RCT_EXPORT_METHOD(reloadWidgets:(RCTPromiseResolveBlock)resolve
     RCTLogInfo(@"WidgetKit: reloaded all timelines");
     resolve(nil);
   });
+}
+
+RCT_EXPORT_METHOD(startLiveActivity:(NSString *)json
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  BOOL ok = ZephyrLiveActivityStart([json UTF8String]);
+  if (ok) {
+    resolve(nil);
+  } else {
+    reject(@"ERR_LIVE_ACTIVITY", @"Could not start Live Activity (unsupported device or invalid payload)", nil);
+  }
+}
+
+RCT_EXPORT_METHOD(updateLiveActivity:(NSString *)json
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  BOOL ok = ZephyrLiveActivityUpdate([json UTF8String]);
+  if (ok) {
+    resolve(nil);
+  } else {
+    reject(@"ERR_LIVE_ACTIVITY", @"Could not update Live Activity (none active or invalid payload)", nil);
+  }
+}
+
+RCT_EXPORT_METHOD(endLiveActivity:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  ZephyrLiveActivityEnd();
+  resolve(nil);
+}
+
+RCT_EXPORT_METHOD(isLiveActivityActive:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  resolve(@(ZephyrLiveActivityIsActive()));
 }
 
 @end
