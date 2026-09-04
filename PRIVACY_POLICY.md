@@ -26,7 +26,6 @@ We store your app preferences locally on your device, including:
 
 - Display theme (light, dark, or automatic)
 - Unit preferences (temperature, wind speed, pressure, precipitation, distance)
-- Notification settings
 - Saved locations list
 - Currently selected location
 
@@ -86,12 +85,6 @@ Zephyr Weather requests the following permissions:
 - **Purpose**: To automatically detect your current location and provide local weather
 - **When Requested**: When you enable GPS-based location features
 - **Control**: You can deny or revoke location permission at any time through your device settings
-
-### Notifications (Optional)
-
-- **Purpose**: To send weather alerts, precipitation notifications, and daily forecast updates
-- **When Requested**: When you enable weather notifications in app settings
-- **Control**: You can disable notifications at any time through app or device settings
 
 ## Children's Privacy
 

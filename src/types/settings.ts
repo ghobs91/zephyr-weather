@@ -16,11 +16,7 @@ export interface AppSettings {
   timeFormat: TimeFormat;
   defaultForecastSource: string;
   refreshInterval: number; // in minutes
-  showNotifications: boolean;
-  alertNotifications: boolean;
-  precipitationNotifications: boolean;
-  todayForecastNotifications: boolean;
-  tomorrowForecastNotifications: boolean;
+  liveActivityEnabled: boolean;
 }
 
 export const defaultSettings: AppSettings = {
@@ -33,9 +29,5 @@ export const defaultSettings: AppSettings = {
   timeFormat: 'auto',
   defaultForecastSource: 'nws',
   refreshInterval: 60,
-  showNotifications: true,
-  alertNotifications: true,
-  precipitationNotifications: false,
-  todayForecastNotifications: false,
-  tomorrowForecastNotifications: false,
+  liveActivityEnabled: true,
 };

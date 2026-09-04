@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Switch,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -80,33 +79,6 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
           </TouchableOpacity>
         ))}
       </View>
-    </View>
-  );
-
-  const renderSwitchRow = (
-    label: string,
-    subtitle: string,
-    value: boolean,
-    onToggle: (value: boolean) => void
-  ) => (
-    <View
-      style={[
-        styles.switchRow,
-        getInsetPanelStyle(themeColors),
-        {backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.07 : 0.56)},
-      ]}>
-      <View style={styles.switchContent}>
-        <Text style={[styles.switchLabel, {color: themeColors.text}]}>{label}</Text>
-        <Text style={[styles.switchSubtitle, {color: themeColors.textSecondary}]}>
-          {subtitle}
-        </Text>
-      </View>
-      <Switch
-        value={value}
-        onValueChange={onToggle}
-        trackColor={{false: themeColors.surfaceVariant, true: themeColors.primary}}
-        thumbColor="#FFFFFF"
-      />
     </View>
   );
 
@@ -222,37 +194,6 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
           (value) => updateSettings({distanceUnit: value as DistanceUnit})
         )}
 
-        {/* Notifications Section */}
-        {renderSectionHeader('Notifications', 'bell-outline')}
-        
-        {renderSwitchRow(
-          'Weather Alerts',
-          'Get notified about severe weather',
-          settings.alertNotifications,
-          (value) => updateSettings({alertNotifications: value})
-        )}
-
-        {renderSwitchRow(
-          'Precipitation',
-          'Notifications about rain or snow',
-          settings.precipitationNotifications,
-          (value) => updateSettings({precipitationNotifications: value})
-        )}
-
-        {renderSwitchRow(
-          'Today\'s Forecast',
-          'Daily morning forecast notification',
-          settings.todayForecastNotifications,
-          (value) => updateSettings({todayForecastNotifications: value})
-        )}
-
-        {renderSwitchRow(
-          'Tomorrow\'s Forecast',
-          'Evening forecast for tomorrow',
-          settings.tomorrowForecastNotifications,
-          (value) => updateSettings({tomorrowForecastNotifications: value})
-        )}
-
         {/* Weather Sources Section */}
         {renderSectionHeader('Weather Sources', 'cloud-outline')}
         
@@ -293,6 +234,19 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
             Global • Forecast • Current • Air Quality • Pollen • Search
           </Text>
         </View>
+
+        {/* Lock Screen Section */}
+        {renderSectionHeader('Lock Screen', 'lock-outline')}
+
+        {renderOptionRow(
+          'Live Activity',
+          settings.liveActivityEnabled ? 'on' : 'off',
+          [
+            {label: 'On', value: 'on'},
+            {label: 'Off', value: 'off'},
+          ],
+          (value) => updateSettings({liveActivityEnabled: value === 'on'})
+        )}
 
         {/* About Section */}
         {renderSectionHeader('About', 'information-outline')}
@@ -381,24 +335,6 @@ const styles = StyleSheet.create({
   optionButtonText: {
     fontSize: 14,
     fontWeight: '500',
-  },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 24,
-    padding: 16,
-    marginBottom: 10,
-  },
-  switchContent: {
-    flex: 1,
-  },
-  switchLabel: {
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  switchSubtitle: {
-    fontSize: 13,
-    marginTop: 2,
   },
   sourceCard: {
     borderRadius: 24,

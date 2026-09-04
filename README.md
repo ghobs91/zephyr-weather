@@ -61,14 +61,8 @@ Inspired by [Breezy Weather](https://github.com/breezy-weather/breezy-weather).
   - Precipitation: mm / inches
   - Distance: km / miles
 
-### Notifications
-- Weather alerts
-- Precipitation notifications
-- Daily forecast notifications
-- Tomorrow's forecast preview
-
 ### Widgets (iOS & macOS)
-- **Current Weather Widget**: Small, medium, and large sizes
+- **Current Weather Widget**: Small, medium, large, and extra-large sizes
   - Temperature with color-coded display
   - Weather condition icon and text
   - High/low temperatures
@@ -77,6 +71,13 @@ Inspired by [Breezy Weather](https://github.com/breezy-weather/breezy-weather).
   - 4-7 day forecast with temperature bars
   - Precipitation probability indicators
   - Visual temperature range representation
+- **Lock Screen Widgets**: Inline, circular, and rectangular complications
+  - Current conditions (Current Weather widget)
+  - 3-day outlook (Daily Forecast widget)
+- **StandBy**: Home Screen widget sizes work in iPhone StandBy automatically
+- **Live Activity**: Current conditions on the Lock Screen and Dynamic Island
+  - Local-only (no push server), refreshes with each forecast update
+  - Toggle in Settings → Lock Screen
 - **Widget Configuration**: Select any saved location
 - **Auto-refresh**: Updates every 15-30 minutes
 - **App Group Sharing**: Unified data between app and widgets
