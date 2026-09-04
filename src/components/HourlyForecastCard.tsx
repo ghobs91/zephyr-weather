@@ -39,10 +39,10 @@ export function HourlyForecastCard({
   // the current hour instead of the raw timestamp.
   const currentHourStart = startOfHour(now);
 
-  // Filter to show from current hour onwards, limit to 24 hours
+  // Filter to show from current hour onwards, limit to 48 hours
   const filteredHours = hourlyForecast
     .filter(hour => startOfHour(hour.date) >= currentHourStart)
-    .slice(0, 24);
+    .slice(0, 48);
 
   return (
     <GlassSurface
@@ -117,7 +117,7 @@ export function HourlyForecastCard({
       </ScrollView>
 
       <View style={styles.footer}>
-        <Text style={[styles.footerText, {color: themeColors.textTertiary}]}>Next 24 hours</Text>
+        <Text style={[styles.footerText, {color: themeColors.textTertiary}]}>Next 48 hours</Text>
       </View>
     </GlassSurface>
   );

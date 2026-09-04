@@ -31,6 +31,9 @@ import {AlertBanner} from '../components/AlertBanner';
 import {CurrentWeatherCard} from '../components/CurrentWeatherCard';
 import {HourlyForecastCard} from '../components/HourlyForecastCard';
 import {DailyForecastCard} from '../components/DailyForecastCard';
+import {PollenCard} from '../components/PollenCard';
+import {SunMoonCard} from '../components/SunMoonCard';
+import {PrecipitationChartCard} from '../components/PrecipitationChartCard';
 import {WeatherDetailsSection} from '../components/WeatherDetailsSection';
 import {MinutelyPrecipitationCard} from '../components/MinutelyPrecipitationCard';
 import {AttributionFooter} from '../components/AttributionFooter';
@@ -117,6 +120,17 @@ export function HomeScreen() {
   const attributionSource = currentLocation.countryCode === 'US'
     ? 'Weather data from NOAA National Weather Service'
     : 'Weather data from Open-Meteo & Met.no (CC BY 4.0)';
+
+  // Daily pollen is not populated by providers — fall back to the nearest
+  // hourly entry that carries CAMS pollen data.
+  const todayPollen =
+    today?.pollen ??
+    hourlyForecast.find(
+      h =>
+        h.pollen?.grass?.index !== undefined ||
+        h.pollen?.tree?.index !== undefined ||
+        h.pollen?.ragweed?.index !== undefined,
+    )?.pollen;
 
   const showSkeleton = isLoading && !weather;
 
@@ -213,6 +227,13 @@ export function HomeScreen() {
               isDark={useDark}
             />
 
+            {/* Precipitation probability chart */}
+            <PrecipitationChartCard
+              hourlyForecast={hourlyForecast}
+              timeFormat={settings.timeFormat}
+              isDark={useDark}
+            />
+
             {/* Daily + Details */}
             {isDesktop ? (
               <View style={styles.macTwoColumn}>
@@ -260,6 +281,18 @@ export function HomeScreen() {
                 />
               </>
             )}
+
+            {/* Sun & Moon (uses daily sun times + computed moon phase) */}
+            <SunMoonCard
+              sun={today?.sun}
+              moon={today?.moon}
+              hoursOfSun={today?.hoursOfSun}
+              timeFormat={settings.timeFormat}
+              isDark={useDark}
+            />
+
+            {/* Pollen (CAMS via Open-Meteo hourly; hidden when unavailable) */}
+            <PollenCard pollen={todayPollen} isDark={useDark} />
 
             {/* Attribution */}
             <AttributionFooter
