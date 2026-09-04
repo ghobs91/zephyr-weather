@@ -12,6 +12,7 @@ interface WeatherState {
   isLoading: boolean;
   error: string | null;
   lastRefresh: Date | null;
+  hasCompletedOnboarding: boolean;
   
   // Actions
   setLocations: (locations: Location[]) => void;
@@ -29,6 +30,7 @@ interface WeatherState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setLastRefresh: (date: Date) => void;
+  setHasCompletedOnboarding: (done: boolean) => void;
   
   getCurrentLocation: () => Location | undefined;
 }
@@ -42,6 +44,7 @@ export const useWeatherStore = create<WeatherState>()(
       isLoading: false,
       error: null,
       lastRefresh: null,
+      hasCompletedOnboarding: false,
       
       setLocations: (locations) => {
         // Update all locations weather data for widgets
@@ -146,6 +149,8 @@ export const useWeatherStore = create<WeatherState>()(
       setError: (error) => set({error}),
       
       setLastRefresh: (date) => set({lastRefresh: date}),
+
+      setHasCompletedOnboarding: (done) => set({hasCompletedOnboarding: done}),
       
       getCurrentLocation: () => {
         const state = get();
@@ -159,6 +164,7 @@ export const useWeatherStore = create<WeatherState>()(
         locations: state.locations.map((l) => ({...l, weather: undefined})),
         settings: state.settings,
         currentLocationIndex: state.currentLocationIndex,
+        hasCompletedOnboarding: state.hasCompletedOnboarding,
       }),
       onRehydrateStorage: () => (state, error) => {
         if (state && !error && state.locations.length > 0) {

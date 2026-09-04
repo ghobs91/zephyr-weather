@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -13,7 +13,10 @@ import {SettingsScreen} from '../screens/SettingsScreen';
 import {DailyDetailScreen} from '../screens/DailyDetailScreen';
 import {AlertsScreen} from '../screens/AlertsScreen';
 import {LocationsScreen} from '../screens/LocationsScreen';
+import {OnboardingScreen} from '../screens/OnboardingScreen';
 import {useWeatherStore} from '../store/weatherStore';
+import {t} from '../i18n';
+import type {StringKey} from '../i18n';
 import {useThemeColors} from '../hooks/useThemeColors';
 import {colors} from '../theme/colors';
 import {getGlassPillStyle, withAlpha} from '../theme/design';
@@ -21,6 +24,7 @@ import {isMacOS} from '../utils/platformDetect';
 
 export type RootStackParamList = {
   MainTabs: undefined;
+  Onboarding: undefined;
   DailyDetail: {dayIndex: number};
   SearchLocation: undefined;
   Alerts: undefined;
@@ -36,9 +40,14 @@ export type MainTabParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-const TAB_CONFIG: Record<string, {icon: string; label: string}> = {
-  Home: {icon: 'weather-partly-cloudy', label: 'Weather'},
-  Radar: {icon: 'radar', label: 'Radar'},
+const TAB_CONFIG: Record<string, {icon: string}> = {
+  Home: {icon: 'weather-partly-cloudy'},
+  Radar: {icon: 'radar'},
+};
+
+const TAB_LABELS: Record<string, StringKey> = {
+  Home: 'tabs.weather',
+  Radar: 'tabs.radar',
 };
 
 function GlassPill({children, style, useDark, themeColors}: {children: React.ReactNode; style?: any; useDark: boolean; themeColors: typeof colors.light}) {
@@ -63,12 +72,17 @@ function CustomTabBar({state, navigation}: any) {
       <GlassPill useDark={useDark} themeColors={themeColors}>
         {state.routes.map((route: any, index: number) => {
           const config = TAB_CONFIG[route.name];
-          if (!config) return null;
+          const labelKey = TAB_LABELS[route.name];
+          if (!config || !labelKey) return null;
+          const label = t(labelKey);
           const isFocused = state.index === index;
           return (
             <TouchableOpacity
               key={route.key}
               onPress={() => navigation.navigate(route.name)}
+              accessibilityRole="button"
+              accessibilityLabel={`${label} tab`}
+              accessibilityState={{selected: isFocused}}
               style={[
                 tabBarStyles.tabButton,
                 isFocused && {backgroundColor: withAlpha(themeColors.primary, 0.9)},
@@ -83,7 +97,7 @@ function CustomTabBar({state, navigation}: any) {
                   tabBarStyles.tabLabel,
                   {color: isFocused ? '#FFFFFF' : themeColors.textSecondary},
                 ]}>
-                {config.label}
+                {label}
               </Text>
             </TouchableOpacity>
           );
@@ -94,6 +108,8 @@ function CustomTabBar({state, navigation}: any) {
       <GlassPill useDark={useDark} themeColors={themeColors}>
         <TouchableOpacity
           onPress={() => navigation.navigate('SearchLocation')}
+          accessibilityRole="button"
+          accessibilityLabel={t('tabs.search')}
           style={tabBarStyles.searchButton}>
           <Icon name="magnify" size={24} color={themeColors.textSecondary} />
         </TouchableOpacity>
@@ -187,11 +203,24 @@ function MainTabs() {
 export function RootNavigator() {
   const {useDark, themeColors} = useThemeColors();
   const isDesktop = isMacOS();
+  const locations = useWeatherStore(s => s.locations);
+  const hasCompletedOnboarding = useWeatherStore(s => s.hasCompletedOnboarding);
+
+  // Don't decide on onboarding until persisted state rehydrates —
+  // otherwise existing users flash the onboarding on every launch.
+  const [hydrated, setHydrated] = useState(useWeatherStore.persist.hasHydrated());
+  useEffect(() => useWeatherStore.persist.onFinishHydration(() => setHydrated(true)), []);
+  if (!hydrated) return null;
+
+  // First-run gate: fresh installs (no saved locations) see onboarding.
+  // Existing installs always have locations, so they never regress here.
+  const showOnboarding = !hasCompletedOnboarding && locations.length === 0;
 
   console.log('[RootNavigator] isDesktop:', isDesktop, '- Using:', isDesktop ? 'MacOSHomeScreen' : 'MainTabs');
 
   return (
     <Stack.Navigator
+      initialRouteName={showOnboarding ? 'Onboarding' : 'MainTabs'}
       screenOptions={{
         headerStyle: {
           backgroundColor: themeColors.surface,
@@ -211,6 +240,13 @@ export function RootNavigator() {
         component={isDesktop ? MacOSHomeScreen : MainTabs}
         options={{headerShown: false}}
       />
+      {showOnboarding && (
+        <Stack.Screen
+          name="Onboarding"
+          component={OnboardingScreen}
+          options={{headerShown: false}}
+        />
+      )}
       <Stack.Screen
         name="DailyDetail"
         component={DailyDetailScreen}

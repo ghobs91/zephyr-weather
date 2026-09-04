@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {ColorTheme} from '../theme/colors';
+import {t} from '../i18n';
 
 interface Props {
   themeColors: ColorTheme;
@@ -12,14 +13,16 @@ export function EmptyState({themeColors, onAdd}: Props) {
   return (
     <View style={[styles.container, {backgroundColor: themeColors.background}]}>
       <Icon name="map-marker-plus" size={64} color={themeColors.textSecondary} />
-      <Text style={[styles.text, {color: themeColors.text}]}>No locations added</Text>
+      <Text style={[styles.text, {color: themeColors.text}]}>{t('empty.title')}</Text>
       <Text style={[styles.subtext, {color: themeColors.textSecondary}]}>
-        Add a location to see weather data
+        {t('empty.subtitle')}
       </Text>
       <TouchableOpacity
         style={[styles.button, {backgroundColor: themeColors.primary}]}
-        onPress={onAdd}>
-        <Text style={styles.buttonText}>Add Location</Text>
+        onPress={onAdd}
+        accessibilityRole="button"
+        accessibilityLabel={t('empty.cta')}>
+        <Text style={styles.buttonText}>{t('empty.cta')}</Text>
       </TouchableOpacity>
     </View>
   );
