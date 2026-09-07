@@ -2206,6 +2206,29 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNSentry (8.25.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RNSVG (15.15.4):
     - hermes-engine
     - RCTRequired
@@ -2443,6 +2466,7 @@ DEPENDENCIES:
   - RNReactNativeSharedGroupPreferences (from `../node_modules/react-native-shared-group-preferences`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - "RNSentry (from `../node_modules/@sentry/react-native`)"
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - RNWorklets (from `../node_modules/react-native-worklets`)
@@ -2640,6 +2664,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSentry:
+    :path: "../node_modules/@sentry/react-native"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   RNVectorIcons:
@@ -2745,6 +2771,7 @@ SPEC CHECKSUMS:
   RNReactNativeSharedGroupPreferences: d4869af3c7757405b6b5ac633d0ef5f9886a9be7
   RNReanimated: 28766837a1b96215c55c2be65b27b8903e31ef5d
   RNScreens: 5b4b260e28d8263d97fddcb53e59649515797bcc
+  RNSentry: c878a3c462c1097f63a81615c784d44641ae92e4
   RNSVG: 68c366b996064ea99cee1e55da62b8feafb33a78
   RNVectorIcons: bd88db8836a8611aff4b44f061364c07002a6c2a
   RNWorklets: 064c16e85402f244420e35d28b2a42f889f836ed
