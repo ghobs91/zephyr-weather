@@ -1,6 +1,17 @@
 import {AppRegistry, LogBox} from 'react-native';
+import * as Sentry from '@sentry/react-native';
 import App from './src/App';
 import {name as appName} from './app.json';
+
+// Crash reporting: paste the DSN from the Sentry project settings to enable.
+// Empty means inert (no network calls, no behavior change). Sourcemap/dSYM
+// upload for readable Release stacks needs SENTRY_AUTH_TOKEN at build time
+// (EAS secret / Xcode Cloud env var) — see eas.json / ci_scripts.
+const SENTRY_DSN = '';
+
+if (SENTRY_DSN) {
+  Sentry.init({dsn: SENTRY_DSN});
+}
 
 // Ignore specific warnings during development
 LogBox.ignoreLogs([
@@ -31,6 +42,9 @@ class ErrorBoundary extends require('react').Component {
 
   componentDidCatch(error, errorInfo) {
     console.error('App Error:', error, errorInfo);
+    if (SENTRY_DSN) {
+      Sentry.captureException(error);
+    }
   }
 
   render() {
