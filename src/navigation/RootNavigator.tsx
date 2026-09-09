@@ -209,7 +209,16 @@ export function RootNavigator() {
   // Don't decide on onboarding until persisted state rehydrates —
   // otherwise existing users flash the onboarding on every launch.
   const [hydrated, setHydrated] = useState(useWeatherStore.persist.hasHydrated());
-  useEffect(() => useWeatherStore.persist.onFinishHydration(() => setHydrated(true)), []);
+  useEffect(() => {
+    // Re-check here: with empty storage rehydration can finish between the
+    // first render and this effect, in which case onFinishHydration never
+    // fires again and the app would stay stuck on a blank screen.
+    if (useWeatherStore.persist.hasHydrated()) {
+      setHydrated(true);
+      return;
+    }
+    return useWeatherStore.persist.onFinishHydration(() => setHydrated(true));
+  }, []);
   if (!hydrated) return null;
 
   // First-run gate: fresh installs (no saved locations) see onboarding.

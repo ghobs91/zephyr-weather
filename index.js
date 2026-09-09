@@ -1,7 +1,6 @@
 import {AppRegistry, LogBox} from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import App from './src/App';
-import {name as appName} from './app.json';
 
 // Crash reporting: paste the DSN from the Sentry project settings to enable.
 // Empty means inert (no network calls, no behavior change). Sourcemap/dSYM
@@ -64,4 +63,8 @@ const AppWithErrorBoundary = () => {
   );
 };
 
-AppRegistry.registerComponent(appName, () => AppWithErrorBoundary);
+// Must match AppDelegate.moduleName (ios/ZephyrWeather/AppDelegate.mm).
+// Do NOT read this from app.json: since the Expo SDK 57 migration the name
+// lives under the `expo` key, so the top-level `name` is undefined and the
+// app dies at launch with "ZephyrWeather has not been registered".
+AppRegistry.registerComponent('ZephyrWeather', () => AppWithErrorBoundary);
