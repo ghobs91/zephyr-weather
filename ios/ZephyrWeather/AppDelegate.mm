@@ -1,41 +1,30 @@
 #import "AppDelegate.h"
 
 #import <React/RCTBundleURLProvider.h>
+#import <ReactAppDependencyProvider/RCTAppDependencyProvider.h>
 
 @implementation AppDelegate
+
+// Register the codegen'd third-party Fabric components (safe-area-context,
+// gesture-handler, screens, svg, blur, ...). Without this the delegate falls
+// back to the legacy component interop, which drops native events in
+// bridgeless mode (safe-area insets never arrive -> blank screen) and can
+// dispatch legacy RCTEventEmitter events that crash the app at launch.
+- (id<RCTDependencyProvider>)dependencyProvider
+{
+  return [RCTAppDependencyProvider new];
+}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   self.moduleName = @"ZephyrWeather";
   self.initialProps = @{};
+  // The window is created by SceneDelegate so it is owned by the UIWindowScene
+  // (required by the iOS 27 SDK scene lifecycle).
+  self.automaticallyLoadReactNativeWindow = NO;
 
-  BOOL result = [super application:application didFinishLaunchingWithOptions:launchOptions];
-
-#if TARGET_OS_MACCATALYST
-  // Configure macOS window
-  if (self.window != nil) {
-    [self configureMacWindow];
-  }
-#endif
-
-  return result;
+  return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
-
-#if TARGET_OS_MACCATALYST
-- (void)configureMacWindow
-{
-  // Set minimum window size for macOS
-  if (@available(macCatalyst 13.0, *)) {
-    UIWindowScene *windowScene = (UIWindowScene *)self.window.windowScene;
-    if (windowScene != nil) {
-      windowScene.sizeRestrictions.minimumSize = CGSizeMake(400, 600);
-      windowScene.sizeRestrictions.maximumSize = CGSizeMake(1200, 900);
-      // Set a good default title
-      windowScene.title = @"Zephyr Weather";
-    }
-  }
-}
-#endif
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
