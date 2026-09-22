@@ -15,9 +15,9 @@ describe('CurrentWeatherWidget source', () => {
     expect(source).toContain('Array(todayAndFutureDays.dropFirst().prefix(4))');
     expect(source).toContain('SmallForecastRow');
     expect(source).toContain('todayAndFutureDays.first');
-    expect(source).toContain('let compactRowHeight: CGFloat = 20');
-    expect(source).toContain('let forecastTopPadding: CGFloat = 70');
-    expect(source).toContain('ZStack(alignment: .topLeading)');
+    expect(source).toContain('let compactRowHeight: CGFloat = 18');
+    expect(source).toContain('VStack(alignment: .leading, spacing: 0)');
+    expect(source).not.toContain('forecastTopPadding');
     expect(source).toContain('showsDivider: index < upcomingDailyForecast.count - 1');
   });
 

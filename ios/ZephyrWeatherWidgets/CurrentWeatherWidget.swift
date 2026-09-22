@@ -82,50 +82,52 @@ struct CurrentWeatherWidgetView: View {
     }
     
     var smallWidgetView: some View {
-        let compactRowHeight: CGFloat = 20
-        let forecastTopPadding: CGFloat = 70
+        let compactRowHeight: CGFloat = 18
 
-        return ZStack(alignment: .topLeading) {
-            // Top-left: Current temperature
-            Text(formatLargeTempValue(entry.weatherData.current?.temperature))
-                .font(.system(size: 52, weight: .thin))
-                .foregroundColor(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
+        return VStack(alignment: .leading, spacing: 0) {
+            // Top: current temperature (left) + conditions icon & today's high/low (right)
+            HStack(alignment: .top, spacing: 8) {
+                Text(formatLargeTempValue(entry.weatherData.current?.temperature))
+                    .font(.system(size: 52, weight: .thin))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
 
-            // Top-right: Current conditions icon + today's high/low
-            VStack(alignment: .trailing, spacing: 6) {
-                Image(weatherIconAsset(entry.weatherData.current?.weatherCode, isDay: entry.weatherData.current?.isDaylight))
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 26, height: 26)
+                Spacer(minLength: 4)
 
-                if let today = todayAndFutureDays.first {
-                    VStack(alignment: .trailing, spacing: 2) {
-                        HStack(spacing: 2) {
-                            Image(systemName: "arrow.up")
-                                .font(.system(size: 9, weight: .semibold))
-                            Text(formatTempValue(today.dayTemp))
-                                .font(.system(size: 14, weight: .semibold))
-                                .monospacedDigit()
+                VStack(alignment: .trailing, spacing: 4) {
+                    Image(weatherIconAsset(entry.weatherData.current?.weatherCode, isDay: entry.weatherData.current?.isDaylight))
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 26, height: 26)
+
+                    if let today = todayAndFutureDays.first {
+                        VStack(alignment: .trailing, spacing: 1) {
+                            HStack(spacing: 2) {
+                                Image(systemName: "arrow.up")
+                                    .font(.system(size: 9, weight: .semibold))
+                                Text(formatTempValue(today.dayTemp))
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .monospacedDigit()
+                            }
+                            .foregroundColor(.white)
+
+                            HStack(spacing: 2) {
+                                Image(systemName: "arrow.down")
+                                    .font(.system(size: 9, weight: .semibold))
+                                Text(formatTempValue(today.nightTemp))
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .monospacedDigit()
+                            }
+                            .foregroundColor(.white.opacity(0.68))
                         }
-                        .foregroundColor(.white)
-
-                        HStack(spacing: 2) {
-                            Image(systemName: "arrow.down")
-                                .font(.system(size: 9, weight: .semibold))
-                            Text(formatTempValue(today.nightTemp))
-                                .font(.system(size: 14, weight: .semibold))
-                                .monospacedDigit()
-                        }
-                        .foregroundColor(.white.opacity(0.68))
                     }
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .topTrailing)
-            .padding(.top, 10)
 
-            // Bottom ~70%: Next 4 days forecast — icon only + highs/lows
+            Spacer(minLength: 6)
+
+            // Bottom: next 4 days — icon only + highs/lows
             VStack(spacing: 0) {
                 ForEach(Array(upcomingDailyForecast.enumerated()), id: \.offset) { index, day in
                     SmallForecastRow(
@@ -136,8 +138,6 @@ struct CurrentWeatherWidgetView: View {
                     )
                 }
             }
-            .padding(.top, forecastTopPadding)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
         .padding(.horizontal, 14)
         .padding(.top, 8)
