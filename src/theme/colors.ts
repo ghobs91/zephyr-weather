@@ -1,167 +1,184 @@
 export const colors = {
   light: {
     // ── Brand ──────────────────────────────────────────────────────
-    primary: '#0EA5E9',        // vibrant sky blue
-    primaryDark: '#0284C7',
-    secondary: '#F59E0B',      // warm amber
-    accent: '#38BDF8',         // lighter blue accent
+    primary: '#007AFF',        // iOS system blue
+    primaryDark: '#0062CC',
+    secondary: '#FF9F0A',      // iOS system orange
+    accent: '#5AC8FA',         // iOS system teal
 
     // ── Liquid Glass Surfaces ──────────────────────────────────────
-    // iOS 27 liquid glass relies on deep translucency, not opaque fills.
-    // These are the "base" colors that tint the glass — the actual
-    // rendered effect comes from the blur + vibrancy layers stacked
-    // on top of the atmospheric background.
-    background: '#E8F8FF',           // cool blue-tinted white
-    surface: '#EBF9FF',
-    surfaceVariant: '#D6F0FB',
-    surfaceElevated: '#F5FCFF',
-    glassBase: 'rgba(255, 255, 255, 0.72)',   // main glass tint
-    glassHighlight: 'rgba(255, 255, 255, 0.88)', // top-sheet / modal glass
-    glassOverlay: 'rgba(245, 252, 255, 0.62)',  // subtle overlay glass
+    // Apple's Liquid Glass is a neutral, adaptive material: a frosted
+    // layer that picks up the colour behind it rather than washing the
+    // surface in brand tint. These values are deliberately low-saturation.
+    background: '#F2F2F7',           // systemGroupedBackground
+    surface: '#FFFFFF',
+    surfaceVariant: '#E9E9EE',
+    surfaceElevated: '#FFFFFF',
+    glassBase: 'rgba(255, 255, 255, 0.55)',      // regular material
+    glassHighlight: 'rgba(255, 255, 255, 0.72)', // floating / chrome material
+    glassOverlay: 'rgba(255, 255, 255, 0.40)',   // thin nested material
 
-    // ── Text ───────────────────────────────────────────────────────
-    text: '#0B1E33',
-    textSecondary: '#4A607A',
-    textTertiary: '#7D94AE',
+    // ── Text (vibrancy-style) ──────────────────────────────────────
+    text: '#000000',
+    textSecondary: 'rgba(60, 60, 67, 0.60)',
+    textTertiary: 'rgba(60, 60, 67, 0.30)',
 
     // ── Semantic ───────────────────────────────────────────────────
-    border: 'rgba(11, 30, 51, 0.07)',
-    error: '#EF4444',
-    warning: '#F59E0B',
-    success: '#10B981',
+    border: 'rgba(60, 60, 67, 0.16)',
+    error: '#FF3B30',
+    warning: '#FF9F0A',
+    success: '#34C759',
+
+    // ── Liquid Glass material tokens ───────────────────────────────
+    separator: 'rgba(60, 60, 67, 0.16)',
+    fill: 'rgba(120, 120, 128, 0.16)',
+    fillSecondary: 'rgba(120, 120, 128, 0.10)',
+    fillTertiary: 'rgba(118, 118, 128, 0.06)',
+    materialBorder: 'rgba(255, 255, 255, 0.55)',  // specular rim light
+    materialSpecular: 'rgba(255, 255, 255, 0.85)',
+    scrim: 'rgba(0, 0, 0, 0.22)',
 
     // ── Glass surface presets (legacy compat) ──────────────────────
-    cardBackground: 'rgba(255, 255, 255, 0.58)',
-    cardBorder: 'rgba(255, 255, 255, 0.72)',
-    pillBackground: 'rgba(245, 252, 255, 0.64)',
-    pillBorder: 'rgba(255, 255, 255, 0.78)',
-    overlay: 'rgba(255, 255, 255, 0.48)',
-    shadow: '#1E4060',
+    cardBackground: 'rgba(255, 255, 255, 0.55)',
+    cardBorder: 'rgba(255, 255, 255, 0.55)',
+    pillBackground: 'rgba(255, 255, 255, 0.72)',
+    pillBorder: 'rgba(255, 255, 255, 0.65)',
+    overlay: 'rgba(255, 255, 255, 0.40)',
+    shadow: '#000000',
 
     // ── Atmospheric Gradient (hero sky) ────────────────────────────
-    heroSkyTop: '#38BDF8',       // vibrant sky top
-    heroSkyMid: '#7DD3FC',       // soft transition
-    heroSkyBottom: '#E0F2FE',    // misty base
+    heroSkyTop: '#B3D9F2',       // soft sky
+    heroSkyMid: '#D8EAF7',       // airy transition
+    heroSkyBottom: '#F2F2F7',    // neutral base
 
     // ── Glow / Light Bleed ─────────────────────────────────────────
-    glow: '#FDE68A',             // warm sun glow
-    liquidGlow: '#BAE6FD',       // cool liquid accent glow
+    glow: '#FFD60A',
+    liquidGlow: '#5AC8FA',
 
     // ── Weather-specific colors ────────────────────────────────────
-    clearDay: '#60A5FA',
+    clearDay: '#5AC8FA',
     clearNight: '#1E3A5F',
-    cloudy: '#94A3B8',
-    rain: '#3B82F6',
-    snow: '#CBD5E1',
-    thunderstorm: '#6366F1',
-    fog: '#C4CBD4',
+    cloudy: '#8E8E93',
+    rain: '#0A84FF',
+    snow: '#C7C7CC',
+    thunderstorm: '#5E5CE6',
+    fog: '#AEAEB2',
 
     // ── Temperature gradient ───────────────────────────────────────
-    tempCold: '#3B82F6',
-    tempCool: '#06B6D4',
-    tempMild: '#10B981',
-    tempWarm: '#F59E0B',
-    tempHot: '#EF4444',
+    tempCold: '#0A84FF',
+    tempCool: '#32ADE6',
+    tempMild: '#34C759',
+    tempWarm: '#FF9F0A',
+    tempHot: '#FF3B30',
 
     // ── Air quality ────────────────────────────────────────────────
-    aqiGood: '#10B981',
-    aqiFair: '#F59E0B',
-    aqiModerate: '#F97316',
-    aqiPoor: '#EF4444',
-    aqiVeryPoor: '#7C3AED',
+    aqiGood: '#34C759',
+    aqiFair: '#FFD60A',
+    aqiModerate: '#FF9F0A',
+    aqiPoor: '#FF3B30',
+    aqiVeryPoor: '#AF52DE',
 
     // ── UV Index ───────────────────────────────────────────────────
-    uvLow: '#10B981',
-    uvModerate: '#F59E0B',
-    uvHigh: '#F97316',
-    uvVeryHigh: '#EF4444',
-    uvExtreme: '#7C3AED',
+    uvLow: '#34C759',
+    uvModerate: '#FFD60A',
+    uvHigh: '#FF9F0A',
+    uvVeryHigh: '#FF3B30',
+    uvExtreme: '#AF52DE',
 
     // ── Alert severity ─────────────────────────────────────────────
-    alertExtreme: '#DC2626',
-    alertSevere: '#EA580C',
-    alertModerate: '#D97706',
-    alertMinor: '#65A30D',
+    alertExtreme: '#FF3B30',
+    alertSevere: '#FF9500',
+    alertModerate: '#FFCC00',
+    alertMinor: '#34C759',
   },
   dark: {
     // ── Brand ──────────────────────────────────────────────────────
-    primary: '#38BDF8',
-    primaryDark: '#0EA5E9',
-    secondary: '#FBBF24',
-    accent: '#7DD3FC',
+    primary: '#0A84FF',
+    primaryDark: '#007AFF',
+    secondary: '#FFD60A',
+    accent: '#64D2FF',
 
     // ── Liquid Glass Surfaces ──────────────────────────────────────
-    background: '#060E1A',            // deep navy-black
-    surface: '#0A1525',
-    surfaceVariant: '#122036',
-    surfaceElevated: '#0E1A2E',
-    glassBase: 'rgba(10, 21, 37, 0.78)',
-    glassHighlight: 'rgba(15, 28, 48, 0.88)',
-    glassOverlay: 'rgba(12, 23, 40, 0.66)',
+    background: '#000000',
+    surface: '#1C1C1E',
+    surfaceVariant: '#2C2C2E',
+    surfaceElevated: '#2C2C2E',
+    glassBase: 'rgba(28, 28, 30, 0.52)',
+    glassHighlight: 'rgba(44, 44, 46, 0.68)',
+    glassOverlay: 'rgba(28, 28, 30, 0.36)',
 
-    // ── Text ───────────────────────────────────────────────────────
-    text: '#F0F6FF',
-    textSecondary: '#B0C4DE',
-    textTertiary: '#7088A8',
+    // ── Text (vibrancy-style) ──────────────────────────────────────
+    text: '#FFFFFF',
+    textSecondary: 'rgba(235, 235, 245, 0.60)',
+    textTertiary: 'rgba(235, 235, 245, 0.30)',
 
     // ── Semantic ───────────────────────────────────────────────────
-    border: 'rgba(255, 255, 255, 0.06)',
-    error: '#F87171',
-    warning: '#FBBF24',
-    success: '#34D399',
+    border: 'rgba(84, 84, 88, 0.60)',
+    error: '#FF453A',
+    warning: '#FFD60A',
+    success: '#30D158',
+
+    // ── Liquid Glass material tokens ───────────────────────────────
+    separator: 'rgba(84, 84, 88, 0.60)',
+    fill: 'rgba(120, 120, 128, 0.32)',
+    fillSecondary: 'rgba(120, 120, 128, 0.22)',
+    fillTertiary: 'rgba(118, 118, 128, 0.12)',
+    materialBorder: 'rgba(255, 255, 255, 0.14)',
+    materialSpecular: 'rgba(255, 255, 255, 0.30)',
+    scrim: 'rgba(0, 0, 0, 0.55)',
 
     // ── Glass surface presets (legacy compat) ──────────────────────
-    cardBackground: 'rgba(12, 23, 40, 0.68)',
-    cardBorder: 'rgba(255, 255, 255, 0.08)',
-    pillBackground: 'rgba(10, 21, 37, 0.72)',
-    pillBorder: 'rgba(255, 255, 255, 0.10)',
-    overlay: 'rgba(8, 16, 28, 0.40)',
-    shadow: '#02060C',
+    cardBackground: 'rgba(28, 28, 30, 0.52)',
+    cardBorder: 'rgba(255, 255, 255, 0.14)',
+    pillBackground: 'rgba(44, 44, 46, 0.68)',
+    pillBorder: 'rgba(255, 255, 255, 0.12)',
+    overlay: 'rgba(28, 28, 30, 0.36)',
+    shadow: '#000000',
 
     // ── Atmospheric Gradient ───────────────────────────────────────
-    heroSkyTop: '#1E40AF',       // deep indigo
-    heroSkyMid: '#0F1D3D',      // dark navy
-    heroSkyBottom: '#060E1A',   // near-black
+    heroSkyTop: '#0B1B33',       // deep night sky
+    heroSkyMid: '#050B16',
+    heroSkyBottom: '#000000',
 
     // ── Glow / Light Bleed ─────────────────────────────────────────
-    glow: '#FDE68A',
-    liquidGlow: '#1E3A5F',
+    glow: '#FFD60A',
+    liquidGlow: '#1C3A5E',
 
     // ── Weather-specific colors ────────────────────────────────────
-    clearDay: '#60A5FA',
+    clearDay: '#64D2FF',
     clearNight: '#1E3A5F',
-    cloudy: '#64748B',
-    rain: '#3B82F6',
-    snow: '#94A3B8',
-    thunderstorm: '#818CF8',
-    fog: '#475569',
+    cloudy: '#98989D',
+    rain: '#0A84FF',
+    snow: '#C7C7CC',
+    thunderstorm: '#7D7AFF',
+    fog: '#8E8E93',
 
     // ── Temperature gradient ───────────────────────────────────────
-    tempCold: '#60A5FA',
-    tempCool: '#22D3EE',
-    tempMild: '#34D399',
-    tempWarm: '#FBBF24',
-    tempHot: '#F87171',
+    tempCold: '#64D2FF',
+    tempCool: '#32ADE6',
+    tempMild: '#30D158',
+    tempWarm: '#FFD60A',
+    tempHot: '#FF453A',
 
     // ── Air quality ────────────────────────────────────────────────
-    aqiGood: '#34D399',
-    aqiFair: '#FBBF24',
-    aqiModerate: '#FB923C',
-    aqiPoor: '#F87171',
-    aqiVeryPoor: '#A78BFA',
+    aqiGood: '#30D158',
+    aqiFair: '#FFD60A',
+    aqiModerate: '#FF9F0A',
+    aqiPoor: '#FF453A',
+    aqiVeryPoor: '#BF5AF2',
 
     // ── UV Index ───────────────────────────────────────────────────
-    uvLow: '#34D399',
-    uvModerate: '#FBBF24',
-    uvHigh: '#FB923C',
-    uvVeryHigh: '#F87171',
-    uvExtreme: '#A78BFA',
+    uvLow: '#30D158',
+    uvModerate: '#FFD60A',
+    uvHigh: '#FF9F0A',
+    uvVeryHigh: '#FF453A',
+    uvExtreme: '#BF5AF2',
 
     // ── Alert severity ─────────────────────────────────────────────
-    alertExtreme: '#EF4444',
-    alertSevere: '#F97316',
-    alertModerate: '#EAB308',
-    alertMinor: '#84CC16',
+    alertExtreme: '#FF453A',
+    alertSevere: '#FF9F0A',
+    alertModerate: '#FFD60A',
+    alertMinor: '#30D158',
   },
 };
 

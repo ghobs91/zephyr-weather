@@ -74,11 +74,11 @@ export function HourlyForecastCard({
                 getInsetPanelStyle(themeColors),
                 {
                   backgroundColor: isNow
-                    ? withAlpha(themeColors.primary, isDark ? 0.16 : 0.12)
-                    : withAlpha(themeColors.surfaceElevated, isDark ? 0.04 : 0.36),
+                    ? withAlpha(themeColors.primary, isDark ? 0.18 : 0.12)
+                    : themeColors.fillTertiary,
                   borderColor: isNow
                     ? withAlpha(themeColors.primary, 0.35)
-                    : 'transparent',
+                    : themeColors.separator,
                 },
               ]}>
               <Text

@@ -3,7 +3,7 @@ import {View, Text, StyleSheet} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Minutely} from '../types/weather';
 import {colors} from '../theme/colors';
-import {getCardStyle, getInsetPanelStyle, withAlpha} from '../theme/design';
+import {getCardStyle} from '../theme/design';
 import {GlassSurface} from './GlassSurface';
 
 interface Props {
@@ -66,7 +66,6 @@ export function MinutelyPrecipitationCard({minutelyForecast, isDark}: Props) {
                     backgroundColor: isFirst ? themeColors.primary : themeColors.rain,
                     opacity: isFirst ? 1 : 0.7,
                   },
-                  getInsetPanelStyle(themeColors),
                 ]}
               />
               <Text style={[styles.label, {color: themeColors.textTertiary}]}>

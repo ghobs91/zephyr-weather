@@ -735,7 +735,7 @@ export function RadarScreen() {
 
           {/* Scan loading banner */}
           {scanStatus === 'loading' && (
-            <View style={[styles.scanBanner, {backgroundColor: useDark ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.85)'}]}>
+            <View style={[styles.scanBanner, {backgroundColor: themeColors.glassHighlight}]}>
               <ActivityIndicator size="small" color={themeColors.primary} />
               <Text style={[styles.scanBannerText, {color: themeColors.text}]}>
                 {overlayMode === 'satellite'
@@ -750,7 +750,7 @@ export function RadarScreen() {
           )}
 
           {(overlayMode === 'radar' ? !provider || scanStatus === 'error' : scanStatus === 'error') && (
-            <View style={[styles.scanBanner, {backgroundColor: useDark ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.85)'}]}>
+            <View style={[styles.scanBanner, {backgroundColor: themeColors.glassHighlight}]}>
               <Icon name="alert-circle-outline" size={18} color={themeColors.textSecondary} />
               <Text style={[styles.scanBannerText, {color: themeColors.textSecondary}]}>
                 {!provider && overlayMode === 'radar'
@@ -764,7 +764,7 @@ export function RadarScreen() {
 
           {/* Provider badge */}
           {scanStatus === 'ready' && (overlayMode === 'satellite' || provider) && (
-            <View style={[styles.stationBadge, {backgroundColor: useDark ? 'rgba(15,23,42,0.7)' : 'rgba(255,255,255,0.7)'}]}>
+            <View style={[styles.stationBadge, {backgroundColor: themeColors.glassBase}]}>
               <Icon name="radar" size={12} color={themeColors.primary} />
               <Text style={[styles.stationBadgeText, {color: themeColors.textSecondary}]}>
                 {overlayMode === 'satellite'
@@ -777,7 +777,7 @@ export function RadarScreen() {
           )}
 
           {/* Attribution */}
-          <View style={[styles.attribution, {backgroundColor: useDark ? 'rgba(15,23,42,0.7)' : 'rgba(255,255,255,0.7)'}]}>
+          <View style={[styles.attribution, {backgroundColor: themeColors.glassBase}]}>
             <Text style={[styles.attributionText, {color: themeColors.textTertiary}]}>
               {overlayMode === 'satellite'
                 ? satLayer.attribution

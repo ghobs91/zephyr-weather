@@ -24,12 +24,15 @@ describe('design helpers', () => {
 
   it('builds elevated card styles with the shared radius and border treatment', () => {
     const theme = colors.dark;
+    const {StyleSheet} = require('react-native');
 
     const style = getCardStyle(theme);
 
-    expect(style.borderRadius).toBe(32);
+    expect(style.borderRadius).toBe(28);
     expect(style.backgroundColor).toBe(theme.glassBase);
-    expect(style.borderWidth).toBe(0);
+    expect(style.borderWidth).toBe(StyleSheet.hairlineWidth);
+    expect(style.borderColor).toBe(theme.materialBorder);
+    expect(style.borderCurve).toBe('continuous');
     expect(style.shadowColor).toBe(theme.shadow);
   });
 });

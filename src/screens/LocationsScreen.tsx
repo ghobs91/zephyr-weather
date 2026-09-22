@@ -101,9 +101,9 @@ export function LocationsScreen() {
           {
             backgroundColor: isSelected
               ? withAlpha(themeColors.primary, useDark ? 0.18 : 0.12)
-              : themeColors.cardBackground,
-            borderColor: isSelected ? withAlpha(themeColors.primary, 0.40) : themeColors.cardBorder,
-            borderWidth: 1,
+              : themeColors.glassBase,
+            borderColor: isSelected ? withAlpha(themeColors.primary, 0.40) : themeColors.materialBorder,
+            borderWidth: StyleSheet.hairlineWidth,
           },
         ]}
         onPress={() => {

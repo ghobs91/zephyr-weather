@@ -3,7 +3,7 @@ import {View, Text, StyleSheet} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Pollen} from '../types/weather';
 import {colors} from '../theme/colors';
-import {getCardStyle, getInsetPanelStyle, withAlpha} from '../theme/design';
+import {getCardStyle, getInsetPanelStyle} from '../theme/design';
 import {GlassSurface} from './GlassSurface';
 
 interface Props {
@@ -57,7 +57,6 @@ export function PollenCard({pollen, isDark}: Props) {
               style={[
                 styles.row,
                 getInsetPanelStyle(themeColors),
-                {backgroundColor: withAlpha(themeColors.surfaceElevated, isDark ? 0.06 : 0.54)},
               ]}>
               <Icon name={row.icon} size={18} color={themeColors.textSecondary} />
               <Text style={[styles.rowLabel, {color: themeColors.text}]}>{row.label}</Text>

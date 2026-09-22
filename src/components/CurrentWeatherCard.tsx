@@ -111,7 +111,7 @@ export function CurrentWeatherCard({
           </Text>
 
           {feelsLike !== undefined && temperature !== undefined && Math.abs(feelsLike - temperature) > 2 && (
-            <View style={[styles.feelsLikeChip, {backgroundColor: withAlpha(themeColors.surfaceElevated, isDark ? 0.08 : 0.55)}]}>
+            <View style={[styles.feelsLikeChip, {backgroundColor: themeColors.fill}]}>
               <Text style={[styles.feelsLike, {color: themeColors.textSecondary}]}>Feels like {formatTemp(feelsLike)}</Text>
             </View>
           )}
@@ -125,7 +125,6 @@ export function CurrentWeatherCard({
             style={[
               styles.metricCard,
               getInsetPanelStyle(themeColors),
-              {backgroundColor: withAlpha(themeColors.surfaceElevated, isDark ? 0.06 : 0.58)},
             ]}>
             <Icon name={metric.icon} size={16} color={themeColors.textSecondary} />
             <Text style={[styles.metricValue, {color: themeColors.text}]} numberOfLines={1}>
@@ -141,7 +140,6 @@ export function CurrentWeatherCard({
           style={[
             styles.confidenceRow,
             getInsetPanelStyle(themeColors),
-            {backgroundColor: withAlpha(themeColors.surfaceElevated, isDark ? 0.05 : 0.48)},
           ]}>
           <View style={[styles.confidenceDot, {backgroundColor: getConfidenceLabel(confidence.overall).color}]} />
           <Text style={[styles.confidenceText, {color: themeColors.textSecondary}]}>

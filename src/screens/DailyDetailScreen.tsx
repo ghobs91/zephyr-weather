@@ -211,7 +211,7 @@ export function DailyDetailScreen() {
                           fontWeight: '600',
                         }}
                         style={{
-                          backgroundColor: themeColors.cardBackground,
+                          backgroundColor: themeColors.surface,
                           padding: 8,
                           borderRadius: 8,
                         }}>

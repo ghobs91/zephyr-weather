@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {ColorTheme} from '../theme/colors';
-import {getGlassPillStyle} from '../theme/design';
+import {getGlassPillStyle, getShadow, radius} from '../theme/design';
 import {Location} from '../types/weather';
 import {WeatherIcon} from './WeatherIcon';
 
@@ -40,7 +40,6 @@ export function LocationPickerFloating({
   picker,
   formatTempShort,
   themeColors,
-  useDark,
   insets,
   onSelect,
   onMenuPress,
@@ -95,10 +94,9 @@ export function LocationPickerFloating({
               style={[
                 styles.dropdown,
                 {
-                  backgroundColor: useDark
-                    ? 'rgba(10, 21, 37, 0.94)'
-                    : 'rgba(245, 252, 255, 0.92)',
+                  backgroundColor: themeColors.glassHighlight,
                 },
+                getShadow(themeColors, 'lg'),
                 {
                   opacity: pickerAnim,
                   transform: [
@@ -121,9 +119,7 @@ export function LocationPickerFloating({
                     style={[
                       styles.dropdownItem,
                       isSelected && {
-                        backgroundColor: useDark
-                          ? 'rgba(255,255,255,0.08)'
-                          : 'rgba(0,0,0,0.06)',
+                        backgroundColor: themeColors.fill,
                       },
                     ]}
                     onPress={() => onSelect(index)}>
@@ -208,7 +204,7 @@ const styles = StyleSheet.create({
   iconPill: {
     width: 46,
     height: 46,
-    borderRadius: 25,
+    borderRadius: radius.pill,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -219,21 +215,16 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 16,
     paddingVertical: 11,
-    borderRadius: 25,
+    borderRadius: radius.pill,
     width: 220,
   },
   cityText: {fontSize: 15, fontWeight: '600', flex: 1, textAlign: 'center'},
   dropdown: {
     marginTop: 8,
-    borderRadius: 24,
+    borderRadius: radius.xl,
     borderWidth: 0,
     overflow: 'hidden',
     width: 260,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 8},
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 4,
   },
   dropdownItem: {
     flexDirection: 'row',

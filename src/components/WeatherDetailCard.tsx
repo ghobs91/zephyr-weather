@@ -26,13 +26,8 @@ export function WeatherDetailCard({
     <GlassSurface
       isDark={isDark}
       themeColors={themeColors}
-      radius={22}
-      blurAmount={18}
-      style={[
-        styles.container,
-        getInsetPanelStyle(themeColors),
-        {backgroundColor: withAlpha(themeColors.surfaceElevated, isDark ? 0.08 : 0.40)},
-      ]}>
+      variant="ultraThin"
+      style={[styles.container, getInsetPanelStyle(themeColors)]}>
       <View style={styles.header}>
         <View style={[styles.iconChip, {backgroundColor: withAlpha(themeColors.primary, isDark ? 0.16 : 0.14)}]}>
           <Icon name={icon} size={18} color={themeColors.primary} />

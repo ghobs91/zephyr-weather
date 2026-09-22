@@ -70,7 +70,6 @@ export function AlertBanner({alerts, onPress, isDark}: Props) {
       <GlassSurface
         isDark={isDark}
         themeColors={themeColors}
-        radius={24}
         style={[
           styles.container,
           getCardStyle(themeColors),

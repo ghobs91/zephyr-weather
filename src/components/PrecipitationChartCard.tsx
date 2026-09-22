@@ -91,9 +91,9 @@ export function PrecipitationChartCard({hourlyForecast, timeFormat, isDark}: Pro
                     fontWeight: '600',
                   }}
                   style={{
-                    backgroundColor: themeColors.cardBackground,
+                    backgroundColor: themeColors.surface,
                     padding: 8,
-                    borderRadius: 8,
+                    borderRadius: 10,
                   }}>
                   <LineChart.PriceText
                     style={{

@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {ColorTheme} from '../theme/colors';
-import {withAlpha} from '../theme/design';
+import {radius} from '../theme/design';
 
 interface Props {
   themeColors: ColorTheme;
@@ -10,9 +10,9 @@ interface Props {
   lastUpdated?: Date;
 }
 
-export function AttributionFooter({themeColors, isDark, sourceName, lastUpdated}: Props) {
+export function AttributionFooter({themeColors, sourceName, lastUpdated}: Props) {
   return (
-    <View style={[styles.container, {backgroundColor: withAlpha(themeColors.surfaceElevated, isDark ? 0.05 : 0.48)}]}>
+    <View style={[styles.container, {backgroundColor: themeColors.fillTertiary}]}>
       <Text style={[styles.text, {color: themeColors.textTertiary}]}>
         {sourceName}
         {lastUpdated ? ` · Updated ${formatRelativeTime(lastUpdated)}` : ''}
@@ -31,6 +31,6 @@ function formatRelativeTime(date: Date): string {
 }
 
 const styles = StyleSheet.create({
-  container: {alignItems: 'center', borderRadius: 16, paddingHorizontal: 16, paddingVertical: 10, marginTop: 12},
+  container: {alignItems: 'center', borderRadius: radius.md, paddingHorizontal: 16, paddingVertical: 10, marginTop: 12},
   text: {fontSize: 12},
 });

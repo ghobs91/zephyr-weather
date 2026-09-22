@@ -13,7 +13,7 @@ import {useWeatherStore} from '../store/weatherStore';
 import {useThemeColors} from '../hooks/useThemeColors';
 import {isLiveActivitySupported} from '../utils/liveActivityManager';
 import {AtmosphericBackground} from '../components/AtmosphericBackground';
-import {getInsetPanelStyle, withAlpha} from '../theme/design';
+import {getInsetPanelStyle} from '../theme/design';
 import {useResponsiveLayout} from '../utils/platformDetect';
 import {
   ThemeMode,
@@ -54,7 +54,6 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
       style={[
         styles.optionRow,
         getInsetPanelStyle(themeColors),
-        {backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.07 : 0.56)},
       ]}>
       <Text style={[styles.optionLabel, {color: themeColors.text}]}>{label}</Text>
       <View style={styles.optionButtons}>
@@ -66,7 +65,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
               {
                 backgroundColor: value === option.value
                   ? themeColors.primary
-                  : withAlpha(themeColors.surfaceElevated, useDark ? 0.05 : 0.50),
+                  : themeColors.fill,
               },
             ]}
             onPress={() => onSelect(option.value)}>
@@ -87,7 +86,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
     <AtmosphericBackground isDark={useDark}>
       <View style={styles.container}>
       {onClose && (
-        <View style={[styles.modalHeader, {paddingTop: insets.top + 8, backgroundColor: withAlpha(themeColors.surface, 0.92), borderBottomColor: withAlpha(themeColors.cardBorder, 0.55)}]}>
+        <View style={[styles.modalHeader, {paddingTop: insets.top + 8, backgroundColor: themeColors.glassHighlight, borderBottomColor: themeColors.separator}]}>
           <Text style={[styles.modalTitle, {color: themeColors.text}]}>Settings</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Icon name="close" size={24} color={themeColors.text} />
@@ -198,7 +197,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
         {/* Weather Sources Section */}
         {renderSectionHeader('Weather Sources', 'cloud-outline')}
         
-        <View style={[styles.sourceCard, getInsetPanelStyle(themeColors), {backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.07 : 0.56)}]}>
+        <View style={[styles.sourceCard, getInsetPanelStyle(themeColors)]}>
           <View style={styles.sourceHeader}>
             <View style={[styles.sourceIcon, {backgroundColor: '#1E40AF'}]}>
               <Icon name="flag-variant" size={20} color="#FFFFFF" />
@@ -217,7 +216,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
           </Text>
         </View>
 
-        <View style={[styles.sourceCard, getInsetPanelStyle(themeColors), {backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.07 : 0.56)}]}>
+        <View style={[styles.sourceCard, getInsetPanelStyle(themeColors)]}>
           <View style={styles.sourceHeader}>
             <View style={[styles.sourceIcon, {backgroundColor: '#FF6B35'}]}>
               <Icon name="weather-partly-cloudy" size={20} color="#FFFFFF" />
@@ -256,7 +255,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
         {/* About Section */}
         {renderSectionHeader('About', 'information-outline')}
         
-        <View style={[styles.aboutCard, getInsetPanelStyle(themeColors), {backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.07 : 0.56)}]}>
+        <View style={[styles.aboutCard, getInsetPanelStyle(themeColors)]}>
           <Text style={[styles.appName, {color: themeColors.text}]}>
             Zephyr Weather
           </Text>

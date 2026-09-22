@@ -22,7 +22,7 @@ import {useWeatherStore} from '../store/weatherStore';
 import {searchLocations} from '../services/openMeteoService';
 import {useThemeColors} from '../hooks/useThemeColors';
 import {AtmosphericBackground} from '../components/AtmosphericBackground';
-import {getInsetPanelStyle, withAlpha} from '../theme/design';
+import {getInsetPanelStyle} from '../theme/design';
 import {Location} from '../types/weather';
 import {useResponsiveLayout} from '../utils/platformDetect';
 
@@ -323,7 +323,6 @@ export function SearchLocationScreen() {
       style={[
         styles.resultItem,
         getInsetPanelStyle(themeColors),
-        {backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.06 : 0.56)},
       ]}
       onPress={() => handleSelectLocation(item)}>
       <Icon name="map-marker" size={24} color={themeColors.textSecondary} />
@@ -361,7 +360,7 @@ export function SearchLocationScreen() {
         <Text style={[styles.subtitle, {color: themeColors.textSecondary}]}>Search any city or use your current location.</Text>
       </View>
 
-      <View style={[styles.searchContainer, getInsetPanelStyle(themeColors), {backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.08 : 0.56)}]}>
+      <View style={[styles.searchContainer, getInsetPanelStyle(themeColors)]}>
         <Icon name="magnify" size={24} color={themeColors.textSecondary} />
         <TextInput
           ref={inputRef}

@@ -12,7 +12,7 @@ import {format} from 'date-fns';
 import {useWeatherStore} from '../store/weatherStore';
 import {useThemeColors} from '../hooks/useThemeColors';
 import {AtmosphericBackground} from '../components/AtmosphericBackground';
-import {getCardStyle, withAlpha} from '../theme/design';
+import {getCardStyle} from '../theme/design';
 import {Alert, AlertSeverity} from '../types/weather';
 import {useResponsiveLayout} from '../utils/platformDetect';
 
@@ -76,7 +76,6 @@ export function AlertsScreen() {
         styles.alertCard,
         getCardStyle(themeColors),
         {
-          backgroundColor: withAlpha(themeColors.surfaceElevated, useDark ? 0.07 : 0.56),
           borderLeftColor: getSeverityColor(alert.severity ?? undefined),
         },
       ]}>

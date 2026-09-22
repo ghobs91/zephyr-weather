@@ -76,7 +76,7 @@ export function LocationSidebar({
           styles.locationItem,
           {
             backgroundColor: isSelected 
-              ? withAlpha(themeColors.surfaceElevated, isDark ? 0.12 : 0.06)
+              ? themeColors.fill
               : 'transparent',
           },
         ]}

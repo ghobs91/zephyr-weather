@@ -20,6 +20,7 @@ import type {StringKey} from '../i18n';
 import {useThemeColors} from '../hooks/useThemeColors';
 import {colors} from '../theme/colors';
 import {getGlassPillStyle, withAlpha} from '../theme/design';
+import {GlassSurface} from '../components/GlassSurface';
 import {isMacOS} from '../utils/platformDetect';
 
 export type RootStackParamList = {
@@ -50,13 +51,15 @@ const TAB_LABELS: Record<string, StringKey> = {
   Radar: 'tabs.radar',
 };
 
-function GlassPill({children, style, useDark, themeColors}: {children: React.ReactNode; style?: any; useDark: boolean; themeColors: typeof colors.light}) {
+function GlassPill({children, style, isDark, themeColors}: {children: React.ReactNode; style?: any; isDark: boolean; themeColors: typeof colors.light}) {
   return (
-    <View style={[tabBarStyles.glassPill, getGlassPillStyle(themeColors), style]}>
-      {/* Front-light shimmer */}
-      <View style={[tabBarStyles.glassShimmer, {backgroundColor: withAlpha('#FFFFFF', useDark ? 0.06 : 0.28)}]} />
+    <GlassSurface
+      isDark={isDark}
+      themeColors={themeColors}
+      variant="thin"
+      style={[tabBarStyles.glassPill, getGlassPillStyle(themeColors), style]}>
       <View style={tabBarStyles.glassContent}>{children}</View>
-    </View>
+    </GlassSurface>
   );
 }
 
@@ -69,7 +72,7 @@ function CustomTabBar({state, navigation}: any) {
       style={[tabBarStyles.container, {paddingBottom: (insets.bottom || 12) + 4}]}
       pointerEvents="box-none">
       {/* Left pill: Weather + Radar */}
-      <GlassPill useDark={useDark} themeColors={themeColors}>
+      <GlassPill isDark={useDark} themeColors={themeColors}>
         {state.routes.map((route: any, index: number) => {
           const config = TAB_CONFIG[route.name];
           const labelKey = TAB_LABELS[route.name];
@@ -105,7 +108,7 @@ function CustomTabBar({state, navigation}: any) {
       </GlassPill>
 
       {/* Right pill: Search */}
-      <GlassPill useDark={useDark} themeColors={themeColors}>
+      <GlassPill isDark={useDark} themeColors={themeColors}>
         <TouchableOpacity
           onPress={() => navigation.navigate('SearchLocation')}
           accessibilityRole="button"
@@ -139,19 +142,6 @@ const tabBarStyles = StyleSheet.create({
     borderRadius: PILL_RADIUS,
     overflow: 'hidden',
   },
-  glassShimmer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '55%',
-    borderTopLeftRadius: PILL_RADIUS,
-    borderTopRightRadius: PILL_RADIUS,
-  },
-  glassBorder: {
-    borderRadius: PILL_RADIUS,
-    borderWidth: 0,
-  },
   glassContent: {
     flexDirection: 'row',
     padding: PILL_PADDING,
@@ -180,8 +170,6 @@ const tabBarStyles = StyleSheet.create({
 });
 
 function MainTabs() {
-  const {useDark, themeColors} = useThemeColors();
-
   return (
     <Tab.Navigator
       tabBar={(props) => <CustomTabBar {...props} />}
@@ -232,12 +220,15 @@ export function RootNavigator() {
       initialRouteName={showOnboarding ? 'Onboarding' : 'MainTabs'}
       screenOptions={{
         headerStyle: {
-          backgroundColor: themeColors.surface,
+          backgroundColor: 'transparent',
         },
+        headerBlurEffect: useDark
+          ? 'systemChromeMaterialDark'
+          : 'systemChromeMaterialLight',
         headerTintColor: themeColors.text,
         headerShadowVisible: false,
         headerTitleStyle: {
-          fontSize: 18,
+          fontSize: 17,
           fontWeight: '600',
         },
         contentStyle: {

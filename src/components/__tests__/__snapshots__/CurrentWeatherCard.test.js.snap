@@ -8,7 +8,19 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
         "overflow": "hidden",
       },
       {
-        "borderRadius": 32,
+        "backgroundColor": "rgba(28, 28, 30, 0.52)",
+        "borderColor": "rgba(255, 255, 255, 0.14)",
+        "borderCurve": "continuous",
+        "borderRadius": 28,
+        "borderWidth": 0.5,
+        "elevation": 5,
+        "shadowColor": "#000000",
+        "shadowOffset": {
+          "height": 8,
+          "width": 0,
+        },
+        "shadowOpacity": 0.4,
+        "shadowRadius": 20,
       },
       [
         {
@@ -17,27 +29,28 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
           "padding": 22,
         },
         {
-          "backgroundColor": "rgba(10, 21, 37, 0.78)",
-          "borderColor": "transparent",
-          "borderRadius": 32,
-          "borderWidth": 0,
-          "elevation": 8,
-          "shadowColor": "#02060C",
+          "backgroundColor": "rgba(28, 28, 30, 0.52)",
+          "borderColor": "rgba(255, 255, 255, 0.14)",
+          "borderCurve": "continuous",
+          "borderRadius": 28,
+          "borderWidth": 0.5,
+          "elevation": 5,
+          "shadowColor": "#000000",
           "shadowOffset": {
-            "height": 20,
+            "height": 8,
             "width": 0,
           },
-          "shadowOpacity": 0.16,
-          "shadowRadius": 36,
+          "shadowOpacity": 0.4,
+          "shadowRadius": 20,
         },
       ],
     ]
   }
 >
   <BlurView
-    blurAmount={18}
+    blurAmount={20}
     blurType="dark"
-    reducedTransparencyFallbackColor="rgba(14, 26, 46, 0.1)"
+    reducedTransparencyFallbackColor="rgba(44, 44, 46, 0.16)"
     style={
       {
         "bottom": 0,
@@ -77,8 +90,8 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
           "top": 0,
         },
         {
-          "borderTopLeftRadius": 32,
-          "borderTopRightRadius": 32,
+          "borderTopLeftRadius": 28,
+          "borderTopRightRadius": 28,
         },
       ]
     }
@@ -86,9 +99,9 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
   <LinearGradient
     colors={
       [
-        "rgba(125, 211, 252, 0.06)",
-        "rgba(56, 189, 248, 0.036)",
-        "rgba(14, 26, 46, 0.04000000000000001)",
+        "rgba(100, 210, 255, 0.04)",
+        "rgba(10, 132, 255, 0.02)",
+        "transparent",
       ]
     }
     end={
@@ -113,29 +126,11 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
       }
     }
   />
-  <View
-    pointerEvents="none"
-    style={
-      [
-        {
-          "bottom": 0,
-          "left": 0,
-          "position": "absolute",
-          "right": 0,
-          "top": 0,
-        },
-        {
-          "backgroundColor": "rgba(14, 26, 46, 0.04)",
-          "borderRadius": 32,
-        },
-      ]
-    }
-  />
   <LinearGradient
     colors={
       [
-        "rgba(125, 211, 252, 0.06)",
-        "rgba(56, 189, 248, 0.04)",
+        "rgba(100, 210, 255, 0.06)",
+        "rgba(10, 132, 255, 0.04)",
         "transparent",
       ]
     }
@@ -161,7 +156,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
           "width": 150,
         },
         {
-          "backgroundColor": "rgba(56, 189, 248, 0.08)",
+          "backgroundColor": "rgba(10, 132, 255, 0.08)",
         },
       ]
     }
@@ -176,7 +171,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
           "textTransform": "uppercase",
         },
         {
-          "color": "#B0C4DE",
+          "color": "rgba(235, 235, 245, 0.60)",
         },
       ]
     }
@@ -201,10 +196,11 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
             "width": "100%",
           },
           {
-            "backgroundColor": "rgba(12, 23, 40, 0.66)",
-            "borderColor": "transparent",
-            "borderRadius": 24,
-            "borderWidth": 0,
+            "backgroundColor": "rgba(120, 120, 128, 0.22)",
+            "borderColor": "rgba(84, 84, 88, 0.60)",
+            "borderCurve": "continuous",
+            "borderRadius": 18,
+            "borderWidth": 0.5,
           },
         ]
       }
@@ -236,7 +232,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
               "textAlign": "center",
             },
             {
-              "color": "#B0C4DE",
+              "color": "rgba(235, 235, 245, 0.60)",
             },
           ]
         }
@@ -253,7 +249,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
               "marginTop": 4,
             },
             {
-              "color": "#FBBF24",
+              "color": "#FFD60A",
             },
           ]
         }
@@ -268,7 +264,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
               "marginTop": 4,
             },
             {
-              "color": "#B0C4DE",
+              "color": "rgba(235, 235, 245, 0.60)",
             },
           ]
         }
@@ -299,19 +295,17 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
             "paddingVertical": 14,
           },
           {
-            "backgroundColor": "rgba(12, 23, 40, 0.66)",
-            "borderColor": "transparent",
-            "borderRadius": 24,
-            "borderWidth": 0,
-          },
-          {
-            "backgroundColor": "rgba(14, 26, 46, 0.06)",
+            "backgroundColor": "rgba(120, 120, 128, 0.22)",
+            "borderColor": "rgba(84, 84, 88, 0.60)",
+            "borderCurve": "continuous",
+            "borderRadius": 18,
+            "borderWidth": 0.5,
           },
         ]
       }
     >
       <Icon
-        color="#B0C4DE"
+        color="rgba(235, 235, 245, 0.60)"
         name="weather-windy"
         size={16}
       />
@@ -325,7 +319,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
               "marginTop": 8,
             },
             {
-              "color": "#F0F6FF",
+              "color": "#FFFFFF",
             },
           ]
         }
@@ -341,7 +335,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
               "textAlign": "center",
             },
             {
-              "color": "#7088A8",
+              "color": "rgba(235, 235, 245, 0.30)",
             },
           ]
         }
@@ -359,19 +353,17 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
             "paddingVertical": 14,
           },
           {
-            "backgroundColor": "rgba(12, 23, 40, 0.66)",
-            "borderColor": "transparent",
-            "borderRadius": 24,
-            "borderWidth": 0,
-          },
-          {
-            "backgroundColor": "rgba(14, 26, 46, 0.06)",
+            "backgroundColor": "rgba(120, 120, 128, 0.22)",
+            "borderColor": "rgba(84, 84, 88, 0.60)",
+            "borderCurve": "continuous",
+            "borderRadius": 18,
+            "borderWidth": 0.5,
           },
         ]
       }
     >
       <Icon
-        color="#B0C4DE"
+        color="rgba(235, 235, 245, 0.60)"
         name="weather-rainy"
         size={16}
       />
@@ -385,7 +377,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
               "marginTop": 8,
             },
             {
-              "color": "#F0F6FF",
+              "color": "#FFFFFF",
             },
           ]
         }
@@ -401,7 +393,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
               "textAlign": "center",
             },
             {
-              "color": "#7088A8",
+              "color": "rgba(235, 235, 245, 0.30)",
             },
           ]
         }
@@ -419,19 +411,17 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
             "paddingVertical": 14,
           },
           {
-            "backgroundColor": "rgba(12, 23, 40, 0.66)",
-            "borderColor": "transparent",
-            "borderRadius": 24,
-            "borderWidth": 0,
-          },
-          {
-            "backgroundColor": "rgba(14, 26, 46, 0.06)",
+            "backgroundColor": "rgba(120, 120, 128, 0.22)",
+            "borderColor": "rgba(84, 84, 88, 0.60)",
+            "borderCurve": "continuous",
+            "borderRadius": 18,
+            "borderWidth": 0.5,
           },
         ]
       }
     >
       <Icon
-        color="#B0C4DE"
+        color="rgba(235, 235, 245, 0.60)"
         name="water-percent"
         size={16}
       />
@@ -445,7 +435,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
               "marginTop": 8,
             },
             {
-              "color": "#F0F6FF",
+              "color": "#FFFFFF",
             },
           ]
         }
@@ -461,7 +451,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
               "textAlign": "center",
             },
             {
-              "color": "#7088A8",
+              "color": "rgba(235, 235, 245, 0.30)",
             },
           ]
         }
@@ -482,13 +472,11 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
           "paddingVertical": 11,
         },
         {
-          "backgroundColor": "rgba(12, 23, 40, 0.66)",
-          "borderColor": "transparent",
-          "borderRadius": 24,
-          "borderWidth": 0,
-        },
-        {
-          "backgroundColor": "rgba(14, 26, 46, 0.05)",
+          "backgroundColor": "rgba(120, 120, 128, 0.22)",
+          "borderColor": "rgba(84, 84, 88, 0.60)",
+          "borderCurve": "continuous",
+          "borderRadius": 18,
+          "borderWidth": 0.5,
         },
       ]
     }
@@ -515,7 +503,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
             "fontSize": 12,
           },
           {
-            "color": "#B0C4DE",
+            "color": "rgba(235, 235, 245, 0.60)",
           },
         ]
       }

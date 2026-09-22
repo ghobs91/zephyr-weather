@@ -245,7 +245,6 @@ export function DailyForecastCard({
                 style={[
                   styles.dayColumn,
                   getInsetPanelStyle(themeColors),
-                  {backgroundColor: withAlpha(themeColors.surfaceElevated, isDark ? 0.04 : 0.36)},
                 ]}
                 onPress={() => onDayPress?.(originalIndex)}>
                 <Text style={[styles.dayLabel, {color: themeColors.text}]} numberOfLines={1}>

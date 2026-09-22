@@ -66,7 +66,6 @@ export function AirQualityCard({airQuality, isDark}: Props) {
               style={[
                 styles.pollutantItem,
                 getInsetPanelStyle(themeColors),
-                {backgroundColor: withAlpha(themeColors.surfaceElevated, isDark ? 0.06 : 0.54)},
               ]}>
               <Text style={[styles.pollutantLabel, {color: themeColors.textSecondary}]}>
                 {pollutant.label}

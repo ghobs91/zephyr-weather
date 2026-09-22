@@ -26,7 +26,6 @@ import {AtmosphericBackground} from '../components/AtmosphericBackground';
 import {EmptyState} from '../components/EmptyState';
 import {LoadingState} from '../components/LoadingState';
 import {DesktopHeader} from '../components/DesktopHeader';
-import {MobileHeader} from '../components/MobileHeader';
 import {AlertBanner} from '../components/AlertBanner';
 import {CurrentWeatherCard} from '../components/CurrentWeatherCard';
 import {HourlyForecastCard} from '../components/HourlyForecastCard';
@@ -166,24 +165,13 @@ export function HomeScreen() {
 
             {/* Skeleton loading state */}
             {showSkeleton ? (
-              <>
-                {!isDesktop && (
-                  <MobileHeader weather={undefined} themeColors={themeColors} settings={settings} />
-                )}
-                <SkeletonCards themeColors={themeColors} isDark={useDark} count={4} />
-              </>
+              <SkeletonCards themeColors={themeColors} isDark={useDark} count={4} />
             ) : (
               <>
             {/* Header */}
-            {isDesktop ? (
+            {isDesktop && (
               <DesktopHeader
                 location={currentLocation}
-                weather={weather}
-                themeColors={themeColors}
-                settings={settings}
-              />
-            ) : (
-              <MobileHeader
                 weather={weather}
                 themeColors={themeColors}
                 settings={settings}

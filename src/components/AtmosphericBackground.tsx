@@ -17,10 +17,9 @@ interface Props {
 /**
  * Liquid glass atmospheric background.
  *
- * iOS 27-style layered background with large, soft-edged organic orbs
- * that "bleed" vibrant colour through the translucent glass surfaces
- * stacked on top. The effect creates a sense of depth and fluidity
- * without being distracting.
+ * A soft sky gradient with two faint, oversized colour orbs that bleed
+ * gently through the translucent glass above. Deliberately restrained so
+ * the material — not the backdrop — carries the interface.
  */
 export function AtmosphericBackground({children, isDark, style}: Props) {
   const theme = getThemeColors(isDark);
@@ -31,21 +30,21 @@ export function AtmosphericBackground({children, isDark, style}: Props) {
       {/* ── Sky gradient base ──────────────────────────────────── */}
       <LinearGradient
         colors={getScreenGradient(theme)}
-        locations={useDark ? [0, 0.22, 1] : [0, 0.38, 1]}
+        locations={useDark ? [0, 0.30, 1] : [0, 0.42, 1]}
         style={StyleSheet.absoluteFill}
       />
 
-      {/* ── Primary orb — large, top-right ─────────────────────── */}
+      {/* ── Primary orb — soft light, top-right ────────────────── */}
       <View
         pointerEvents="none"
         style={[
           styles.orb,
           styles.orbPrimary,
-          {backgroundColor: getLiquidOrbColor(theme, 'primary')},
+          {backgroundColor: getLiquidOrbColor(theme, 'accent')},
         ]}
       />
 
-      {/* ── Secondary orb — mid-left, warm amber glow ──────────── */}
+      {/* ── Secondary orb — warm glow, lower-left ──────────────── */}
       <View
         pointerEvents="none"
         style={[
@@ -55,32 +54,10 @@ export function AtmosphericBackground({children, isDark, style}: Props) {
         ]}
       />
 
-      {/* ── Accent orb — bottom-right, cool liquid bleed ───────── */}
-      <View
-        pointerEvents="none"
-        style={[
-          styles.orb,
-          styles.orbAccent,
-          {backgroundColor: getLiquidOrbColor(theme, 'accent')},
-        ]}
-      />
-
-      {/* ── Subtle haze overlay — ties orbs together ──────────── */}
-      <View
-        pointerEvents="none"
-        style={[
-          styles.haze,
-          {backgroundColor: withAlpha(theme.liquidGlow, useDark ? 0.06 : 0.10)},
-        ]}
-      />
-
       {/* ── Top-edge highlight — simulates light source ────────── */}
       <LinearGradient
         pointerEvents="none"
-        colors={[
-          withAlpha('#FFFFFF', useDark ? 0.04 : 0.18),
-          'transparent',
-        ]}
+        colors={[withAlpha('#FFFFFF', useDark ? 0.04 : 0.16), 'transparent']}
         locations={[0, 1]}
         style={styles.topHighlight}
       />
@@ -97,39 +74,24 @@ const styles = StyleSheet.create({
   orb: {
     position: 'absolute',
     borderRadius: 999,
-    // Soft blur-like edges via large size + low opacity
   },
   orbPrimary: {
-    width: 340,
-    height: 340,
-    top: -140,
-    right: -80,
+    width: 420,
+    height: 420,
+    top: -180,
+    right: -120,
   },
   orbSecondary: {
-    width: 260,
-    height: 260,
-    top: '32%',
-    left: -110,
-  },
-  orbAccent: {
-    width: 380,
-    height: 380,
-    bottom: -170,
-    right: -130,
-  },
-  haze: {
-    position: 'absolute',
-    width: 500,
-    height: 500,
-    borderRadius: 999,
-    bottom: -260,
-    left: -180,
+    width: 320,
+    height: 320,
+    bottom: -140,
+    left: -120,
   },
   topHighlight: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: 120,
+    height: 140,
   },
 });

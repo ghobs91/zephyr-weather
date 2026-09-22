@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {View, StyleSheet, Animated} from 'react-native';
 import {ColorTheme} from '../theme/colors';
-import {withAlpha} from '../theme/design';
+import {radius} from '../theme/design';
 
 interface Props {
   themeColors: ColorTheme;
@@ -14,7 +14,7 @@ interface Props {
  * Shimmer/skeleton loading placeholder that renders animated pulsing cards
  * while weather data is being fetched.
  */
-export function SkeletonCards({themeColors, isDark, count = 3}: Props) {
+export function SkeletonCards({themeColors, count = 3}: Props) {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export function SkeletonCards({themeColors, isDark, count = 3}: Props) {
     outputRange: [0.3, 0.7],
   });
 
-  const bgColor = withAlpha(themeColors.surfaceElevated, isDark ? 0.06 : 0.40);
+  const bgColor = themeColors.fill;
 
   return (
     <View style={styles.container}>
@@ -64,7 +64,7 @@ export function SkeletonCards({themeColors, isDark, count = 3}: Props) {
 
 const styles = StyleSheet.create({
   container: {gap: 12, padding: 8},
-  card: {borderRadius: 24, padding: 20, gap: 12},
+  card: {borderRadius: radius.card, padding: 20, gap: 12},
   line: {borderRadius: 8, height: 14},
   lineShort: {width: '40%'},
   lineMedium: {width: '60%'},
