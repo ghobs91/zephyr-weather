@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "02B79DFED924FA19CA90EC69614733E1"
-               BuildableName = "libfmt.a"
-               BlueprintName = "fmt"
+               BlueprintIdentifier = "DCBBC340ADCFC40E2F676B616BA8D2F4"
+               BuildableName = "ExpoFileSystem_privacy.bundle"
+               BlueprintName = "ExpoFileSystem-ExpoFileSystem_privacy"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

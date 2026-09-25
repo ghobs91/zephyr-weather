@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "5211B5AB7B81060AA8E78614DD75D3AB"
-               BuildableName = "libRCTDeprecation.a"
+               BuildableName = "RCTDeprecation"
                BlueprintName = "RCTDeprecation"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>

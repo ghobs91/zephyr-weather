@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "EC55D52694092A9D0E6A78EB01207EB5"
-               BuildableName = "libRCT-Folly.a"
-               BlueprintName = "RCT-Folly"
+               BlueprintIdentifier = "56D261ADA0464588C9982AC18214F933"
+               BuildableName = "ExpoModulesWorklets.framework"
+               BlueprintName = "ExpoModulesWorklets"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

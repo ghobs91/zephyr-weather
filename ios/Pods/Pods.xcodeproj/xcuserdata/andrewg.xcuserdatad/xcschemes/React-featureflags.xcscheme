@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "28CE447E6F9C5F0EECC0CDD607D06A24"
-               BuildableName = "libReact-featureflags.a"
+               BuildableName = "React-featureflags"
                BlueprintName = "React-featureflags"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>

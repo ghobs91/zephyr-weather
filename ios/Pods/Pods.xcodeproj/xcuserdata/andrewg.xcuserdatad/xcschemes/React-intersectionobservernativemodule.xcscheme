@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1948D0B63D2CF6A48E18B0B292BC6091"
-               BuildableName = "libSocketRocket.a"
-               BlueprintName = "SocketRocket"
+               BlueprintIdentifier = "6AF03E2611B1760E48E5585A3D594DDA"
+               BuildableName = "React-intersectionobservernativemodule"
+               BlueprintName = "React-intersectionobservernativemodule"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "331AFAADB024F73370A9DC6FBD7A5A22"
-               BuildableName = "RCT-Folly_privacy.bundle"
-               BlueprintName = "RCT-Folly-RCT-Folly_privacy"
+               BlueprintIdentifier = "0016273004A8C334B74D2002DFDB74F9"
+               BuildableName = "React-timing_privacy.bundle"
+               BlueprintName = "React-timing-React-timing_privacy"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

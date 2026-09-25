@@ -1,0 +1,6 @@
+framework module MapLibreReactNative {
+  umbrella header "MapLibreReactNative-umbrella.h"
+
+  export *
+  module * { export * }
+}

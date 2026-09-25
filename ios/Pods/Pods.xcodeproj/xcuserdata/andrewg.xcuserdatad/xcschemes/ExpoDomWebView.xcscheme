@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "01B01C0FA0EE5B803ADA8C8412BDB42A"
-               BuildableName = "boost_privacy.bundle"
-               BlueprintName = "boost-boost_privacy"
+               BlueprintIdentifier = "7D0CD95601D59365614688388F0A845D"
+               BuildableName = "ExpoDomWebView.framework"
+               BlueprintName = "ExpoDomWebView"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

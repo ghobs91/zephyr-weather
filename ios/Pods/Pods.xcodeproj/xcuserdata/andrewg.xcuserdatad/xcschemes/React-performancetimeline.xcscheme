@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "DAFE14075070BE107E29502EB86AD770"
-               BuildableName = "libReact-performancetimeline.a"
+               BuildableName = "React-performancetimeline"
                BlueprintName = "React-performancetimeline"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>

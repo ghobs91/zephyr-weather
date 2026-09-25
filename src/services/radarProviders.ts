@@ -35,19 +35,19 @@ export const RADAR_PROVIDERS: Record<RadarProviderId, RadarProvider> = {
     id: 'nexrad',
     label: 'NEXRAD',
     kind: 'scan',
-    attribution: 'NOAA NEXRAD via AWS · © OpenStreetMap · CARTO',
+    attribution: 'NOAA NEXRAD via AWS · © OpenFreeMap · © OpenStreetMap',
   },
   eccc: {
     id: 'eccc',
     label: 'ECCC',
     kind: 'wms',
-    attribution: 'ECCC GeoMet · © OpenStreetMap · CARTO',
+    attribution: 'ECCC GeoMet · © OpenFreeMap · © OpenStreetMap',
   },
   dwd: {
     id: 'dwd',
     label: 'DWD',
     kind: 'wms',
-    attribution: 'DWD Geoserver · © OpenStreetMap · CARTO',
+    attribution: 'DWD Geoserver · © OpenFreeMap · © OpenStreetMap',
   },
 };
 
@@ -62,7 +62,9 @@ function inBbox(
   lon: number,
   box: {west: number; south: number; east: number; north: number},
 ): boolean {
-  return lat >= box.south && lat <= box.north && lon >= box.west && lon <= box.east;
+  return (
+    lat >= box.south && lat <= box.north && lon >= box.west && lon <= box.east
+  );
 }
 
 /**
@@ -93,12 +95,19 @@ export function selectRadarProvider(
  * providers, which have no scan-listing API — we request TIME-stepped
  * GetMap images and let the server snap to the nearest available run.
  */
-export function wmsTimeSteps(hoursBack = 2, stepMin = 10, nowMs = Date.now()): number[] {
+export function wmsTimeSteps(
+  hoursBack = 2,
+  stepMin = 10,
+  nowMs = Date.now(),
+): number[] {
   const steps: number[] = [];
   const count = Math.floor((hoursBack * 60) / stepMin);
   for (let i = count; i >= 0; i--) {
     // Align to the step grid so consecutive loads request identical URLs.
-    const t = Math.floor((nowMs - i * stepMin * 60_000) / (stepMin * 60_000)) * stepMin * 60_000;
+    const t =
+      Math.floor((nowMs - i * stepMin * 60_000) / (stepMin * 60_000)) *
+      stepMin *
+      60_000;
     steps.push(t);
   }
   return steps;
@@ -191,7 +200,7 @@ export interface SatelliteLayer {
 }
 
 const GIBS_WMS = 'https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi';
-const GIBS_ATTRIBUTION = 'NASA GIBS · © OpenStreetMap · CARTO';
+const GIBS_ATTRIBUTION = 'NASA GIBS · © OpenFreeMap · © OpenStreetMap';
 
 /**
  * GOES-East covers the eastern Americas, GOES-West the western

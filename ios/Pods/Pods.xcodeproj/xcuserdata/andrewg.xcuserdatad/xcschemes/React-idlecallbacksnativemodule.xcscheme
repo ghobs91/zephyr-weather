@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "1925B2CA820D27AB7F1A2B7094CCE7A8"
-               BuildableName = "libReact-idlecallbacksnativemodule.a"
+               BuildableName = "React-idlecallbacksnativemodule"
                BlueprintName = "React-idlecallbacksnativemodule"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>

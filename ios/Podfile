@@ -21,6 +21,10 @@ target 'ZephyrWeather' do
   )
 
   post_install do |installer|
+    # MapLibre React Native: injects the MapLibre Native SPM package and the
+    # signature-stripping build phase into the app target.
+    $MLRN.post_install(installer)
+
     react_native_post_install(
       installer,
       config[:reactNativePath],
@@ -125,6 +129,24 @@ target 'ZephyrWeather' do
           File.open(xcconfig_path, 'a') { |f| f.puts "\nOTHER_CPLUSPLUSFLAGS = $(inherited) -DFMT_USE_CONSTEVAL=0" }
         end
       end
+    end
+
+    # Fix: Sentry's podspec gates the prebuilt Sentry.xcframework slices on
+    # FRAMEWORK_SEARCH_PATHS[sdk=maccatalyst*], but Xcode builds Mac Catalyst
+    # with SDKROOT=macosx (SDK_NAME=macosx*), so that condition never matches
+    # and the native-macOS slice is picked instead. The Swift compiler then
+    # can't find Sentry's declarations ("cannot find Swift declaration for
+    # this class"). Repoint the macOS slice references at the Mac Catalyst
+    # slice; this project never builds native macOS, so there is no conflict.
+    sentry_macos_slice = 'macos-arm64_arm64e_x86_64'
+    sentry_catalyst_slice = 'ios-arm64_arm64e_x86_64-maccatalyst'
+    Dir.glob(File.join(installer.sandbox.root, 'Target Support Files', '**', '*.xcconfig')).each do |xcconfig_path|
+      contents = File.read(xcconfig_path)
+      next unless contents.include?(sentry_macos_slice)
+
+      File.chmod(0644, xcconfig_path)
+      File.write(xcconfig_path, contents.gsub(sentry_macos_slice, sentry_catalyst_slice))
+      Pod::UI.puts "[ZephyrWeather] Repointed Sentry xcframework to the Mac Catalyst slice in #{File.basename(xcconfig_path)}".green
     end
   end
 end

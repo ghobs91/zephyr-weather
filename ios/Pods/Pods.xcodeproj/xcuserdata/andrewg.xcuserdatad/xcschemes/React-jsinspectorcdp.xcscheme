@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "EFEA55B1B776B6EB4B16F363BFE64D1A"
-               BuildableName = "boost"
-               BlueprintName = "boost"
+               BlueprintIdentifier = "1488B54289FC4F8B7BF7037750EE8B6B"
+               BuildableName = "React-jsinspectorcdp"
+               BlueprintName = "React-jsinspectorcdp"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

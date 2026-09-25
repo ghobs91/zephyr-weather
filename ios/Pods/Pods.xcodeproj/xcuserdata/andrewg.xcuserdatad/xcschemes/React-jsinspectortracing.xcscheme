@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "335E89530022FA8F8F6B285798C0BBB2"
-               BuildableName = "libReact-jsinspectortracing.a"
+               BuildableName = "React-jsinspectortracing"
                BlueprintName = "React-jsinspectortracing"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>

@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "2AB2EF542954AB1C999E03BFEF8DE806"
-               BuildableName = "libDoubleConversion.a"
-               BlueprintName = "DoubleConversion"
+               BlueprintIdentifier = "743ADD00844204BE4B2AF706A768998A"
+               BuildableName = "React-mutationobservernativemodule"
+               BlueprintName = "React-mutationobservernativemodule"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

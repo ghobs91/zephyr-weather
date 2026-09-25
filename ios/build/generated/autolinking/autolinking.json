@@ -3,6 +3,46 @@
   "reactNativePath": "/Users/andrewg/Projects/zephyr-weather/node_modules/react-native",
   "reactNativeVersion": "0.86",
   "dependencies": {
+    "@maplibre/maplibre-react-native": {
+      "root": "/Users/andrewg/Projects/zephyr-weather/node_modules/@maplibre/maplibre-react-native",
+      "name": "@maplibre/maplibre-react-native",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/andrewg/Projects/zephyr-weather/node_modules/@maplibre/maplibre-react-native/MapLibreReactNative.podspec",
+          "version": "11.4.0",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/andrewg/Projects/zephyr-weather/node_modules/@maplibre/maplibre-react-native/android",
+          "packageImportPath": "import org.maplibre.reactnative.MLRNPackage;",
+          "packageInstance": "new MLRNPackage()",
+          "buildTypes": [],
+          "libraryName": "MapLibreReactNativeSpec",
+          "componentDescriptors": [
+            "MLRNCameraComponentDescriptor",
+            "MLRNImagesComponentDescriptor",
+            "MLRNLayerComponentDescriptor",
+            "MLRNAndroidTextureMapViewComponentDescriptor",
+            "MLRNMapViewComponentDescriptor",
+            "MLRNNativeUserLocationComponentDescriptor",
+            "MLRNCalloutComponentDescriptor",
+            "MLRNMarkerViewComponentDescriptor",
+            "MLRNPointAnnotationComponentDescriptor",
+            "MLRNGeoJSONSourceComponentDescriptor",
+            "MLRNImageSourceComponentDescriptor",
+            "MLRNRasterDEMSourceComponentDescriptor",
+            "MLRNRasterSourceComponentDescriptor",
+            "MLRNVectorSourceComponentDescriptor"
+          ],
+          "cmakeListsPath": "/Users/andrewg/Projects/zephyr-weather/node_modules/@maplibre/maplibre-react-native/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cxxModuleCMakeListsModuleName": null,
+          "cxxModuleCMakeListsPath": null,
+          "cxxModuleHeaderName": null,
+          "isPureCxxDependency": false
+        }
+      }
+    },
     "@react-native-async-storage/async-storage": {
       "root": "/Users/andrewg/Projects/zephyr-weather/node_modules/@react-native-async-storage/async-storage",
       "name": "@react-native-async-storage/async-storage",
@@ -630,7 +670,8 @@
         },
         {
           "name": "--terminal <string>",
-          "description": "Launches the Metro Bundler in a new window using the specified terminal path."
+          "description": "Launches the Metro Bundler in a new window using the specified terminal path.",
+          "default": "iTerm.app"
         },
         {
           "name": "--binary-path <string>",
@@ -797,7 +838,8 @@
         },
         {
           "name": "--terminal <string>",
-          "description": "Launches the Metro Bundler in a new window using the specified terminal path."
+          "description": "Launches the Metro Bundler in a new window using the specified terminal path.",
+          "default": "iTerm.app"
         },
         {
           "name": "--appId <string>",

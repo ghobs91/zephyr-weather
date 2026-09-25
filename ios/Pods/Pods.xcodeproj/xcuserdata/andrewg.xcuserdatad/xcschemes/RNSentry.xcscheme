@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "B41E34C6B259B9994C513BE178912491"
-               BuildableName = "React-rncore"
-               BlueprintName = "React-rncore"
+               BlueprintIdentifier = "5F1F4F3152B9AC4DC3545BFA74CCE4C1"
+               BuildableName = "RNSentry.framework"
+               BlueprintName = "RNSentry"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

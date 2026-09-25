@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "DA2A4233FFAFC9A66CCD3AB4EEBF28FA"
-               BuildableName = "libReact-renderercss.a"
+               BuildableName = "React-renderercss"
                BlueprintName = "React-renderercss"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>

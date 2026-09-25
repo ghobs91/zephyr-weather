@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3C2DDF9A6E6ADA1EE923BDC927B3DF21"
-               BuildableName = "libReact-RCTRuntime.a"
+               BuildableName = "React-RCTRuntime"
                BlueprintName = "React-RCTRuntime"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>

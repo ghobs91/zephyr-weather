@@ -80,6 +80,28 @@ PODS:
   - hermes-engine (250829098.0.16):
     - hermes-engine/Pre-built (= 250829098.0.16)
   - hermes-engine/Pre-built (250829098.0.16)
+  - MapLibreReactNative (11.4.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RCTDeprecation (0.86.2)
   - RCTRequired (0.86.2)
   - RCTSwiftUI (0.86.2)
@@ -2385,6 +2407,7 @@ DEPENDENCIES:
   - ExpoModulesWorkletsAdapter (from `../node_modules/expo/node_modules/expo-modules-core`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
+  - "MapLibreReactNative (from `../node_modules/@maplibre/maplibre-react-native`)"
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
   - RCTRequired (from `../node_modules/react-native/Libraries/Required`)
   - RCTSwiftUI (from `../node_modules/react-native/ReactApple/RCTSwiftUI`)
@@ -2504,6 +2527,8 @@ EXTERNAL SOURCES:
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-v250829098.0.16
+  MapLibreReactNative:
+    :path: "../node_modules/@maplibre/maplibre-react-native"
   RCTDeprecation:
     :path: "../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation"
   RCTRequired:
@@ -2691,6 +2716,7 @@ SPEC CHECKSUMS:
   ExpoModulesWorkletsAdapter: 45af1d3b1605384f7350ffbaf99575e4ae2dd2e4
   FBLazyVector: 3c3be9a019176b5699455f7f66c5444b78a411c6
   hermes-engine: d40641ec40f394edfa7f9471af328b89c82c5a56
+  MapLibreReactNative: 19c0cd1bdd0c67ee051b229a784b3de6aa707088
   RCTDeprecation: bccb6545c26db881ecddfd83a3f9ea82aba1605f
   RCTRequired: b2f74764d596fc0051f00fee94b49bf41a6f7f5a
   RCTSwiftUI: c6d6a31b849b9dfa64c33b55dc91ac15dd55774c
@@ -2777,6 +2803,6 @@ SPEC CHECKSUMS:
   RNWorklets: 064c16e85402f244420e35d28b2a42f889f836ed
   Yoga: 542a30dafe5b0f5f1d9f185ea7b2a3811ac54801
 
-PODFILE CHECKSUM: 5ef9e83016f1440441479345a124937b492316a8
+PODFILE CHECKSUM: 95fbbed4801bc702902ac0aadf8d5c968607594f
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.17.0

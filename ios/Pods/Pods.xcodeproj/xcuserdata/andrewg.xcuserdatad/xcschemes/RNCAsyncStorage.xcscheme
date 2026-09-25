@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "89F573A6B1292B3B2296B2206BFDC3D7"
-               BuildableName = "libRNCAsyncStorage.a"
+               BuildableName = "RNCAsyncStorage.framework"
                BlueprintName = "RNCAsyncStorage"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>

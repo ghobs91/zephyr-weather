@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "EB28C63AFB5F6569AA780E440F9927E8"
-               BuildableName = "libBVLinearGradient.a"
+               BuildableName = "BVLinearGradient.framework"
                BlueprintName = "BVLinearGradient"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>

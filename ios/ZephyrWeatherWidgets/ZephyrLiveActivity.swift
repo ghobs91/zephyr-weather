@@ -11,6 +11,10 @@
 //  All display strings arrive preformatted from TypeScript.
 //
 
+// ActivityKit is unavailable in Mac Catalyst, so the whole Live Activity
+// widget compiles out there (matching the stub in the app target's
+// ZephyrLiveActivityManager.swift).
+#if !targetEnvironment(macCatalyst)
 import ActivityKit
 import WidgetKit
 import SwiftUI
@@ -93,3 +97,4 @@ struct ZephyrLiveActivity: Widget {
         }
     }
 }
+#endif

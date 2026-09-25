@@ -8,7 +8,7 @@ FRAMEWORK_SEARCH_PATHS[sdk=appletvsimulator*] = $(inherited) "$(PODS_ROOT)/sentr
 FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*] = $(inherited) "$(PODS_ROOT)/sentry-xcframeworks/9.26.1/Sentry.xcframework/ios-arm64_arm64e"
 FRAMEWORK_SEARCH_PATHS[sdk=iphonesimulator*] = $(inherited) "$(PODS_ROOT)/sentry-xcframeworks/9.26.1/Sentry.xcframework/ios-arm64_x86_64-simulator"
 FRAMEWORK_SEARCH_PATHS[sdk=maccatalyst*] = $(inherited) "$(PODS_ROOT)/sentry-xcframeworks/9.26.1/Sentry.xcframework/ios-arm64_arm64e_x86_64-maccatalyst"
-FRAMEWORK_SEARCH_PATHS[sdk=macosx*] = $(inherited) "$(PODS_ROOT)/sentry-xcframeworks/9.26.1/Sentry.xcframework/macos-arm64_arm64e_x86_64"
+FRAMEWORK_SEARCH_PATHS[sdk=macosx*] = $(inherited) "$(PODS_ROOT)/sentry-xcframeworks/9.26.1/Sentry.xcframework/ios-arm64_arm64e_x86_64-maccatalyst"
 FRAMEWORK_SEARCH_PATHS[sdk=watchos*] = $(inherited) "$(PODS_ROOT)/sentry-xcframeworks/9.26.1/Sentry.xcframework/watchos-arm64_arm64_32_arm64e_armv7k"
 FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*] = $(inherited) "$(PODS_ROOT)/sentry-xcframeworks/9.26.1/Sentry.xcframework/watchos-arm64_x86_64-simulator"
 FRAMEWORK_SEARCH_PATHS[sdk=xros*] = $(inherited) "$(PODS_ROOT)/sentry-xcframeworks/9.26.1/Sentry.xcframework/xros-arm64_arm64e"

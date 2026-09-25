@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D0EFEFB685D97280256C559792236873"
-               BuildableName = "libglog.a"
-               BlueprintName = "glog"
+               BlueprintIdentifier = "105765E503515FDF1EFEBEFA6F166225"
+               BuildableName = "ExpoFont.framework"
+               BlueprintName = "ExpoFont"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

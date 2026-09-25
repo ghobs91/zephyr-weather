@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "EC41243680C76C9CF169C0E0F477325F"
-               BuildableName = "fast_float"
-               BlueprintName = "fast_float"
+               BlueprintIdentifier = "F7F794A5452BF670A4C86BA2F996B45B"
+               BuildableName = "RCTSwiftUIWrapper"
+               BlueprintName = "RCTSwiftUIWrapper"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

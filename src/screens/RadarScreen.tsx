@@ -3,10 +3,9 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
   ActivityIndicator,
-  LayoutChangeEvent,
   TouchableOpacity,
+  type NativeSyntheticEvent,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -17,6 +16,17 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {
+  Map,
+  Camera,
+  ImageSource,
+  Layer,
+  type CameraRef,
+  type MapRef,
+  type LngLat,
+  type LngLatBounds,
+  type ViewStateChangeEvent,
+} from '@maplibre/maplibre-react-native';
 
 import {useWeatherStore} from '../store/weatherStore';
 import {useThemeColors} from '../hooks/useThemeColors';
@@ -42,117 +52,22 @@ import {t} from '../i18n';
 const TIMELINE_HOURS = 2;
 const PLAYBACK_INTERVAL_MS = 750; // ms per frame
 const MAX_ANIMATION_FRAMES = 20;
-// Extra pixels of tiles pre-loaded beyond the visible edges so panning
-// reveals already-loaded tiles instead of blank space.
-const TILE_BUFFER_PX = 250;
+
+// OpenFreeMap basemap styles (keyless, open source). Vector tiles are rendered
+// natively by MapLibre.
+const OPENFREEMAP_DARK = 'https://tiles.openfreemap.org/styles/dark';
+const OPENFREEMAP_LIGHT = 'https://tiles.openfreemap.org/styles/positron';
+
+// Overlay frames are requested as a single georeferenced image per frame at
+// this square resolution, then anchored to the map bounds.
+const OVERLAY_PX = 1024;
+
+// Attribution for the basemap itself; radar/satellite sources carry their own.
+const BASE_MAP_ATTRIBUTION = '© OpenFreeMap · © OpenStreetMap';
 
 // ---------------------------------------------------------------------------
 // Map helpers
 // ---------------------------------------------------------------------------
-
-interface TileInfo {
-  url: string;
-  x: number;
-  y: number;
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
-
-function getBaseTiles(
-  west: number,
-  south: number,
-  east: number,
-  north: number,
-  containerWidth: number,
-  containerHeight: number,
-  zoom: number,
-  isDark: boolean,
-): TileInfo[] {
-  const style = isDark ? 'dark_all' : 'light_all';
-  const n = Math.pow(2, zoom);
-
-  const xTileMin = Math.floor(((west + 180) / 360) * n);
-  const xTileMax = Math.floor(((east + 180) / 360) * n);
-  const latRadN = (north * Math.PI) / 180;
-  const latRadS = (south * Math.PI) / 180;
-  const yTileMin = Math.floor(
-    ((1 - Math.log(Math.tan(latRadN) + 1 / Math.cos(latRadN)) / Math.PI) / 2) * n,
-  );
-  const yTileMax = Math.floor(
-    ((1 - Math.log(Math.tan(latRadS) + 1 / Math.cos(latRadS)) / Math.PI) / 2) * n,
-  );
-
-  const worldLeft = ((west + 180) / 360) * n * 256;
-  const worldRight = ((east + 180) / 360) * n * 256;
-  const worldTop =
-    ((1 - Math.log(Math.tan(latRadN) + 1 / Math.cos(latRadN)) / Math.PI) / 2) *
-    n *
-    256;
-  const worldBottom =
-    ((1 - Math.log(Math.tan(latRadS) + 1 / Math.cos(latRadS)) / Math.PI) / 2) *
-    n *
-    256;
-
-  const worldW = worldRight - worldLeft;
-  const worldH = worldBottom - worldTop;
-  const scaleX = containerWidth / worldW;
-  const scaleY = containerHeight / worldH;
-
-  const tiles: TileInfo[] = [];
-  for (let ty = yTileMin; ty <= yTileMax; ty++) {
-    for (let tx = xTileMin; tx <= xTileMax; tx++) {
-      const tileWorldLeft = tx * 256;
-      const tileWorldTop = ty * 256;
-      tiles.push({
-        url: `https://cartodb-basemaps-a.global.ssl.fastly.net/${style}/${zoom}/${tx}/${ty}@2x.png`,
-        x: tx,
-        y: ty,
-        left: (tileWorldLeft - worldLeft) * scaleX,
-        top: (tileWorldTop - worldTop) * scaleY,
-        width: 256 * scaleX,
-        height: 256 * scaleY,
-      });
-    }
-  }
-  return tiles;
-}
-
-function bboxFromCenter(
-  lat: number,
-  lon: number,
-  zoom: number,
-  containerWidth: number,
-  containerHeight: number,
-): {west: number; south: number; east: number; north: number} {
-  const n = Math.pow(2, zoom);
-  const centerXWorld = ((lon + 180) / 360) * n * 256;
-  const latRad = (lat * Math.PI) / 180;
-  const centerYWorld =
-    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) *
-    n *
-    256;
-
-  const halfW = containerWidth / 2;
-  const halfH = containerHeight / 2;
-
-  const westWorld = centerXWorld - halfW;
-  const eastWorld = centerXWorld + halfW;
-  const northWorld = centerYWorld - halfH;
-  const southWorld = centerYWorld + halfH;
-
-  const west = (westWorld / (n * 256)) * 360 - 180;
-  const east = (eastWorld / (n * 256)) * 360 - 180;
-
-  const northMerc = Math.PI - (2 * Math.PI * northWorld) / (n * 256);
-  const north = (180 / Math.PI) * Math.atan(0.5 * (Math.exp(northMerc) - Math.exp(-northMerc)));
-
-  const southMerc = Math.PI - (2 * Math.PI * southWorld) / (n * 256);
-  const south = (180 / Math.PI) * Math.atan(0.5 * (Math.exp(southMerc) - Math.exp(-southMerc)));
-
-  return {west, south, east, north};
-}
 
 function formatTimeLabel(date: Date): string {
   const h = date.getHours();
@@ -177,18 +92,21 @@ export function RadarScreen() {
   const lat = location?.latitude ?? 39.8283;
   const lon = location?.longitude ?? -98.5795;
 
-  const [mapSize, setMapSize] = useState({width: 0, height: 0});
   const [sliderWidth, setSliderWidth] = useState(0);
   const [selectedTimeLabel, setSelectedTimeLabel] = useState('Now');
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
-  const [framesLoadedCount, setFramesLoadedCount] = useState(0);
+  const [mapReady, setMapReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [overlayMode, setOverlayMode] = useState<'radar' | 'satellite'>('radar');
+  const [overlayMode, setOverlayMode] = useState<'radar' | 'satellite'>(
+    'radar',
+  );
   const playbackStepRef = useRef(0);
 
   // NEXRAD scan data from AWS S3
   const [frames, setFrames] = useState<NexradScan[]>([]);
-  const [scanStatus, setScanStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [scanStatus, setScanStatus] = useState<'loading' | 'ready' | 'error'>(
+    'loading',
+  );
 
   const now = useMemo(() => Date.now(), []);
   const timeStart = now - TIMELINE_HOURS * 60 * 60 * 1000;
@@ -218,7 +136,10 @@ export function RadarScreen() {
   const satLayer = useMemo(() => selectSatelliteLayer(lon), [lon]);
 
   // Nearest NEXRAD station (NEXRAD provider only)
-  const nearestStation = useMemo(() => findNearestStation(lat, lon), [lat, lon]);
+  const nearestStation = useMemo(
+    () => findNearestStation(lat, lon),
+    [lat, lon],
+  );
 
   // Fetch animation frames: S3 scan listing for NEXRAD, TIME-stepped
   // WMS frames for ECCC/DWD (no listing API — the server snaps TIME
@@ -233,13 +154,12 @@ export function RadarScreen() {
       // list so the global satellite overlay works, and default to it.
       const steps = wmsTimeSteps(TIMELINE_HOURS, 10);
       if (!cancelled) {
-        const picked: NexradScan[] = steps.map(epochMs => ({
+        const picked: NexradScan[] = steps.map((epochMs) => ({
           key: `sat-${epochMs}`,
           epochMs,
         }));
         setFrames(picked);
         setScanStatus(picked.length > 0 ? 'ready' : 'error');
-        setFramesLoadedCount(0);
         if (picked.length > 0) {
           playbackStepRef.current = picked.length - 1;
           setCurrentFrameIndex(picked.length - 1);
@@ -254,13 +174,12 @@ export function RadarScreen() {
     if (provider.kind === 'wms') {
       const steps = wmsTimeSteps(TIMELINE_HOURS, 10);
       if (!cancelled) {
-        const picked: NexradScan[] = steps.map(epochMs => ({
+        const picked: NexradScan[] = steps.map((epochMs) => ({
           key: `${provider.id}-${epochMs}`,
           epochMs,
         }));
         setFrames(picked);
         setScanStatus(picked.length > 0 ? 'ready' : 'error');
-        setFramesLoadedCount(0);
         if (picked.length > 0) {
           // Start at most recent frame
           playbackStepRef.current = picked.length - 1;
@@ -273,12 +192,11 @@ export function RadarScreen() {
     }
 
     getAvailableScans(nearestStation.code, TIMELINE_HOURS)
-      .then(scans => {
+      .then((scans) => {
         if (cancelled) return;
         const picked = pickAnimationFrames(scans, MAX_ANIMATION_FRAMES);
         setFrames(picked);
         setScanStatus(picked.length > 0 ? 'ready' : 'error');
-        setFramesLoadedCount(0);
         if (picked.length > 0) {
           // Start at most recent frame
           playbackStepRef.current = picked.length - 1;
@@ -294,188 +212,134 @@ export function RadarScreen() {
     };
   }, [provider?.id, nearestStation.code]);
 
-  // Map pan/zoom state (shared values for gesture handling)
-  const mapCenterLat = useSharedValue(lat);
-  const mapCenterLon = useSharedValue(lon);
-  const mapZoom = useSharedValue(7);
+  // MapLibre map/camera refs. The OpenFreeMap vector basemap is rendered
+  // natively; radar/satellite frames are georeferenced raster ImageSources
+  // layered on top.
+  const mapRef = useRef<MapRef>(null);
+  const cameraRef = useRef<CameraRef>(null);
 
-  const [committedMap, setCommittedMap] = useState({lat, lon, zoom: 7});
+  // Geographic bounds the current overlay frames were requested for. Kept
+  // separate from the live viewport so frames stay anchored to their real
+  // coordinates while panning; it advances only when frames are refetched.
+  const [overlayBounds, setOverlayBounds] = useState<LngLatBounds>(() => [
+    lon - 5,
+    lat - 3,
+    lon + 5,
+    lat + 3,
+  ]);
 
-  const updateCommittedMap = useCallback(
-    (newLat: number, newLon: number, newZoom: number) => {
-      setCommittedMap({lat: newLat, lon: newLon, zoom: newZoom});
+  // Recenter the camera when the selected location changes.
+  useEffect(() => {
+    cameraRef.current?.jumpTo({center: [lon, lat]});
+  }, [lat, lon]);
+
+  const handleRegionDidChange = useCallback(
+    (event: NativeSyntheticEvent<ViewStateChangeEvent>) => {
+      setMapReady(true);
+      const {bounds} = event.nativeEvent;
+      if (bounds) setOverlayBounds(bounds);
     },
     [],
   );
 
-  // Reset map center when the selected location changes
-  useEffect(() => {
-    mapCenterLat.value = lat;
-    mapCenterLon.value = lon;
-    mapZoom.value = 7;
-    setCommittedMap({lat, lon, zoom: 7});
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lat, lon]);
-
-  // Pinch gesture saved state
-  const pinchStartZoom = useSharedValue(7);
-  const panStartLat = useSharedValue(lat);
-  const panStartLon = useSharedValue(lon);
-
-  // Live transform driven by gestures — moves the tile layer on the UI thread
-  // without waiting for a JS/React re-render.
-  const panTranslateX = useSharedValue(0);
-  const panTranslateY = useSharedValue(0);
-  const gestureScale = useSharedValue(1);
-
-  const mapGesture = useMemo(() => {
-    const pinch = Gesture.Pinch()
-      .onStart(() => {
-        pinchStartZoom.value = mapZoom.value;
-      })
-      .onUpdate(e => {
-        const rawZoom = pinchStartZoom.value + Math.log2(e.scale);
-        const newZoom = Math.max(3, Math.min(12, rawZoom));
-        mapZoom.value = newZoom;
-        // Drive a scale transform so tiles visually zoom during the gesture.
-        gestureScale.value = Math.pow(2, newZoom - pinchStartZoom.value);
-      })
-      .onEnd(() => {
-        runOnJS(updateCommittedMap)(mapCenterLat.value, mapCenterLon.value, mapZoom.value);
-        // gestureScale resets in the useEffect after tiles re-render.
-      });
-
-    const pan = Gesture.Pan()
-      .minDistance(2)
-      .onStart(() => {
-        panStartLat.value = mapCenterLat.value;
-        panStartLon.value = mapCenterLon.value;
-      })
-      .onUpdate(e => {
-        // Translate the tile layer directly — no JS bridge needed.
-        panTranslateX.value = e.translationX;
-        panTranslateY.value = e.translationY;
-      })
-      .onEnd(() => {
-        const n = Math.pow(2, mapZoom.value);
-        const worldPixels = n * 256;
-        const lonPerPx = 360 / worldPixels;
-        const latRad = (panStartLat.value * Math.PI) / 180;
-        const latPerPx = (360 / worldPixels) / Math.cos(latRad);
-        mapCenterLon.value = panStartLon.value - panTranslateX.value * lonPerPx;
-        mapCenterLat.value = panStartLat.value + panTranslateY.value * latPerPx;
-        runOnJS(updateCommittedMap)(mapCenterLat.value, mapCenterLon.value, mapZoom.value);
-        // panTranslate resets in the useEffect after tiles re-render.
-      });
-
-    return Gesture.Simultaneous(pan, pinch);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleMapLoaded = useCallback(() => {
+    setMapReady(true);
+    mapRef.current
+      ?.getBounds()
+      .then(setOverlayBounds)
+      .catch(() => {});
   }, []);
 
-  // Exact viewport bbox (used for nothing that needs tile coverage).
-  const bbox = useMemo(() => {
-    if (mapSize.width === 0 || mapSize.height === 0) {
-      return {west: committedMap.lon - 5, south: committedMap.lat - 3, east: committedMap.lon + 5, north: committedMap.lat + 3};
-    }
-    return bboxFromCenter(committedMap.lat, committedMap.lon, committedMap.zoom, mapSize.width, mapSize.height);
-  }, [committedMap, mapSize.width, mapSize.height]);
+  const [west, south, east, north] = overlayBounds;
 
-  // Expanded bbox that covers the viewport + TILE_BUFFER_PX on every side.
-  // Tiles and the radar overlay are rendered into this larger area so that
-  // panning up to TILE_BUFFER_PX in any direction reveals pre-loaded content.
-  const expandedW = mapSize.width + 2 * TILE_BUFFER_PX;
-  const expandedH = mapSize.height + 2 * TILE_BUFFER_PX;
-  const expandedBbox = useMemo(() => {
-    if (mapSize.width === 0 || mapSize.height === 0) {
-      return {west: committedMap.lon - 7, south: committedMap.lat - 5, east: committedMap.lon + 7, north: committedMap.lat + 5};
-    }
-    return bboxFromCenter(committedMap.lat, committedMap.lon, committedMap.zoom, expandedW, expandedH);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [committedMap, mapSize.width, mapSize.height]);
-
-  const baseTiles = useMemo(() => {
-    if (mapSize.width === 0 || mapSize.height === 0) return [];
-    return getBaseTiles(
-      expandedBbox.west,
-      expandedBbox.south,
-      expandedBbox.east,
-      expandedBbox.north,
-      expandedW,
-      expandedH,
-      Math.round(committedMap.zoom),
-      useDark,
-    );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expandedBbox, mapSize.width, mapSize.height, committedMap.zoom, useDark]);
+  // ImageSource corners: top-left, top-right, bottom-right, bottom-left.
+  const overlayCoordinates = useMemo<[LngLat, LngLat, LngLat, LngLat]>(
+    () => [
+      [west, north],
+      [east, north],
+      [east, south],
+      [west, south],
+    ],
+    [west, south, east, north],
+  );
 
   // Pre-compute overlay URLs for every frame — rendered all at once.
   // Radar comes from the gov radar provider; satellite always comes
   // from NASA GIBS (global, so it also covers regions without radar).
   const overlayUrls = useMemo(() => {
-    if (frames.length === 0 || mapSize.width === 0 || mapSize.height === 0) return [];
+    if (frames.length === 0) return [];
     if (overlayMode === 'satellite') {
-      return frames.map(f =>
+      return frames.map((f) =>
         buildGibsSatUrl(
           satLayer,
-          expandedBbox.west,
-          expandedBbox.south,
-          expandedBbox.east,
-          expandedBbox.north,
-          expandedW * 2,
-          expandedH * 2,
+          west,
+          south,
+          east,
+          north,
+          OVERLAY_PX,
+          OVERLAY_PX,
           f.epochMs,
         ),
       );
     }
     if (!provider) return [];
     if (provider.id === 'eccc') {
-      return frames.map(f =>
+      return frames.map((f) =>
         buildEcccRadarUrl(
-          expandedBbox.west,
-          expandedBbox.south,
-          expandedBbox.east,
-          expandedBbox.north,
-          expandedW * 2,
-          expandedH * 2,
+          west,
+          south,
+          east,
+          north,
+          OVERLAY_PX,
+          OVERLAY_PX,
           f.epochMs,
           precipType,
         ),
       );
     }
     if (provider.id === 'dwd') {
-      return frames.map(f =>
+      return frames.map((f) =>
         buildDwdRadarUrl(
-          expandedBbox.west,
-          expandedBbox.south,
-          expandedBbox.east,
-          expandedBbox.north,
-          expandedW * 2,
-          expandedH * 2,
+          west,
+          south,
+          east,
+          north,
+          OVERLAY_PX,
+          OVERLAY_PX,
           f.epochMs,
         ),
       );
     }
-    return frames.map(f =>
+    return frames.map((f) =>
       buildRadarImageUrl(
-        expandedBbox.west,
-        expandedBbox.south,
-        expandedBbox.east,
-        expandedBbox.north,
-        expandedW * 2,
-        expandedH * 2,
+        west,
+        south,
+        east,
+        north,
+        OVERLAY_PX,
+        OVERLAY_PX,
         f.epochMs,
       ),
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [overlayMode, satLayer.id, provider?.id, precipType, frames, expandedBbox, mapSize.width, mapSize.height]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    overlayMode,
+    satLayer.id,
+    provider?.id,
+    precipType,
+    frames,
+    west,
+    south,
+    east,
+    north,
+  ]);
 
-  // Reset loaded count whenever the frame URL set changes (new station / bbox / layer).
+  // Stop playback whenever the frame URL set changes (new station / bounds / layer).
   useEffect(() => {
-    setFramesLoadedCount(0);
     setIsPlaying(false);
   }, [overlayUrls]);
 
-  const framesPreloaded = framesLoadedCount >= overlayUrls.length && overlayUrls.length > 0;
+  const framesPreloaded = mapReady && overlayUrls.length > 0;
 
   // -- Frame-based timeline helpers --
 
@@ -488,7 +352,9 @@ export function RadarScreen() {
 
       const scan = frames[clamped];
       const isLast = clamped === frames.length - 1;
-      setSelectedTimeLabel(isLast ? 'Now' : formatTimeLabel(new Date(scan.epochMs)));
+      setSelectedTimeLabel(
+        isLast ? 'Now' : formatTimeLabel(new Date(scan.epochMs)),
+      );
     },
     [frames],
   );
@@ -516,18 +382,18 @@ export function RadarScreen() {
   const pausePlayback = useCallback(() => setIsPlaying(false), []);
 
   const sliderPanGesture = Gesture.Pan()
-    .onStart(e => {
+    .onStart((e) => {
       runOnJS(pausePlayback)();
       thumbX.value = Math.max(0, Math.min(e.x, sliderWidth));
     })
-    .onUpdate(e => {
+    .onUpdate((e) => {
       const clamped = Math.max(0, Math.min(e.x, sliderWidth));
       thumbX.value = clamped;
       runOnJS(setFrameFromSliderPosition)(clamped);
     })
     .onEnd(() => {});
 
-  const sliderTapGesture = Gesture.Tap().onEnd(e => {
+  const sliderTapGesture = Gesture.Tap().onEnd((e) => {
     runOnJS(pausePlayback)();
     const clamped = Math.max(0, Math.min(e.x, sliderWidth));
     thumbX.value = withTiming(clamped, {duration: 100});
@@ -553,7 +419,9 @@ export function RadarScreen() {
       setCurrentFrameIndex(next);
       const scan = frames[next];
       const isLast = next === frames.length - 1;
-      setSelectedTimeLabel(isLast ? 'Now' : formatTimeLabel(new Date(scan.epochMs)));
+      setSelectedTimeLabel(
+        isLast ? 'Now' : formatTimeLabel(new Date(scan.epochMs)),
+      );
       // Update slider position
       const fraction = next / Math.max(1, frames.length - 1);
       thumbX.value = fraction * sliderWidth;
@@ -563,7 +431,7 @@ export function RadarScreen() {
 
   const handleTogglePlayback = useCallback(() => {
     if (frames.length === 0 || !framesPreloaded) return;
-    setIsPlaying(prev => {
+    setIsPlaying((prev) => {
       if (!prev && playbackStepRef.current >= frames.length - 1) {
         playbackStepRef.current = 0;
       }
@@ -578,24 +446,6 @@ export function RadarScreen() {
     width: thumbX.value,
   }));
 
-  // Smooth live transform applied to the tile/radar layer during gestures.
-  const mapAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {translateX: panTranslateX.value},
-      {translateY: panTranslateY.value},
-      {scale: gestureScale.value},
-    ],
-  }));
-
-  // After tiles re-render at the new committed position/zoom, reset the
-  // gesture transforms so the visual result is seamless.
-  useEffect(() => {
-    panTranslateX.value = 0;
-    panTranslateY.value = 0;
-    gestureScale.value = 1;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [committedMap]);
-
   const timeLabels = useMemo(() => {
     const labels: {text: string; fraction: number}[] = [];
     for (let h = TIMELINE_HOURS; h >= 0; h--) {
@@ -607,11 +457,6 @@ export function RadarScreen() {
     }
     return labels;
   }, [now]);
-
-  const handleMapLayout = useCallback((e: LayoutChangeEvent) => {
-    const {width, height} = e.nativeEvent.layout;
-    setMapSize({width, height});
-  }, []);
 
   return (
     <View style={[styles.container, {backgroundColor: themeColors.background}]}>
@@ -636,9 +481,12 @@ export function RadarScreen() {
 
         {/* Overlay toggle: gov radar vs NASA satellite */}
         <View style={styles.layerToggle}>
-          {(['radar', 'satellite'] as const).map(mode => {
+          {(['radar', 'satellite'] as const).map((mode) => {
             const active = overlayMode === mode;
-            const label = mode === 'radar' ? t('radar.layerRadar') : t('radar.layerSatellite');
+            const label =
+              mode === 'radar'
+                ? t('radar.layerRadar')
+                : t('radar.layerSatellite');
             return (
               <TouchableOpacity
                 key={mode}
@@ -646,7 +494,10 @@ export function RadarScreen() {
                 disabled={mode === 'radar' && !provider}
                 accessibilityRole="button"
                 accessibilityLabel={`${label} layer`}
-                accessibilityState={{selected: active, disabled: mode === 'radar' && !provider}}
+                accessibilityState={{
+                  selected: active,
+                  disabled: mode === 'radar' && !provider,
+                }}
                 style={[
                   styles.layerButton,
                   {
@@ -676,97 +527,120 @@ export function RadarScreen() {
       </View>
 
       {/* Map */}
-      <GestureDetector gesture={mapGesture}>
-        <View style={styles.mapContainer} onLayout={handleMapLayout}>
-          {/* Tile + radar layer — transformed on the UI thread during gestures.
-              Positioned with a negative offset equal to TILE_BUFFER_PX so extra
-              tiles extend beyond every edge, eliminating blank-space during pan. */}
-          <Animated.View
-            style={[
-              {
-                position: 'absolute',
-                left: -TILE_BUFFER_PX,
-                top: -TILE_BUFFER_PX,
-                width: mapSize.width + 2 * TILE_BUFFER_PX,
-                height: mapSize.height + 2 * TILE_BUFFER_PX,
-              },
-              mapAnimatedStyle,
-            ]}>
-            {/* Base map tiles */}
-            {baseTiles.map(tile => (
-              <Image
-                key={`${tile.x}-${tile.y}`}
-                source={{uri: tile.url}}
-                style={[
-                  styles.mapTile,
-                  {
-                    left: tile.left,
-                    top: tile.top,
-                    width: tile.width,
-                    height: tile.height,
-                  },
-                ]}
+      <View style={styles.mapContainer}>
+        <Map
+          ref={mapRef}
+          style={styles.mapView}
+          mapStyle={useDark ? OPENFREEMAP_DARK : OPENFREEMAP_LIGHT}
+          logo={false}
+          attribution={false}
+          compass={false}
+          touchRotate={false}
+          touchPitch={false}
+          onDidFinishLoadingMap={handleMapLoaded}
+          onRegionDidChange={handleRegionDidChange}>
+          <Camera
+            ref={cameraRef}
+            initialViewState={{center: [lon, lat], zoom: 7}}
+            minZoom={3}
+            maxZoom={12}
+          />
+          {/* Overlay — every frame mounted as a georeferenced raster source,
+              only the current one visible (avoids re-fetch during playback). */}
+          {overlayUrls.map((url, i) => (
+            <ImageSource
+              key={frames[i]?.key ?? `frame-${i}`}
+              id={`overlay-${i}`}
+              url={url}
+              coordinates={overlayCoordinates}>
+              <Layer
+                id={`overlay-layer-${i}`}
+                type="raster"
+                paint={{
+                  'raster-opacity':
+                    i === currentFrameIndex
+                      ? overlayMode === 'satellite'
+                        ? 1
+                        : 0.7
+                      : 0,
+                }}
+                layout={{
+                  visibility: i === currentFrameIndex ? 'visible' : 'none',
+                }}
               />
-            ))}
+            </ImageSource>
+          ))}
+        </Map>
 
-            {/* Overlay — all frames mounted, only current one visible.
-                This avoids any re-decode / network fetch during playback. */}
-            {overlayUrls.map((url, i) => (
-              <Image
-                key={frames[i]?.key ?? `${url}-${i}`}
-                source={{uri: url}}
-                style={[
-                  styles.radarOverlay,
-                  {opacity: i === currentFrameIndex ? (overlayMode === 'satellite' ? 1 : 0.7) : 0},
-                ]}
-                resizeMode="stretch"
-                onLoad={() => setFramesLoadedCount(c => c + 1)}
-                onError={() => setFramesLoadedCount(c => c + 1)}
-              />
-            ))}
-          </Animated.View>
-
-          {/* Loading indicator */}
-          {overlayUrls.length > 0 && (!framesPreloaded || scanStatus === 'loading') && (
+        {/* Loading indicator */}
+        {overlayUrls.length > 0 &&
+          (!framesPreloaded || scanStatus === 'loading') && (
             <View style={styles.mapLoadingIndicator}>
               <ActivityIndicator size="small" color={themeColors.primary} />
             </View>
           )}
 
-          {/* Scan loading banner */}
-          {scanStatus === 'loading' && (
-            <View style={[styles.scanBanner, {backgroundColor: themeColors.glassHighlight}]}>
-              <ActivityIndicator size="small" color={themeColors.primary} />
-              <Text style={[styles.scanBannerText, {color: themeColors.text}]}>
-                {overlayMode === 'satellite'
-                  ? `Loading ${satLayer.label} satellite…`
-                  : provider?.id === 'nexrad'
-                    ? `Loading NEXRAD scans from ${nearestStation.code}…`
-                    : provider
-                      ? `Loading ${provider.label} government radar…`
-                      : 'Loading radar…'}
-              </Text>
-            </View>
-          )}
+        {/* Scan loading banner */}
+        {scanStatus === 'loading' && (
+          <View
+            style={[
+              styles.scanBanner,
+              {backgroundColor: themeColors.glassHighlight},
+            ]}>
+            <ActivityIndicator size="small" color={themeColors.primary} />
+            <Text style={[styles.scanBannerText, {color: themeColors.text}]}>
+              {overlayMode === 'satellite'
+                ? `Loading ${satLayer.label} satellite…`
+                : provider?.id === 'nexrad'
+                  ? `Loading NEXRAD scans from ${nearestStation.code}…`
+                  : provider
+                    ? `Loading ${provider.label} government radar…`
+                    : 'Loading radar…'}
+            </Text>
+          </View>
+        )}
 
-          {(overlayMode === 'radar' ? !provider || scanStatus === 'error' : scanStatus === 'error') && (
-            <View style={[styles.scanBanner, {backgroundColor: themeColors.glassHighlight}]}>
-              <Icon name="alert-circle-outline" size={18} color={themeColors.textSecondary} />
-              <Text style={[styles.scanBannerText, {color: themeColors.textSecondary}]}>
-                {!provider && overlayMode === 'radar'
-                  ? 'Government radar isn\u2019t available for this region yet'
-                  : overlayMode === 'satellite'
-                    ? `No satellite data available from ${satLayer.label}`
-                    : `No radar data available from ${provider?.label ?? 'government source'}`}
-              </Text>
-            </View>
-          )}
+        {(overlayMode === 'radar'
+          ? !provider || scanStatus === 'error'
+          : scanStatus === 'error') && (
+          <View
+            style={[
+              styles.scanBanner,
+              {backgroundColor: themeColors.glassHighlight},
+            ]}>
+            <Icon
+              name="alert-circle-outline"
+              size={18}
+              color={themeColors.textSecondary}
+            />
+            <Text
+              style={[
+                styles.scanBannerText,
+                {color: themeColors.textSecondary},
+              ]}>
+              {!provider && overlayMode === 'radar'
+                ? 'Government radar isn\u2019t available for this region yet'
+                : overlayMode === 'satellite'
+                  ? `No satellite data available from ${satLayer.label}`
+                  : `No radar data available from ${provider?.label ?? 'government source'}`}
+            </Text>
+          </View>
+        )}
 
-          {/* Provider badge */}
-          {scanStatus === 'ready' && (overlayMode === 'satellite' || provider) && (
-            <View style={[styles.stationBadge, {backgroundColor: themeColors.glassBase}]}>
+        {/* Provider badge */}
+        {scanStatus === 'ready' &&
+          (overlayMode === 'satellite' || provider) && (
+            <View
+              style={[
+                styles.stationBadge,
+                {backgroundColor: themeColors.glassBase},
+              ]}>
               <Icon name="radar" size={12} color={themeColors.primary} />
-              <Text style={[styles.stationBadgeText, {color: themeColors.textSecondary}]}>
+              <Text
+                style={[
+                  styles.stationBadgeText,
+                  {color: themeColors.textSecondary},
+                ]}>
                 {overlayMode === 'satellite'
                   ? `${satLayer.label} · ${frames.length} frames`
                   : provider?.id === 'nexrad'
@@ -776,18 +650,23 @@ export function RadarScreen() {
             </View>
           )}
 
-          {/* Attribution */}
-          <View style={[styles.attribution, {backgroundColor: themeColors.glassBase}]}>
-            <Text style={[styles.attributionText, {color: themeColors.textTertiary}]}>
-              {overlayMode === 'satellite'
-                ? satLayer.attribution
-                : provider
-                  ? provider.attribution
-                  : '© OpenStreetMap · CARTO'}
-            </Text>
-          </View>
-        </View>{/* mapContainer */}
-      </GestureDetector>
+        {/* Attribution */}
+        <View
+          style={[
+            styles.attribution,
+            {backgroundColor: themeColors.glassBase},
+          ]}>
+          <Text
+            style={[styles.attributionText, {color: themeColors.textTertiary}]}>
+            {overlayMode === 'satellite'
+              ? satLayer.attribution
+              : provider
+                ? provider.attribution
+                : BASE_MAP_ATTRIBUTION}
+          </Text>
+        </View>
+      </View>
+      {/* mapContainer */}
 
       {/* Timeline */}
       <View
@@ -806,7 +685,12 @@ export function RadarScreen() {
             accessibilityLabel={isPlaying ? t('radar.pause') : t('radar.play')}
             style={[
               styles.playButton,
-              {backgroundColor: frames.length > 0 && framesPreloaded ? themeColors.primary : themeColors.border},
+              {
+                backgroundColor:
+                  frames.length > 0 && framesPreloaded
+                    ? themeColors.primary
+                    : themeColors.border,
+              },
             ]}
             activeOpacity={0.75}
             disabled={frames.length === 0 || !framesPreloaded}>
@@ -841,7 +725,7 @@ export function RadarScreen() {
           <GestureDetector gesture={composed}>
             <Animated.View
               style={styles.sliderTrackWrapper}
-              onLayout={e => setSliderWidth(e.nativeEvent.layout.width)}>
+              onLayout={(e) => setSliderWidth(e.nativeEvent.layout.width)}>
               <View
                 style={[
                   styles.sliderTrack,
@@ -849,7 +733,8 @@ export function RadarScreen() {
                 ]}
               />
               {/* Scan tick marks on the slider track */}
-              {frames.length > 0 && sliderWidth > 0 &&
+              {frames.length > 0 &&
+                sliderWidth > 0 &&
                 frames.map((scan, i) => {
                   const fraction = i / Math.max(1, frames.length - 1);
                   return (
@@ -897,11 +782,7 @@ export function RadarScreen() {
                     transform: [
                       {
                         translateX:
-                          i === timeLabels.length - 1
-                            ? -20
-                            : i === 0
-                              ? 0
-                              : -15,
+                          i === timeLabels.length - 1 ? -20 : i === 0 ? 0 : -15,
                       },
                     ],
                   },
@@ -953,11 +834,8 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden',
   },
-  mapTile: {
-    position: 'absolute',
-  },
-  radarOverlay: {
-    ...StyleSheet.absoluteFill,
+  mapView: {
+    flex: 1,
   },
   mapLoadingIndicator: {
     position: 'absolute',

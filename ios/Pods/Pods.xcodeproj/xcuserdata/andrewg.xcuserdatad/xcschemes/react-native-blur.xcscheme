@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "EEBB8D24F2B3531A5C5DAA668D02331F"
-               BuildableName = "libreact-native-blur.a"
+               BuildableName = "react_native_blur.framework"
                BlueprintName = "react-native-blur"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>

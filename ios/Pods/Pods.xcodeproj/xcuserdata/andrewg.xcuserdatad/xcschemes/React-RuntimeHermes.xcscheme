@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "0EF07AE1AD53436E8D2B9B0086EA0163"
-               BuildableName = "libReact-RuntimeHermes.a"
+               BuildableName = "React-RuntimeHermes"
                BlueprintName = "React-RuntimeHermes"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>

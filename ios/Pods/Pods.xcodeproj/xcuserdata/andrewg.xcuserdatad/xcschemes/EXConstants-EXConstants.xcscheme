@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9E6B7857CC223C0629E4C37E6386FC96"
-               BuildableName = "glog_privacy.bundle"
-               BlueprintName = "glog-glog_privacy"
+               BlueprintIdentifier = "0F782E65C434CB2F920719FC727833DC"
+               BuildableName = "EXConstants.bundle"
+               BlueprintName = "EXConstants-EXConstants"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

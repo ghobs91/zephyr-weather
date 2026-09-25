@@ -13,6 +13,8 @@ struct ZephyrWeatherWidgetsBundle: WidgetBundle {
     var body: some Widget {
         CurrentWeatherWidget()
         DailyForecastWidget()
+        #if !targetEnvironment(macCatalyst)
         ZephyrLiveActivity()
+        #endif
     }
 }

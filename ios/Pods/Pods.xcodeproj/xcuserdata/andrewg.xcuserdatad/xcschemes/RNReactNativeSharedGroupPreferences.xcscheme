@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3AE19E90BB55564C1D4B3CEFBF95F6BA"
-               BuildableName = "libRNReactNativeSharedGroupPreferences.a"
+               BuildableName = "RNReactNativeSharedGroupPreferences.framework"
                BlueprintName = "RNReactNativeSharedGroupPreferences"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>

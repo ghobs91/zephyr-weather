@@ -10,10 +10,18 @@
 #endif
 #endif
 
+#import "MapLibreReactNativeSpec/MapLibreReactNativeSpec.h"
+#import "MapLibreReactNativeSpecJSI.h"
 #import "RCTModuleProviders.h"
 #import "RCTModulesConformingToProtocolsProvider.h"
 #import "RCTThirdPartyComponentsProvider.h"
 #import "RCTUnstableModulesRequiringMainQueueSetupProvider.h"
+#import "react/renderer/components/MapLibreReactNativeSpec/ComponentDescriptors.h"
+#import "react/renderer/components/MapLibreReactNativeSpec/EventEmitters.h"
+#import "react/renderer/components/MapLibreReactNativeSpec/Props.h"
+#import "react/renderer/components/MapLibreReactNativeSpec/RCTComponentViewHelpers.h"
+#import "react/renderer/components/MapLibreReactNativeSpec/ShadowNodes.h"
+#import "react/renderer/components/MapLibreReactNativeSpec/States.h"
 #import "react/renderer/components/rnblurview/ComponentDescriptors.h"
 #import "react/renderer/components/rnblurview/EventEmitters.h"
 #import "react/renderer/components/rnblurview/Props.h"
