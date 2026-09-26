@@ -22,6 +22,9 @@
 		C8BDAA012F3900000000AB01 /* ZephyrWidgetBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = C8BDAA032F3900000000AB03 /* ZephyrWidgetBridge.m */; };
 		C8BDAA052F4000010000AA01 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8BD99912F335CFC00EE55C4 /* WidgetKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		C8BDBB012F4000010000BB01 /* ZephyrWidgetReloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8BDBB022F4000010000BB02 /* ZephyrWidgetReloader.swift */; };
+		BDAF20010000000000000001 /* WeatherData.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDAF10010000000000000001 /* WeatherData.swift */; };
+		BDAF20020000000000000002 /* ZephyrWeatherFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDAF10020000000000000002 /* ZephyrWeatherFetcher.swift */; };
+		BDAF20030000000000000003 /* ZephyrBackgroundRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDAF10030000000000000003 /* ZephyrBackgroundRefresh.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,6 +72,9 @@
 		C8BDAA022F3900000000AB02 /* ZephyrWidgetBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ZephyrWidgetBridge.h; path = ZephyrWeather/ZephyrWidgetBridge.h; sourceTree = "<group>"; };
 		C8BDAA032F3900000000AB03 /* ZephyrWidgetBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = ZephyrWidgetBridge.m; path = ZephyrWeather/ZephyrWidgetBridge.m; sourceTree = "<group>"; };
 		C8BDBB022F4000010000BB02 /* ZephyrWidgetReloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ZephyrWidgetReloader.swift; path = ZephyrWeather/ZephyrWidgetReloader.swift; sourceTree = "<group>"; };
+		BDAF10010000000000000001 /* WeatherData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WeatherData.swift; path = ZephyrWeatherWidgets/WeatherData.swift; sourceTree = "<group>"; };
+		BDAF10020000000000000002 /* ZephyrWeatherFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ZephyrWeatherFetcher.swift; path = ZephyrWeatherWidgets/ZephyrWeatherFetcher.swift; sourceTree = "<group>"; };
+		BDAF10030000000000000003 /* ZephyrBackgroundRefresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ZephyrBackgroundRefresh.swift; path = ZephyrWeather/ZephyrBackgroundRefresh.swift; sourceTree = "<group>"; };
 		D738859BDE98B13B02DC0CBB /* Pods-ZephyrWeather.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZephyrWeather.debug.xcconfig"; path = "Target Support Files/Pods-ZephyrWeather/Pods-ZephyrWeather.debug.xcconfig"; sourceTree = "<group>"; };
 		DA0959E53F449F7E1DB5B4D0 /* Pods_ZephyrWeather.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ZephyrWeather.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EBABA00DA58E4D28597541CE /* Pods-ZephyrWeather.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZephyrWeather.release.xcconfig"; path = "Target Support Files/Pods-ZephyrWeather/Pods-ZephyrWeather.release.xcconfig"; sourceTree = "<group>"; };
@@ -139,6 +145,9 @@
 				A1B2C3D4E5F60718293A4B5E /* SceneDelegate.m */,
 				C8BDBB022F4000010000BB02 /* ZephyrWidgetReloader.swift */,
 				993092DE0FFB4AA3AA8DEBB3 /* ZephyrLiveActivityManager.swift */,
+				BDAF10030000000000000003 /* ZephyrBackgroundRefresh.swift */,
+				BDAF10010000000000000001 /* WeatherData.swift */,
+				BDAF10020000000000000002 /* ZephyrWeatherFetcher.swift */,
 			);
 			name = ZephyrWeather;
 			sourceTree = "<group>";
@@ -451,6 +460,9 @@
 				A1B2C3D4E5F60718293A4B5C /* SceneDelegate.m in Sources */,
 				C8BDBB012F4000010000BB01 /* ZephyrWidgetReloader.swift in Sources */,
 				BDAF2F88F8E14D8FAED3925E /* ZephyrLiveActivityManager.swift in Sources */,
+				BDAF20030000000000000003 /* ZephyrBackgroundRefresh.swift in Sources */,
+				BDAF20010000000000000001 /* WeatherData.swift in Sources */,
+				BDAF20020000000000000002 /* ZephyrWeatherFetcher.swift in Sources */,
 				9F656B3FC111BBA76E7EE638 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

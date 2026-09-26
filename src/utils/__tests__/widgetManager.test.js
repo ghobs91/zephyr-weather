@@ -1,4 +1,5 @@
 const mockSetItem = jest.fn();
+const mockGetItem = jest.fn();
 const mockReloadWidgets = jest.fn();
 
 jest.mock('react-native', () => ({
@@ -6,6 +7,7 @@ jest.mock('react-native', () => ({
   NativeModules: {
     ZephyrWidgetBridge: {
       setItem: (...args) => mockSetItem(...args),
+      getItem: (...args) => mockGetItem(...args),
       reloadWidgets: () => mockReloadWidgets(),
     },
   },
@@ -75,8 +77,10 @@ describe('widgetManager reload scheduling', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-04-18T12:00:00.000Z'));
     mockSetItem.mockResolvedValue(undefined);
+    mockGetItem.mockResolvedValue(null);
     mockReloadWidgets.mockResolvedValue(undefined);
     mockSetItem.mockClear();
+    mockGetItem.mockClear();
     mockReloadWidgets.mockClear();
     __widgetManagerTestUtils.resetReloadScheduler();
   });
@@ -88,13 +92,34 @@ describe('widgetManager reload scheduling', () => {
   it('reloads widgets immediately on the first shared weather update', async () => {
     await updateAllLocationsWeatherData([createLocation(18)], defaultSettings);
 
-    expect(mockSetItem).toHaveBeenCalledTimes(2);
+    // locations + settings + weatherData
+    expect(mockSetItem).toHaveBeenCalledTimes(3);
     // reloadWidgets() flushes pending UserDefaults writes with a 300ms
     // delay before calling into WidgetKit.
     await jest.advanceTimersByTimeAsync(300);
 
     expect(mockReloadWidgets).toHaveBeenCalledTimes(1);
     expect(jest.getTimerCount()).toBe(0);
+  });
+
+  it('shares coordinates and the display unit so the widget can fetch its own data', async () => {
+    await updateAllLocationsWeatherData([createLocation(18)], defaultSettings);
+
+    const locationsCall = mockSetItem.mock.calls.find(([key]) => key === 'locations');
+    expect(JSON.parse(locationsCall[1])).toEqual([
+      {
+        id: 'sf',
+        name: 'San Francisco',
+        latitude: 37.7749,
+        longitude: -122.4194,
+        timezone: 'America/Los_Angeles',
+      },
+    ]);
+
+    const settingsCall = mockSetItem.mock.calls.find(([key]) => key === 'settings');
+    expect(JSON.parse(settingsCall[1])).toEqual({
+      temperatureUnit: 'fahrenheit',
+    });
   });
 
   it('coalesces rapid follow-up updates into one trailing reload with the latest data', async () => {
@@ -146,5 +171,40 @@ describe('widgetManager reload scheduling', () => {
 
     expect(weatherData.sf.locationName).toBe('San Francisco');
     expect(weatherData.nyc).toBeUndefined();
+  });
+
+  it('preserves an existing shared record for a location with no in-memory weather', async () => {
+    mockGetItem.mockResolvedValue(
+      JSON.stringify({
+        nyc: {
+          current: null,
+          daily: [],
+          hourly: [],
+          locationName: 'New York',
+          temperatureUnit: 'fahrenheit',
+          lastUpdated: '2026-04-18T12:30:00.000Z',
+        },
+      }),
+    );
+
+    const noWeatherLocation = {
+      id: 'nyc',
+      latitude: 40.7128,
+      longitude: -74.006,
+      timezone: 'America/New_York',
+      city: 'New York',
+      isCurrentPosition: false,
+      forecastSource: 'nws',
+    };
+
+    await updateAllLocationsWeatherData([noWeatherLocation], defaultSettings);
+
+    const weatherWriteCall = mockSetItem.mock.calls.find(
+      ([key]) => key === 'weatherData',
+    );
+    const weatherData = JSON.parse(weatherWriteCall[1]);
+
+    expect(weatherData.nyc.locationName).toBe('New York');
+    expect(weatherData.nyc.lastUpdated).toBe('2026-04-18T12:30:00.000Z');
   });
 });

@@ -23,9 +23,11 @@ struct CurrentWeatherProvider: AppIntentTimelineProvider {
     }
     
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<CurrentWeatherEntry> {
-        let data = WeatherDataManager.shared.loadWeatherData(
-            for: configuration.location?.id
-        ) ?? WeatherDataManager.shared.getMockWeatherData()
+        // Fetch fresh data from the widget process itself so the timeline
+        // updates even when the app has not been opened recently.
+        let data = await ZephyrWeatherFetcher.refreshWeather(for: configuration.location?.id)
+            ?? WeatherDataManager.shared.loadWeatherData(for: configuration.location?.id)
+            ?? WeatherDataManager.shared.getMockWeatherData()
         let now = Date()
         let entry = CurrentWeatherEntry(date: now, weatherData: data, configuration: configuration)
         

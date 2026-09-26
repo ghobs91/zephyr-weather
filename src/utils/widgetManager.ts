@@ -6,6 +6,7 @@ import {AppSettings, TemperatureUnit} from '../types/settings';
 const APP_GROUP_IDENTIFIER = 'group.com.zephyrweather.shared';
 const WEATHER_DATA_KEY = 'weatherData';
 const LOCATIONS_LIST_KEY = 'locations';
+const SETTINGS_KEY = 'settings';
 const WIDGET_CACHE_KEY = '@zephyr_widget_weather_cache';
 
 // Coalesce WidgetKit reloads so the first refresh happens immediately while
@@ -21,6 +22,26 @@ async function setSharedItem(key: string, value: string): Promise<void> {
   } else {
     console.warn('[WidgetManager] ZephyrWidgetBridge not available');
   }
+}
+
+async function getSharedItem(key: string): Promise<string | null> {
+  const bridge = NativeModules.ZephyrWidgetBridge;
+  if (bridge?.getItem) {
+    try {
+      return await bridge.getItem(key, APP_GROUP_IDENTIFIER);
+    } catch (err) {
+      console.warn('[WidgetManager] Failed to read shared item:', err);
+      return null;
+    }
+  }
+  return null;
+}
+
+function recordTimestamp(record: unknown): number {
+  const value = (record as {lastUpdated?: string} | null)?.lastUpdated;
+  if (!value) return 0;
+  const time = new Date(value).getTime();
+  return Number.isNaN(time) ? 0 : time;
 }
 
 async function reloadWidgets(): Promise<void> {
@@ -115,6 +136,13 @@ interface WidgetWeatherData {
 interface SharedLocation {
   id: string;
   name: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+}
+
+interface SharedSettings {
+  temperatureUnit: TemperatureUnit;
 }
 
 /**
@@ -139,6 +167,15 @@ async function cacheWidgetWeatherData(jsonData: string): Promise<void> {
 export async function restoreCachedWidgetData(): Promise<void> {
   if (Platform.OS !== 'ios') return;
   try {
+    // The shared container persists across launches and may hold data newer
+    // than the in-app cache (written by the widget's own timeline fetch).
+    // Only seed it when it is empty, so we never clobber fresher data.
+    const shared = await getSharedItem(WEATHER_DATA_KEY);
+    if (shared) {
+      console.log('[WidgetManager] Shared container already has data; skipping cache restore');
+      return;
+    }
+
     const cached = await AsyncStorage.getItem(WIDGET_CACHE_KEY);
     if (cached) {
       console.log('[WidgetManager] Restoring cached widget weather data');
@@ -154,7 +191,10 @@ export async function restoreCachedWidgetData(): Promise<void> {
   }
 }
 
-// Update the list of available locations for widget configuration
+// Update the list of available locations for widget configuration.
+// Coordinates and timezone are included so the widget extension can fetch
+// its own fresh weather when WidgetKit refreshes the timeline, without
+// waiting for the app to be opened.
 export async function updateLocationsList(locations: Location[]): Promise<void> {
   if (Platform.OS !== 'ios') {
     return;
@@ -164,15 +204,35 @@ export async function updateLocationsList(locations: Location[]): Promise<void> 
     const locationsList: SharedLocation[] = locations.map(loc => ({
       id: loc.id,
       name: loc.city || 'Unknown Location',
+      latitude: loc.latitude,
+      longitude: loc.longitude,
+      timezone: loc.timezone,
     }));
 
     const jsonData = JSON.stringify(locationsList);
-    
+
     await setSharedItem(LOCATIONS_LIST_KEY, jsonData);
 
     console.log('Locations list updated successfully');
   } catch (error) {
     console.error('Error updating locations list:', error);
+  }
+}
+
+// Share the display settings the widget extension needs when it fetches its
+// own data (the temperature unit records are stored in).
+export async function updateWidgetSettings(settings: AppSettings): Promise<void> {
+  if (Platform.OS !== 'ios') {
+    return;
+  }
+
+  try {
+    const sharedSettings: SharedSettings = {
+      temperatureUnit: settings.temperatureUnit,
+    };
+    await setSharedItem(SETTINGS_KEY, JSON.stringify(sharedSettings));
+  } catch (error) {
+    console.error('Error updating widget settings:', error);
   }
 }
 
@@ -189,12 +249,38 @@ export async function updateAllLocationsWeatherData(
     // Update locations list first
     await updateLocationsList(locations);
 
-    // Update weather data for each location
+    if (settings) {
+      await updateWidgetSettings(settings);
+    }
+
+    // Update weather data for each location. Merge with the existing shared
+    // map so we never drop a location whose in-memory weather was stripped on
+    // relaunch, and never overwrite data the widget fetched more recently.
+    let existingMap: Record<string, WidgetWeatherData> = {};
+    const existingRaw = await getSharedItem(WEATHER_DATA_KEY);
+    if (existingRaw) {
+      try {
+        const parsed = JSON.parse(existingRaw);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          existingMap = parsed as Record<string, WidgetWeatherData>;
+        }
+      } catch {
+        existingMap = {};
+      }
+    }
+
     const weatherDataMap: Record<string, WidgetWeatherData> = {};
 
     for (const location of locations) {
-      if (location.weather) {
-        weatherDataMap[location.id] = createWidgetWeatherData(location, settings);
+      const existing = existingMap[location.id];
+      const candidate = location.weather
+        ? createWidgetWeatherData(location, settings)
+        : null;
+
+      if (candidate && recordTimestamp(candidate) >= recordTimestamp(existing)) {
+        weatherDataMap[location.id] = candidate;
+      } else if (existing) {
+        weatherDataMap[location.id] = existing;
       }
     }
 
@@ -224,6 +310,9 @@ export async function updateWidgetData(location: Location, settings?: AppSetting
   }
 
   try {
+    if (settings) {
+      await updateWidgetSettings(settings);
+    }
     const widgetData = createWidgetWeatherData(location, settings);
     const jsonData = JSON.stringify(widgetData);
     

@@ -41,6 +41,19 @@ RCT_EXPORT_METHOD(setItem:(NSString *)key
   resolve(nil);
 }
 
+RCT_EXPORT_METHOD(getItem:(NSString *)key
+                  appGroup:(NSString *)appGroup
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  NSUserDefaults *defaults = [[NSUserDefaults alloc] initWithSuiteName:appGroup];
+  if (!defaults) {
+    resolve(nil);
+    return;
+  }
+  resolve([defaults stringForKey:key]);
+}
+
 RCT_EXPORT_METHOD(reloadWidgets:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {

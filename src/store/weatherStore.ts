@@ -3,7 +3,7 @@ import {persist, createJSONStorage} from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Location, Weather} from '../types/weather';
 import {AppSettings, defaultSettings} from '../types/settings';
-import {updateLocationsList, updateAllLocationsWeatherData, restoreCachedWidgetData} from '../utils/widgetManager';
+import {updateLocationsList, updateAllLocationsWeatherData, updateWidgetSettings, restoreCachedWidgetData} from '../utils/widgetManager';
 
 interface WeatherState {
   locations: Location[];
@@ -170,6 +170,11 @@ export const useWeatherStore = create<WeatherState>()(
         if (state && !error && state.locations.length > 0) {
           updateLocationsList(state.locations).catch(err =>
             console.error('Failed to update locations list on rehydration:', err)
+          );
+          // Share the display unit so the widget extension can fetch its own
+          // data in the right unit before the first app fetch completes.
+          updateWidgetSettings(state.settings).catch(err =>
+            console.error('Failed to update widget settings on rehydration:', err)
           );
           // Restore cached weather data immediately so widgets don't go blank
           // while the network fetch is in progress.

@@ -53,6 +53,22 @@ enum WeatherCode: String, Codable {
     }
 }
 
+/// Location payload shared by the app through the App Group. Coordinates are
+/// optional so older payloads (id + name only) still decode.
+struct SharedLocation: Codable {
+    let id: String
+    let name: String
+    let latitude: Double?
+    let longitude: Double?
+    let timezone: String?
+}
+
+/// Display settings shared by the app so the widget extension can fetch and
+/// format its own data in the user's unit.
+struct WidgetSettings: Codable {
+    let temperatureUnit: String?
+}
+
 struct WeatherData: Codable {
     let current: CurrentWeather?
     let daily: [DailyForecast]
@@ -96,6 +112,7 @@ class WeatherDataManager {
     private let appGroupIdentifier = "group.com.zephyrweather.shared"
     private let weatherDataKey = "weatherData"
     private let locationsKey = "locations"
+    private let settingsKey = "settings"
     
     /// ISO8601 formatter that handles fractional seconds with UTC "Z" suffix
     /// from JavaScript's toISOString() (e.g. "2026-04-30T12:00:00.000Z")
@@ -154,25 +171,7 @@ class WeatherDataManager {
         }
         
         do {
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .custom { decoder in
-                let container = try decoder.singleValueContainer()
-                let dateString = try container.decode(String.self)
-                if let date = WeatherDataManager.iso8601WithFractionalAndZ.date(from: dateString) {
-                    return date
-                }
-                if let date = WeatherDataManager.iso8601WithFractionalSeconds.date(from: dateString) {
-                    return date
-                }
-                if let date = WeatherDataManager.iso8601PlainZ.date(from: dateString) {
-                    return date
-                }
-                if let date = WeatherDataManager.iso8601Plain.date(from: dateString) {
-                    return date
-                }
-                print("[Widget] FAILED to parse date string: '\(dateString)'")
-                throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date: \(dateString)")
-            }
+            let decoder = WeatherDataManager.makeJSONDecoder()
             
             // If a location ID is provided, try to load from the map
             if let locationId = locationId {
@@ -184,11 +183,8 @@ class WeatherDataManager {
                         print("[Widget] loadWeatherData: MATCH found for locationId: \(locationId)")
                         return match
                     }
-                    print("[Widget] loadWeatherData: locationId '\(locationId)' not found in map, falling back to first entry")
-                    if let firstEntry = weatherDataMap.values.first {
-                        return firstEntry
-                    }
-                    print("[Widget] loadWeatherData: map is empty")
+                    print("[Widget] loadWeatherData: locationId '\(locationId)' not found in map")
+                    return nil
                 } catch {
                     print("[Widget] loadWeatherData: map decode FAILED: \(error)")
                 }
@@ -231,6 +227,80 @@ class WeatherDataManager {
             print("[Widget] JSON preview (first 500 chars): \(preview)")
             return nil
         }
+    }
+
+    /// Decoder that accepts the several ISO8601 shapes the app may write.
+    static func makeJSONDecoder() -> JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let dateString = try container.decode(String.self)
+            if let date = weatherDate(from: dateString) {
+                return date
+            }
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date: \(dateString)")
+        }
+        return decoder
+    }
+
+    /// Encoder that writes ISO8601 strings with fractional seconds, matching the
+    /// format the app writes so the App Group payload stays decodable.
+    static func makeJSONEncoder() -> JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .custom { date, encoder in
+            var container = encoder.singleValueContainer()
+            try container.encode(iso8601WithFractionalAndZ.string(from: date))
+        }
+        return encoder
+    }
+
+    private static func weatherDate(from string: String) -> Date? {
+        if let date = iso8601WithFractionalAndZ.date(from: string) { return date }
+        if let date = iso8601WithFractionalSeconds.date(from: string) { return date }
+        if let date = iso8601PlainZ.date(from: string) { return date }
+        if let date = iso8601Plain.date(from: string) { return date }
+        return nil
+    }
+
+    /// Locations shared by the app, including coordinates for widget-side fetches.
+    func loadLocations() -> [SharedLocation] {
+        guard let userDefaults = UserDefaults(suiteName: appGroupIdentifier),
+              let jsonString = userDefaults.string(forKey: locationsKey),
+              let data = jsonString.data(using: .utf8) else {
+            return []
+        }
+        return (try? JSONDecoder().decode([SharedLocation].self, from: data)) ?? []
+    }
+
+    /// Temperature unit the app is currently using, if shared.
+    func loadTemperatureUnit() -> String? {
+        guard let userDefaults = UserDefaults(suiteName: appGroupIdentifier),
+              let jsonString = userDefaults.string(forKey: settingsKey),
+              let data = jsonString.data(using: .utf8),
+              let settings = try? JSONDecoder().decode(WidgetSettings.self, from: data) else {
+            return nil
+        }
+        return settings.temperatureUnit
+    }
+
+    /// Merge a freshly fetched record into the App Group map, preserving the
+    /// other locations' entries, so every widget keeps working from one payload.
+    func saveWeatherData(_ weatherData: WeatherData, for locationId: String) {
+        guard let userDefaults = UserDefaults(suiteName: appGroupIdentifier) else { return }
+
+        var map: [String: WeatherData] = [:]
+        if let jsonString = userDefaults.string(forKey: weatherDataKey),
+           let data = jsonString.data(using: .utf8),
+           let decoded = try? WeatherDataManager.makeJSONDecoder().decode([String: WeatherData].self, from: data) {
+            map = decoded
+        }
+        map[locationId] = weatherData
+
+        guard let encoded = try? WeatherDataManager.makeJSONEncoder().encode(map),
+              let jsonString = String(data: encoded, encoding: .utf8) else {
+            return
+        }
+        userDefaults.set(jsonString, forKey: weatherDataKey)
     }
 
     func getMockWeatherData() -> WeatherData {

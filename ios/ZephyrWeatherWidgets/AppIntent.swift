@@ -48,11 +48,7 @@ struct LocationQuery: EntityQuery {
     }
 }
 
-// Simplified location structure for shared storage
-struct SharedLocation: Codable {
-    let id: String
-    let name: String
-}
+// Simplified location structure for shared storage lives in WeatherData.swift.
 
 struct ConfigurationAppIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource = "Configuration"

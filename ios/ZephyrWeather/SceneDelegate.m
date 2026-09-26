@@ -1,6 +1,9 @@
 #import "SceneDelegate.h"
 #import "AppDelegate.h"
 
+// Defined in ZephyrBackgroundRefresh.swift via @_cdecl.
+extern void ZephyrScheduleBackgroundRefresh(void);
+
 @implementation SceneDelegate
 
 - (void)scene:(UIScene *)scene
@@ -51,6 +54,13 @@
   [appDelegate.reactNativeFactory startReactNativeWithModuleName:appDelegate.moduleName
                                                         inWindow:window
                                                    launchOptions:nil];
+}
+
+- (void)sceneDidEnterBackground:(UIScene *)scene
+{
+  // Ask the system for a background refresh so widgets can be updated while
+  // the app is not open.
+  ZephyrScheduleBackgroundRefresh();
 }
 
 @end

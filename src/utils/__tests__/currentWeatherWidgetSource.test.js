@@ -28,4 +28,20 @@ describe('CurrentWeatherWidget source', () => {
     expect(source).toContain('families.append(.systemExtraLarge)');
     expect(source).toContain('family == .systemLarge || family == .systemExtraLarge');
   });
+
+  it('refreshes widget data from the widget process itself', () => {
+    const widgetsDir = path.join(process.cwd(), 'ios', 'ZephyrWeatherWidgets');
+    const fetcher = fs.readFileSync(
+      path.join(widgetsDir, 'ZephyrWeatherFetcher.swift'),
+      'utf8',
+    );
+
+    for (const file of ['CurrentWeatherWidget.swift', 'DailyForecastWidget.swift']) {
+      const source = fs.readFileSync(path.join(widgetsDir, file), 'utf8');
+      expect(source).toContain('await ZephyrWeatherFetcher.refreshWeather(');
+    }
+
+    expect(fetcher).toContain('api.open-meteo.com');
+    expect(fetcher).toContain('saveWeatherData');
+  });
 });
