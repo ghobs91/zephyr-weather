@@ -41,6 +41,11 @@ export function LocationsScreen() {
   const {useDark, themeColors, backgroundKey} = useThemeColors();
   const layout = useResponsiveLayout();
 
+  // The row's TouchableOpacity still fires its press when a horizontal swipe
+  // ends, which would navigate away before the delete action can be tapped.
+  // Track an in-flight swipe and ignore presses that belong to it.
+  const swipeActiveRef = useRef(false);
+
   const formatTemp = (temp?: number): string => formatTempShort(temp, settings.temperatureUnit);
 
   const handleDeleteLocation = (location: Location) => {
@@ -84,7 +89,19 @@ export function LocationsScreen() {
       <Swipeable
         renderRightActions={renderRightActions}
         rightThreshold={40}
-        overshootRight={false}>
+        overshootRight={false}
+        onSwipeableOpenStartDrag={() => {
+          swipeActiveRef.current = true;
+        }}
+        onSwipeableCloseStartDrag={() => {
+          swipeActiveRef.current = true;
+        }}
+        onSwipeableOpen={() => {
+          swipeActiveRef.current = false;
+        }}
+        onSwipeableClose={() => {
+          swipeActiveRef.current = false;
+        }}>
         <View style={[
         styles.itemWrapper,
         {
@@ -107,10 +124,18 @@ export function LocationsScreen() {
           },
         ]}
         onPress={() => {
+          if (swipeActiveRef.current) {
+            return;
+          }
           setCurrentLocationIndex(index);
           navigation.goBack();
         }}
-        onLongPress={() => handleDeleteLocation(item)}>
+        onLongPress={() => {
+          if (swipeActiveRef.current) {
+            return;
+          }
+          handleDeleteLocation(item);
+        }}>
         <View style={styles.locationHeader}>
           <View style={styles.locationInfo}>
             {item.isCurrentPosition && (
