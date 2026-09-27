@@ -8,8 +8,8 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
         "overflow": "hidden",
       },
       {
-        "backgroundColor": "rgba(28, 28, 30, 0.52)",
-        "borderColor": "rgba(255, 255, 255, 0.14)",
+        "backgroundColor": "rgba(22, 22, 26, 0.60)",
+        "borderColor": "rgba(255, 255, 255, 0.16)",
         "borderCurve": "continuous",
         "borderRadius": 28,
         "borderWidth": 0.5,
@@ -29,8 +29,8 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
           "padding": 22,
         },
         {
-          "backgroundColor": "rgba(28, 28, 30, 0.52)",
-          "borderColor": "rgba(255, 255, 255, 0.14)",
+          "backgroundColor": "rgba(22, 22, 26, 0.60)",
+          "borderColor": "rgba(255, 255, 255, 0.16)",
           "borderCurve": "continuous",
           "borderRadius": 28,
           "borderWidth": 0.5,
@@ -48,7 +48,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
   }
 >
   <BlurView
-    blurAmount={20}
+    blurAmount={30}
     blurType="dark"
     reducedTransparencyFallbackColor="rgba(44, 44, 46, 0.16)"
     style={
@@ -64,7 +64,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
   <LinearGradient
     colors={
       [
-        "rgba(255, 255, 255, 0.08)",
+        "rgba(255, 255, 255, 0.1)",
         "rgba(255, 255, 255, 0)",
       ]
     }

@@ -111,7 +111,7 @@ export function SearchLocationScreen() {
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<any>(null);
   
-  const {useDark, themeColors} = useThemeColors();
+  const {useDark, themeColors, backgroundKey} = useThemeColors();
   const layout = useResponsiveLayout();
 
   // Handle ESC key to close modal (for web and macOS)
@@ -340,7 +340,7 @@ export function SearchLocationScreen() {
   ), [themeColors, handleSelectLocation, layout]);
 
   return (
-    <AtmosphericBackground isDark={useDark}>
+    <AtmosphericBackground isDark={useDark} backgroundKey={backgroundKey}>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

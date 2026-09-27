@@ -23,7 +23,7 @@ const STEPS = [
 export function OnboardingScreen() {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
-  const {useDark, themeColors} = useThemeColors();
+  const {useDark, themeColors, backgroundKey} = useThemeColors();
   const setHasCompletedOnboarding = useWeatherStore(s => s.setHasCompletedOnboarding);
 
   const [step, setStep] = useState(0);
@@ -36,7 +36,7 @@ export function OnboardingScreen() {
   };
 
   return (
-    <AtmosphericBackground isDark={useDark}>
+    <AtmosphericBackground isDark={useDark} backgroundKey={backgroundKey}>
       <View style={[styles.container, {paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24}]}>
         {!last && (
           <TouchableOpacity

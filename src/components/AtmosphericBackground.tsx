@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
+import {Image, StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {
   getScreenGradient,
@@ -7,60 +7,103 @@ import {
   getLiquidOrbColor,
   withAlpha,
 } from '../theme/design';
+import {
+  getWeatherBackgroundSource,
+  WeatherBackgroundKey,
+} from '../utils/weatherBackgrounds';
 
 interface Props {
   children: React.ReactNode;
   isDark: boolean;
+  /** Condition backdrop; falls back to the atmospheric gradient when absent. */
+  backgroundKey?: WeatherBackgroundKey;
   style?: StyleProp<ViewStyle>;
 }
 
 /**
- * Liquid glass atmospheric background.
+ * Condition-driven full-screen backdrop.
  *
- * A soft sky gradient with two faint, oversized colour orbs that bleed
- * gently through the translucent glass above. Deliberately restrained so
- * the material — not the backdrop — carries the interface.
+ * When weather is available the current condition photo fills the screen
+ * behind a legibility scrim; otherwise the atmospheric gradient (with soft
+ * colour orbs) stands in during loading and no-data states. Card material
+ * floats above either backdrop, which is what the glass is picking up.
  */
-export function AtmosphericBackground({children, isDark, style}: Props) {
+export function AtmosphericBackground({
+  children,
+  isDark,
+  backgroundKey,
+  style,
+}: Props) {
   const theme = getThemeColors(isDark);
-  const useDark = isDark;
 
   return (
     <View style={[styles.container, style]}>
-      {/* ── Sky gradient base ──────────────────────────────────── */}
-      <LinearGradient
-        colors={getScreenGradient(theme)}
-        locations={useDark ? [0, 0.30, 1] : [0, 0.42, 1]}
-        style={StyleSheet.absoluteFill}
-      />
+      {backgroundKey ? (
+        <>
+          <Image
+            source={getWeatherBackgroundSource(backgroundKey)}
+            style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+          />
 
-      {/* ── Primary orb — soft light, top-right ────────────────── */}
-      <View
-        pointerEvents="none"
-        style={[
-          styles.orb,
-          styles.orbPrimary,
-          {backgroundColor: getLiquidOrbColor(theme, 'accent')},
-        ]}
-      />
+          {/* Legibility scrim — darker in dark mode, bright wash in light */}
+          <LinearGradient
+            pointerEvents="none"
+            colors={
+              isDark
+                ? [
+                    withAlpha('#000000', 0.58),
+                    withAlpha('#000000', 0.22),
+                    withAlpha('#000000', 0.62),
+                  ]
+                : [
+                    withAlpha('#FFFFFF', 0.30),
+                    withAlpha('#FFFFFF', 0.10),
+                    withAlpha('#FFFFFF', 0.34),
+                  ]
+            }
+            locations={[0, 0.45, 1]}
+            style={StyleSheet.absoluteFill}
+          />
+        </>
+      ) : (
+        <>
+          {/* ── Sky gradient base ──────────────────────────────────── */}
+          <LinearGradient
+            colors={getScreenGradient(theme)}
+            locations={isDark ? [0, 0.30, 1] : [0, 0.42, 1]}
+            style={StyleSheet.absoluteFill}
+          />
 
-      {/* ── Secondary orb — warm glow, lower-left ──────────────── */}
-      <View
-        pointerEvents="none"
-        style={[
-          styles.orb,
-          styles.orbSecondary,
-          {backgroundColor: getLiquidOrbColor(theme, 'secondary')},
-        ]}
-      />
+          {/* ── Primary orb — soft light, top-right ────────────────── */}
+          <View
+            pointerEvents="none"
+            style={[
+              styles.orb,
+              styles.orbPrimary,
+              {backgroundColor: getLiquidOrbColor(theme, 'accent')},
+            ]}
+          />
 
-      {/* ── Top-edge highlight — simulates light source ────────── */}
-      <LinearGradient
-        pointerEvents="none"
-        colors={[withAlpha('#FFFFFF', useDark ? 0.04 : 0.16), 'transparent']}
-        locations={[0, 1]}
-        style={styles.topHighlight}
-      />
+          {/* ── Secondary orb — warm glow, lower-left ──────────────── */}
+          <View
+            pointerEvents="none"
+            style={[
+              styles.orb,
+              styles.orbSecondary,
+              {backgroundColor: getLiquidOrbColor(theme, 'secondary')},
+            ]}
+          />
+
+          {/* ── Top-edge highlight — simulates light source ────────── */}
+          <LinearGradient
+            pointerEvents="none"
+            colors={[withAlpha('#FFFFFF', isDark ? 0.04 : 0.16), 'transparent']}
+            locations={[0, 1]}
+            style={styles.topHighlight}
+          />
+        </>
+      )}
 
       {children}
     </View>

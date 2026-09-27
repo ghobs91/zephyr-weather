@@ -45,7 +45,7 @@ export function GlassSurface({
   const cornerRadius = radius ?? material.radius;
   const blur = blurAmount ?? material.blurAmount;
 
-  const highlightAlpha = isDark ? 0.08 : 0.28;
+  const highlightAlpha = isDark ? 0.10 : 0.28;
   const tintAlpha = isDark ? 0.04 : 0.06;
 
   return (

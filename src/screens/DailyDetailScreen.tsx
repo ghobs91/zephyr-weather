@@ -35,7 +35,7 @@ export function DailyDetailScreen() {
   const {dayIndex} = route.params;
   const {locations, currentLocationIndex, settings} = useWeatherStore();
   
-  const {useDark, themeColors} = useThemeColors();
+  const {useDark, themeColors, backgroundKey} = useThemeColors();
   
   const currentLocation = locations[currentLocationIndex];
   const day = currentLocation?.weather?.dailyForecast?.[dayIndex];
@@ -45,7 +45,7 @@ export function DailyDetailScreen() {
 
   if (!day) {
     return (
-      <AtmosphericBackground isDark={useDark}>
+      <AtmosphericBackground isDark={useDark} backgroundKey={backgroundKey}>
         <View style={styles.container}>
         <Text style={[styles.errorText, {color: themeColors.text}]}>
           No data available for this day
@@ -74,7 +74,7 @@ export function DailyDetailScreen() {
   const chartWidth = effectiveWidth - layout.contentPadding * 2 - 32;
 
   return (
-    <AtmosphericBackground isDark={useDark}>
+    <AtmosphericBackground isDark={useDark} backgroundKey={backgroundKey}>
       <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}

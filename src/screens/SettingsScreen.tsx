@@ -35,7 +35,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
   
   const {settings, updateSettings} = useWeatherStore();
   
-  const {useDark, themeColors} = useThemeColors();
+  const {useDark, themeColors, backgroundKey} = useThemeColors();
 
   const renderSectionHeader = (title: string, icon: string) => (
     <View style={styles.sectionHeader}>
@@ -83,7 +83,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
   );
 
   return (
-    <AtmosphericBackground isDark={useDark}>
+    <AtmosphericBackground isDark={useDark} backgroundKey={backgroundKey}>
       <View style={styles.container}>
       {onClose && (
         <View style={[styles.modalHeader, {paddingTop: insets.top + 8, backgroundColor: themeColors.glassHighlight, borderBottomColor: themeColors.separator}]}>

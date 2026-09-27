@@ -1,18 +1,13 @@
 import React from 'react';
-import {StatusBar, useColorScheme} from 'react-native';
+import {StatusBar} from 'react-native';
 import {DarkTheme, DefaultTheme, NavigationContainer} from '@react-navigation/native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {RootNavigator} from './navigation/RootNavigator';
-import {useWeatherStore} from './store/weatherStore';
-import {getThemeColors} from './theme/design';
+import {useThemeColors} from './hooks/useThemeColors';
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  const theme = useWeatherStore(state => state.settings.theme);
-  
-  const shouldUseDarkTheme = theme === 'dark' || (theme === 'system' && isDarkMode);
-  const themeColors = getThemeColors(shouldUseDarkTheme);
+  const {useDark: shouldUseDarkTheme, themeColors} = useThemeColors();
   const navigationTheme = {
     ...(shouldUseDarkTheme ? DarkTheme : DefaultTheme),
     colors: {

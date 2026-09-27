@@ -38,7 +38,7 @@ export function LocationsScreen() {
     removeLocation,
   } = useWeatherStore();
   
-  const {useDark, themeColors} = useThemeColors();
+  const {useDark, themeColors, backgroundKey} = useThemeColors();
   const layout = useResponsiveLayout();
 
   const formatTemp = (temp?: number): string => formatTempShort(temp, settings.temperatureUnit);
@@ -162,7 +162,7 @@ export function LocationsScreen() {
   };
 
   return (
-    <AtmosphericBackground isDark={useDark}>
+    <AtmosphericBackground isDark={useDark} backgroundKey={backgroundKey}>
       <View style={styles.container}>
       <View style={[styles.header, {paddingTop: insets.top + 16}]}> 
         <View>

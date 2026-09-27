@@ -14,9 +14,9 @@ export const colors = {
     surface: '#FFFFFF',
     surfaceVariant: '#E9E9EE',
     surfaceElevated: '#FFFFFF',
-    glassBase: 'rgba(255, 255, 255, 0.55)',      // regular material
-    glassHighlight: 'rgba(255, 255, 255, 0.72)', // floating / chrome material
-    glassOverlay: 'rgba(255, 255, 255, 0.40)',   // thin nested material
+    glassBase: 'rgba(255, 255, 255, 0.60)',      // regular material
+    glassHighlight: 'rgba(255, 255, 255, 0.78)', // floating / chrome material
+    glassOverlay: 'rgba(255, 255, 255, 0.46)',   // thin nested material
 
     // ── Text (vibrancy-style) ──────────────────────────────────────
     text: '#000000',
@@ -39,11 +39,11 @@ export const colors = {
     scrim: 'rgba(0, 0, 0, 0.22)',
 
     // ── Glass surface presets (legacy compat) ──────────────────────
-    cardBackground: 'rgba(255, 255, 255, 0.55)',
+    cardBackground: 'rgba(255, 255, 255, 0.60)',
     cardBorder: 'rgba(255, 255, 255, 0.55)',
-    pillBackground: 'rgba(255, 255, 255, 0.72)',
+    pillBackground: 'rgba(255, 255, 255, 0.78)',
     pillBorder: 'rgba(255, 255, 255, 0.65)',
-    overlay: 'rgba(255, 255, 255, 0.40)',
+    overlay: 'rgba(255, 255, 255, 0.46)',
     shadow: '#000000',
 
     // ── Atmospheric Gradient (hero sky) ────────────────────────────
@@ -103,9 +103,9 @@ export const colors = {
     surface: '#1C1C1E',
     surfaceVariant: '#2C2C2E',
     surfaceElevated: '#2C2C2E',
-    glassBase: 'rgba(28, 28, 30, 0.52)',
-    glassHighlight: 'rgba(44, 44, 46, 0.68)',
-    glassOverlay: 'rgba(28, 28, 30, 0.36)',
+    glassBase: 'rgba(22, 22, 26, 0.60)',
+    glassHighlight: 'rgba(34, 34, 38, 0.72)',
+    glassOverlay: 'rgba(22, 22, 26, 0.44)',
 
     // ── Text (vibrancy-style) ──────────────────────────────────────
     text: '#FFFFFF',
@@ -123,16 +123,16 @@ export const colors = {
     fill: 'rgba(120, 120, 128, 0.32)',
     fillSecondary: 'rgba(120, 120, 128, 0.22)',
     fillTertiary: 'rgba(118, 118, 128, 0.12)',
-    materialBorder: 'rgba(255, 255, 255, 0.14)',
+    materialBorder: 'rgba(255, 255, 255, 0.16)',
     materialSpecular: 'rgba(255, 255, 255, 0.30)',
     scrim: 'rgba(0, 0, 0, 0.55)',
 
     // ── Glass surface presets (legacy compat) ──────────────────────
-    cardBackground: 'rgba(28, 28, 30, 0.52)',
-    cardBorder: 'rgba(255, 255, 255, 0.14)',
-    pillBackground: 'rgba(44, 44, 46, 0.68)',
+    cardBackground: 'rgba(22, 22, 26, 0.60)',
+    cardBorder: 'rgba(255, 255, 255, 0.16)',
+    pillBackground: 'rgba(34, 34, 38, 0.72)',
     pillBorder: 'rgba(255, 255, 255, 0.12)',
-    overlay: 'rgba(28, 28, 30, 0.36)',
+    overlay: 'rgba(22, 22, 26, 0.44)',
     shadow: '#000000',
 
     // ── Atmospheric Gradient ───────────────────────────────────────

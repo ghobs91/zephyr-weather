@@ -18,7 +18,7 @@ import {useResponsiveLayout} from '../utils/platformDetect';
 
 export function AlertsScreen() {
   const insets = useSafeAreaInsets();
-  const {useDark, themeColors} = useThemeColors();
+  const {useDark, themeColors, backgroundKey} = useThemeColors();
   
   const {locations, currentLocationIndex, settings} = useWeatherStore();
   const layout = useResponsiveLayout();
@@ -147,7 +147,7 @@ export function AlertsScreen() {
   );
 
   return (
-    <AtmosphericBackground isDark={useDark}>
+    <AtmosphericBackground isDark={useDark} backgroundKey={backgroundKey}>
       <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}

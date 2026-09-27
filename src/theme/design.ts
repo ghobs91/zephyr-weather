@@ -126,28 +126,28 @@ export function getGlassMaterial(
   > = {
     ultraThin: {
       fill: theme.glassOverlay,
-      blurAmount: 14,
+      blurAmount: 18,
       blurType: isDark ? 'dark' : 'xlight',
       radius: radius.lg,
       shadow: 'sm',
     },
     thin: {
       fill: theme.glassOverlay,
-      blurAmount: 16,
+      blurAmount: 22,
       blurType,
       radius: radius.xl,
       shadow: 'sm',
     },
     regular: {
       fill: theme.glassBase,
-      blurAmount: 20,
+      blurAmount: 30,
       blurType,
       radius: radius.card,
       shadow: 'md',
     },
     thick: {
       fill: theme.glassHighlight,
-      blurAmount: 26,
+      blurAmount: 38,
       blurType: isDark ? 'prominent' : 'light',
       radius: radius.card,
       shadow: 'lg',

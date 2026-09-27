@@ -146,13 +146,9 @@ struct CurrentWeatherWidgetView: View {
         .padding(.bottom, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.15, green: 0.2, blue: 0.3),
-                    Color(red: 0.1, green: 0.15, blue: 0.25)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+            WeatherBackgroundView(
+                weatherCode: entry.weatherData.current?.weatherCode,
+                isDaylight: entry.weatherData.current?.isDaylight
             )
         }
     }
@@ -196,13 +192,9 @@ struct CurrentWeatherWidgetView: View {
         .padding(14)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .containerBackground(for: .widget) {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.15, green: 0.2, blue: 0.3),
-                    Color(red: 0.1, green: 0.15, blue: 0.25)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+            WeatherBackgroundView(
+                weatherCode: entry.weatherData.current?.weatherCode,
+                isDaylight: entry.weatherData.current?.isDaylight
             )
         }
     }
@@ -300,13 +292,9 @@ struct CurrentWeatherWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.15, green: 0.2, blue: 0.3),
-                    Color(red: 0.1, green: 0.15, blue: 0.25)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+            WeatherBackgroundView(
+                weatherCode: entry.weatherData.current?.weatherCode,
+                isDaylight: entry.weatherData.current?.isDaylight
             )
         }
     }

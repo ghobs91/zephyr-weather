@@ -96,13 +96,9 @@ struct DailyForecastWidgetView: View {
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .containerBackground(for: .widget) {
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color(red: 0.2, green: 0.25, blue: 0.35),
-                        Color(red: 0.15, green: 0.2, blue: 0.3)
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
+                WeatherBackgroundView(
+                    weatherCode: entry.weatherData.current?.weatherCode,
+                    isDaylight: entry.weatherData.current?.isDaylight
                 )
             }
         } else if family == .systemExtraLarge {
@@ -114,13 +110,9 @@ struct DailyForecastWidgetView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .containerBackground(for: .widget) {
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color(red: 0.2, green: 0.25, blue: 0.35),
-                        Color(red: 0.15, green: 0.2, blue: 0.3)
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
+                WeatherBackgroundView(
+                    weatherCode: entry.weatherData.current?.weatherCode,
+                    isDaylight: entry.weatherData.current?.isDaylight
                 )
             }
         } else {
@@ -218,13 +210,9 @@ struct DailyForecastWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.15, green: 0.2, blue: 0.3),
-                    Color(red: 0.1, green: 0.15, blue: 0.25)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+            WeatherBackgroundView(
+                weatherCode: entry.weatherData.current?.weatherCode,
+                isDaylight: entry.weatherData.current?.isDaylight
             )
         }
     }
