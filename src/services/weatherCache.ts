@@ -10,6 +10,35 @@ interface CacheEntry {
 }
 
 /**
+ * Weather fields that are `Date` objects in memory but ISO strings once
+ * JSON-serialized. Consumers (date-fns, `useTodayForecast`, `.toISOString()`
+ * keys) assume real `Date`s, so these must be revived on read.
+ */
+const DATE_FIELDS = new Set([
+  'date',
+  'refreshTime',
+  'mainUpdateTime',
+  'airQualityUpdateTime',
+  'pollenUpdateTime',
+  'minutelyUpdateTime',
+  'alertsUpdateTime',
+  'normalsUpdateTime',
+  'riseTime',
+  'setTime',
+  'startDate',
+  'endDate',
+]);
+
+/** JSON.parse reviver that restores known date fields to `Date` objects. */
+function reviveDateFields(key: string, value: unknown): unknown {
+  if (typeof value === 'string' && DATE_FIELDS.has(key)) {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+  return value;
+}
+
+/**
  * Generates a cache key from coordinates (rounded to 2 decimal places
  * to allow minor GPS variance without cache misses).
  */
@@ -53,12 +82,14 @@ export async function getCachedWeatherData(
     const raw = await AsyncStorage.getItem(cacheKey(latitude, longitude));
     if (!raw) return null;
 
-    const entry: CacheEntry = JSON.parse(raw);
+    const entry: CacheEntry = JSON.parse(raw, reviveDateFields);
     const age = Date.now() - entry.timestamp;
 
     if (age > CACHE_MAX_AGE_MS) {
       // Expired — clean up
-      await AsyncStorage.removeItem(cacheKey(latitude, longitude)).catch(() => {});
+      await AsyncStorage.removeItem(cacheKey(latitude, longitude)).catch(
+        () => {},
+      );
       return null;
     }
 
@@ -75,7 +106,7 @@ export async function getCachedWeatherData(
 export async function clearWeatherCache(): Promise<void> {
   try {
     const keys = await AsyncStorage.getAllKeys();
-    const cacheKeys = keys.filter(k => k.startsWith(CACHE_PREFIX));
+    const cacheKeys = keys.filter((k) => k.startsWith(CACHE_PREFIX));
     if (cacheKeys.length > 0) {
       await AsyncStorage.multiRemove(cacheKeys);
     }
