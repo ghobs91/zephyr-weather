@@ -33,6 +33,7 @@ import {DailyForecastCard} from '../components/DailyForecastCard';
 import {PollenCard} from '../components/PollenCard';
 import {SunMoonCard} from '../components/SunMoonCard';
 import {PrecipitationChartCard} from '../components/PrecipitationChartCard';
+import {PrecipitationCard} from '../components/PrecipitationCard';
 import {WeatherDetailsSection} from '../components/WeatherDetailsSection';
 import {MinutelyPrecipitationCard} from '../components/MinutelyPrecipitationCard';
 import {AttributionFooter} from '../components/AttributionFooter';
@@ -75,18 +76,14 @@ export function HomeScreen() {
 
   const handleDeleteLocation = useCallback(
     (loc: Location) => {
-      Alert.alert(
-        'Delete Location',
-        `Remove ${loc.city || 'this location'}?`,
-        [
-          {text: 'Cancel', style: 'cancel'},
-          {
-            text: 'Delete',
-            style: 'destructive',
-            onPress: () => removeLocation(loc.id),
-          },
-        ],
-      );
+      Alert.alert('Delete Location', `Remove ${loc.city || 'this location'}?`, [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => removeLocation(loc.id),
+        },
+      ]);
     },
     [removeLocation],
   );
@@ -116,16 +113,17 @@ export function HomeScreen() {
   const alerts = weather?.alerts ?? [];
   const today = useTodayForecast(dailyForecast);
 
-  const attributionSource = currentLocation.countryCode === 'US'
-    ? 'Weather data from NOAA National Weather Service'
-    : 'Weather data from Open-Meteo & Met.no (CC BY 4.0)';
+  const attributionSource =
+    currentLocation.countryCode === 'US'
+      ? 'Weather data from NOAA National Weather Service'
+      : 'Weather data from Open-Meteo & Met.no (CC BY 4.0)';
 
   // Daily pollen is not populated by providers — fall back to the nearest
   // hourly entry that carries CAMS pollen data.
   const todayPollen =
     today?.pollen ??
     hourlyForecast.find(
-      h =>
+      (h) =>
         h.pollen?.grass?.index !== undefined ||
         h.pollen?.tree?.index !== undefined ||
         h.pollen?.ragweed?.index !== undefined,
@@ -165,137 +163,148 @@ export function HomeScreen() {
 
             {/* Skeleton loading state */}
             {showSkeleton ? (
-              <SkeletonCards themeColors={themeColors} isDark={useDark} count={4} />
+              <SkeletonCards
+                themeColors={themeColors}
+                isDark={useDark}
+                count={4}
+              />
             ) : (
               <>
-            {/* Header */}
-            {isDesktop && (
-              <DesktopHeader
-                location={currentLocation}
-                weather={weather}
-                themeColors={themeColors}
-                settings={settings}
-              />
-            )}
-
-            {/* Alerts */}
-            {alerts.length > 0 && (
-              <AlertBanner
-                alerts={alerts}
-                onPress={() => navigation.navigate('Alerts')}
-                isDark={useDark}
-              />
-            )}
-
-            {/* Current Weather */}
-            <CurrentWeatherCard
-              current={current}
-              today={today}
-              formatTemp={(t) => formatTemp(t, true)}
-              formatSpeed={formatSpeed}
-              isDaylight={current?.isDaylight}
-              isDark={useDark}
-              confidence={weather?.confidence}
-            />
-
-            {/* Minutely Precipitation (next-hour rain) */}
-            {minutelyForecast && minutelyForecast.length > 0 && (
-              <MinutelyPrecipitationCard
-                minutelyForecast={minutelyForecast}
-                isDark={useDark}
-              />
-            )}
-
-            {/* Hourly */}
-            <HourlyForecastCard
-              hourlyForecast={hourlyForecast}
-              formatTemp={formatTemp}
-              formatSpeed={formatSpeed}
-              timeFormat={settings.timeFormat}
-              isDark={useDark}
-            />
-
-            {/* Precipitation probability chart */}
-            <PrecipitationChartCard
-              hourlyForecast={hourlyForecast}
-              timeFormat={settings.timeFormat}
-              isDark={useDark}
-            />
-
-            {/* Daily + Details */}
-            {isDesktop ? (
-              <View style={styles.macTwoColumn}>
-                <View style={styles.macLeftColumn}>
-                  <DailyForecastCard
-                    dailyForecast={dailyForecast}
-                    formatTemp={formatTemp}
-                    formatSpeed={formatSpeed}
-                    isDark={useDark}
-                    onDayPress={(i) =>
-                      navigation.navigate('DailyDetail', {dayIndex: i})
-                    }
-                    verticalLayout
-                    precipitationUnit={settings.precipitationUnit}
+                {/* Header */}
+                {isDesktop && (
+                  <DesktopHeader
+                    location={currentLocation}
+                    weather={weather}
+                    themeColors={themeColors}
+                    settings={settings}
                   />
-                </View>
-                <WeatherDetailsSection
+                )}
+
+                {/* Alerts */}
+                {alerts.length > 0 && (
+                  <AlertBanner
+                    alerts={alerts}
+                    onPress={() => navigation.navigate('Alerts')}
+                    isDark={useDark}
+                  />
+                )}
+
+                {/* Current Weather */}
+                <CurrentWeatherCard
                   current={current}
                   today={today}
+                  formatTemp={(t) => formatTemp(t, true)}
                   formatSpeed={formatSpeed}
-                  formatPressure={formatPressure}
+                  isDaylight={current?.isDaylight}
                   isDark={useDark}
-                  isDesktop
+                  confidence={weather?.confidence}
                 />
-              </View>
-            ) : (
-              <>
-                <DailyForecastCard
-                  dailyForecast={dailyForecast}
+
+                {/* Rain outlook: smart summary + waking-hour sparkbar */}
+                <PrecipitationCard
+                  hourlyForecast={hourlyForecast}
+                  dailyPop={today?.day?.precipitationProbability?.total}
+                  isDark={useDark}
+                />
+
+                {/* Minutely Precipitation (next-hour rain) */}
+                {minutelyForecast && minutelyForecast.length > 0 && (
+                  <MinutelyPrecipitationCard
+                    minutelyForecast={minutelyForecast}
+                    isDark={useDark}
+                  />
+                )}
+
+                {/* Hourly */}
+                <HourlyForecastCard
+                  hourlyForecast={hourlyForecast}
                   formatTemp={formatTemp}
                   formatSpeed={formatSpeed}
+                  timeFormat={settings.timeFormat}
                   isDark={useDark}
-                  onDayPress={(i) =>
-                    navigation.navigate('DailyDetail', {dayIndex: i})
+                />
+
+                {/* Precipitation probability chart */}
+                <PrecipitationChartCard
+                  hourlyForecast={hourlyForecast}
+                  timeFormat={settings.timeFormat}
+                  isDark={useDark}
+                />
+
+                {/* Daily + Details */}
+                {isDesktop ? (
+                  <View style={styles.macTwoColumn}>
+                    <View style={styles.macLeftColumn}>
+                      <DailyForecastCard
+                        dailyForecast={dailyForecast}
+                        formatTemp={formatTemp}
+                        formatSpeed={formatSpeed}
+                        isDark={useDark}
+                        onDayPress={(i) =>
+                          navigation.navigate('DailyDetail', {dayIndex: i})
+                        }
+                        verticalLayout
+                        precipitationUnit={settings.precipitationUnit}
+                      />
+                    </View>
+                    <WeatherDetailsSection
+                      current={current}
+                      today={today}
+                      formatSpeed={formatSpeed}
+                      formatPressure={formatPressure}
+                      isDark={useDark}
+                      isDesktop
+                    />
+                  </View>
+                ) : (
+                  <>
+                    <DailyForecastCard
+                      dailyForecast={dailyForecast}
+                      formatTemp={formatTemp}
+                      formatSpeed={formatSpeed}
+                      isDark={useDark}
+                      onDayPress={(i) =>
+                        navigation.navigate('DailyDetail', {dayIndex: i})
+                      }
+                      verticalLayout
+                      precipitationUnit={settings.precipitationUnit}
+                    />
+                    <WeatherDetailsSection
+                      current={current}
+                      today={today}
+                      formatSpeed={formatSpeed}
+                      formatPressure={formatPressure}
+                      isDark={useDark}
+                    />
+                  </>
+                )}
+
+                {/* Sun & Moon (uses daily sun times + computed moon phase) */}
+                <SunMoonCard
+                  sun={today?.sun}
+                  moon={today?.moon}
+                  hoursOfSun={today?.hoursOfSun}
+                  timeFormat={settings.timeFormat}
+                  isDark={useDark}
+                />
+
+                {/* Pollen (CAMS via Open-Meteo hourly; hidden when unavailable) */}
+                <PollenCard pollen={todayPollen} isDark={useDark} />
+
+                {/* Attribution */}
+                <AttributionFooter
+                  themeColors={themeColors}
+                  isDark={useDark}
+                  sourceName={attributionSource}
+                  lastUpdated={
+                    weather?.base?.refreshTime
+                      ? new Date(weather.base.refreshTime)
+                      : undefined
                   }
-                  verticalLayout
-                  precipitationUnit={settings.precipitationUnit}
                 />
-                <WeatherDetailsSection
-                  current={current}
-                  today={today}
-                  formatSpeed={formatSpeed}
-                  formatPressure={formatPressure}
-                  isDark={useDark}
-                />
+
+                <View style={{height: insets.bottom + 88}} />
               </>
-            )}
-
-            {/* Sun & Moon (uses daily sun times + computed moon phase) */}
-            <SunMoonCard
-              sun={today?.sun}
-              moon={today?.moon}
-              hoursOfSun={today?.hoursOfSun}
-              timeFormat={settings.timeFormat}
-              isDark={useDark}
-            />
-
-            {/* Pollen (CAMS via Open-Meteo hourly; hidden when unavailable) */}
-            <PollenCard pollen={todayPollen} isDark={useDark} />
-
-            {/* Attribution */}
-            <AttributionFooter
-              themeColors={themeColors}
-              isDark={useDark}
-              sourceName={attributionSource}
-              lastUpdated={
-                weather?.base?.refreshTime
-                  ? new Date(weather.base.refreshTime)
-                  : undefined
-              }
-            />
-
-            <View style={{height: insets.bottom + 88}} />
-            </>
             )}
           </View>
         </ScrollView>
