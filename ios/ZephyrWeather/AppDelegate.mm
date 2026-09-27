@@ -3,8 +3,10 @@
 #import <React/RCTBundleURLProvider.h>
 #import <ReactAppDependencyProvider/RCTAppDependencyProvider.h>
 
-// Defined in ZephyrBackgroundRefresh.swift via @_cdecl.
-extern void ZephyrRegisterBackgroundRefresh(void);
+// Defined in ZephyrBackgroundRefresh.swift via @_cdecl. C linkage is required
+// here: this file is Objective-C++, so a plain declaration would mangle the
+// name and fail to link against the Swift C symbol.
+extern "C" void ZephyrRegisterBackgroundRefresh(void);
 
 @implementation AppDelegate
 
