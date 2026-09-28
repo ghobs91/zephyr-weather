@@ -9,7 +9,6 @@ export type TimeFormat = 'auto' | '12h' | '24h';
 /** Reorderable home-screen cards (Alerts and attribution are fixed). */
 export type HomeCardId =
   | 'current'
-  | 'rain'
   | 'hourly'
   | 'daily'
   | 'details'
@@ -18,7 +17,6 @@ export type HomeCardId =
 
 export const defaultHomeCardOrder: HomeCardId[] = [
   'current',
-  'rain',
   'hourly',
   'daily',
   'details',

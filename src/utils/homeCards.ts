@@ -4,7 +4,6 @@ import {HomeCardId} from '../types/settings';
 export const HOME_CARD_META: Record<HomeCardId, {label: string; icon: string}> =
   {
     current: {label: 'Current Weather', icon: 'weather-partly-cloudy'},
-    rain: {label: 'Rain', icon: 'weather-pouring'},
     hourly: {label: 'Hourly Forecast', icon: 'clock-outline'},
     daily: {label: 'Daily Forecast', icon: 'calendar'},
     details: {label: 'Weather Details', icon: 'thermometer'},

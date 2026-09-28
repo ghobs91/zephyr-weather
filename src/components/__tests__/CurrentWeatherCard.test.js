@@ -3,6 +3,20 @@ jest.mock('@react-native-community/blur', () => ({
   BlurView: 'BlurView',
 }));
 jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
+jest.mock('react-native-wagmi-charts', () => {
+  const React = require('react');
+  const {View} = require('react-native');
+  const passthrough = ({children}) =>
+    React.createElement(View, null, children);
+  const empty = () => null;
+  return {
+    LineChart: Object.assign(passthrough, {
+      Provider: passthrough,
+      Path: passthrough,
+      Gradient: empty,
+    }),
+  };
+});
 jest.mock('../WeatherIcon', () => ({
   WeatherIcon: 'WeatherIcon',
 }));

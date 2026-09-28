@@ -14,7 +14,6 @@ import {RootStackParamList} from '../navigation/RootNavigator';
 import {DesktopHeader} from './DesktopHeader';
 import {AlertBanner} from './AlertBanner';
 import {CurrentWeatherCard} from './CurrentWeatherCard';
-import {RainCard} from './RainCard';
 import {HourlyForecastCard} from './HourlyForecastCard';
 import {DailyForecastCard} from './DailyForecastCard';
 import {WeatherDetailsSection} from './WeatherDetailsSection';
@@ -73,15 +72,9 @@ export function LocationWeatherContent({location, isDesktop}: Props) {
         isDaylight={current?.isDaylight}
         isDark={useDark}
         confidence={weather?.confidence}
-      />
-    ),
-    rain: (
-      <RainCard
         hourlyForecast={hourlyForecast}
         minutelyForecast={minutelyForecast}
-        dailyPop={today?.day?.precipitationProbability?.total}
         timeFormat={settings.timeFormat}
-        isDark={useDark}
       />
     ),
     hourly: (
@@ -158,7 +151,6 @@ export function LocationWeatherContent({location, isDesktop}: Props) {
         />
         {alertBanner}
         {cards.current}
-        {cards.rain}
         {cards.hourly}
         <View style={styles.twoColumn}>
           <View style={styles.leftColumn}>{cards.daily}</View>

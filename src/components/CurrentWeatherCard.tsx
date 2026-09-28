@@ -2,11 +2,13 @@ import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {Current, Daily, WeatherCode, EnsembleConfidence} from '../types/weather';
+import {Current, Daily, Hourly, Minutely, EnsembleConfidence} from '../types/weather';
+import {TimeFormat} from '../types/settings';
 import {colors, getTemperatureColor} from '../theme/colors';
 import {getCardStyle, getInsetPanelStyle, withAlpha} from '../theme/design';
 import {GlassSurface} from './GlassSurface';
 import {WeatherIcon} from './WeatherIcon';
+import {RainSection} from './RainSection';
 
 interface Props {
   current?: Current;
@@ -16,6 +18,10 @@ interface Props {
   isDaylight?: boolean;
   isDark: boolean;
   confidence?: EnsembleConfidence;
+  /** Hourly + minutely forecasts power the consolidated rain section. */
+  hourlyForecast?: Hourly[];
+  minutelyForecast?: Minutely[];
+  timeFormat?: TimeFormat;
 }
 
 function getConfidenceLabel(overall?: number): {text: string; color: string} {
@@ -33,6 +39,9 @@ export function CurrentWeatherCard({
   isDaylight = true,
   isDark,
   confidence,
+  hourlyForecast,
+  minutelyForecast,
+  timeFormat = 'auto',
 }: Props) {
   const themeColors = isDark ? colors.dark : colors.light;
   
@@ -147,6 +156,16 @@ export function CurrentWeatherCard({
             {confidence.sourceNames ? ` (${confidence.sourceNames.join(', ')})` : ''}
           </Text>
         </View>
+      )}
+
+      {hourlyForecast && hourlyForecast.length > 0 && (
+        <RainSection
+          hourlyForecast={hourlyForecast}
+          minutelyForecast={minutelyForecast}
+          dailyPop={precipChance}
+          timeFormat={timeFormat}
+          isDark={isDark}
+        />
       )}
     </GlassSurface>
   );
