@@ -23,7 +23,9 @@ import {
   PrecipitationUnit,
   DistanceUnit,
   TimeFormat,
+  normalizeHomeCardOrder,
 } from '../types/settings';
+import {HOME_CARD_META} from '../utils/homeCards';
 
 interface SettingsScreenProps {
   onClose?: () => void;
@@ -82,6 +84,16 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
     </View>
   );
 
+  const cardOrder = normalizeHomeCardOrder(settings.cardOrder);
+
+  const moveCard = (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= cardOrder.length) return;
+    const next = [...cardOrder];
+    [next[index], next[target]] = [next[target], next[index]];
+    updateSettings({cardOrder: next});
+  };
+
   return (
     <AtmosphericBackground isDark={useDark} backgroundKey={backgroundKey}>
       <View style={styles.container}>
@@ -137,6 +149,70 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
           ],
           (value) => updateSettings({timeFormat: value as TimeFormat})
         )}
+
+        {/* Home Screen Section */}
+        {renderSectionHeader('Home Screen', 'view-dashboard-outline')}
+
+        <View style={[styles.optionRow, getInsetPanelStyle(themeColors)]}>
+          <Text style={[styles.optionLabel, {color: themeColors.text}]}>Card Order</Text>
+          <Text style={[styles.cardOrderHint, {color: themeColors.textSecondary}]}>
+            Reorder the cards shown on the Weather screen.
+          </Text>
+          {cardOrder.map((id, index) => (
+            <View
+              key={id}
+              style={[
+                styles.cardOrderRow,
+                index > 0 && {
+                  borderTopWidth: StyleSheet.hairlineWidth,
+                  borderTopColor: themeColors.separator,
+                },
+              ]}>
+              <Icon
+                name={HOME_CARD_META[id].icon}
+                size={18}
+                color={themeColors.textSecondary}
+              />
+              <Text style={[styles.cardOrderLabel, {color: themeColors.text}]}>
+                {HOME_CARD_META[id].label}
+              </Text>
+              <View style={styles.cardOrderButtons}>
+                <TouchableOpacity
+                  disabled={index === 0}
+                  onPress={() => moveCard(index, -1)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Move ${HOME_CARD_META[id].label} up`}
+                  style={styles.cardOrderButton}>
+                  <Icon
+                    name="chevron-up"
+                    size={22}
+                    color={
+                      index === 0
+                        ? themeColors.textTertiary
+                        : themeColors.textSecondary
+                    }
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  disabled={index === cardOrder.length - 1}
+                  onPress={() => moveCard(index, 1)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Move ${HOME_CARD_META[id].label} down`}
+                  style={styles.cardOrderButton}>
+                  <Icon
+                    name="chevron-down"
+                    size={22}
+                    color={
+                      index === cardOrder.length - 1
+                        ? themeColors.textTertiary
+                        : themeColors.textSecondary
+                    }
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </View>
 
         {/* Units Section */}
         {renderSectionHeader('Units', 'ruler')}
@@ -339,6 +415,33 @@ const styles = StyleSheet.create({
   optionButtonText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  cardOrderHint: {
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  cardOrderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+  },
+  cardOrderLabel: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  cardOrderButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  cardOrderButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sourceCard: {
     borderRadius: 24,

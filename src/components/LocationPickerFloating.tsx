@@ -1,16 +1,11 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, Animated} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {ColorTheme} from '../theme/colors';
-import {getGlassPillStyle, getShadow, radius} from '../theme/design';
+import {getGlassPillStyle, getShadow, radius, withAlpha} from '../theme/design';
 import {Location} from '../types/weather';
 import {WeatherIcon} from './WeatherIcon';
+import {GlassSurface} from './GlassSurface';
 
 interface PickerState {
   pickerOpen: boolean;
@@ -26,11 +21,10 @@ interface Props {
   picker: PickerState;
   formatTempShort: (temp?: number) => string;
   themeColors: ColorTheme;
-  useDark: boolean;
+  isDark: boolean;
   insets: {top: number; bottom: number};
   onSelect: (index: number) => void;
-  onMenuPress: () => void;
-  onSettingsPress: () => void;
+  onDelete: (location: Location) => void;
 }
 
 export function LocationPickerFloating({
@@ -40,10 +34,10 @@ export function LocationPickerFloating({
   picker,
   formatTempShort,
   themeColors,
+  isDark,
   insets,
   onSelect,
-  onMenuPress,
-  onSettingsPress,
+  onDelete,
 }: Props) {
   const {pickerOpen, pickerAnim, openPicker, closePicker} = picker;
 
@@ -59,15 +53,9 @@ export function LocationPickerFloating({
       )}
 
       {/* Top bar row */}
-      <View style={[styles.floating, {top: insets.top + 8}]} pointerEvents="box-none">
-        {/* Hamburger */}
-        <TouchableOpacity
-          style={[styles.iconPill, getGlassPillStyle(themeColors)]}
-          onPress={onMenuPress}
-          activeOpacity={0.8}>
-          <Icon name="menu" size={24} color={themeColors.textSecondary} />
-        </TouchableOpacity>
-
+      <View
+        style={[styles.floating, {top: insets.top + 8}]}
+        pointerEvents="box-none">
         {/* Center: city picker pill + dropdown */}
         <View style={styles.center} pointerEvents="box-none">
           <TouchableOpacity
@@ -75,7 +63,11 @@ export function LocationPickerFloating({
             onPress={pickerOpen ? closePicker : openPicker}
             activeOpacity={0.8}>
             {currentLocation.isCurrentPosition && (
-              <Icon name="crosshairs-gps" size={14} color={themeColors.primary} />
+              <Icon
+                name="crosshairs-gps"
+                size={14}
+                color={themeColors.primary}
+              />
             )}
             <Text
               style={[styles.cityText, {color: themeColors.text}]}
@@ -92,11 +84,7 @@ export function LocationPickerFloating({
           {pickerOpen && (
             <Animated.View
               style={[
-                styles.dropdown,
-                {
-                  backgroundColor: themeColors.glassHighlight,
-                },
-                getShadow(themeColors, 'lg'),
+                styles.dropdownWrap,
                 {
                   opacity: pickerAnim,
                   transform: [
@@ -109,78 +97,106 @@ export function LocationPickerFloating({
                   ],
                 },
               ]}>
-              {locations.map((loc, index) => {
-                const isSelected = index === pageIndex;
-                const locCurrent = loc.weather?.current;
-                const locToday = loc.weather?.dailyForecast?.[0];
-                return (
-                  <TouchableOpacity
-                    key={loc.id}
-                    style={[
-                      styles.dropdownItem,
-                      isSelected && {
-                        backgroundColor: themeColors.fill,
-                      },
-                    ]}
-                    onPress={() => onSelect(index)}>
-                    <View style={styles.itemLeft}>
-                      {loc.isCurrentPosition && (
-                        <Icon
-                          name="crosshairs-gps"
-                          size={13}
-                          color={themeColors.primary}
-                          style={{marginRight: 4}}
-                        />
-                      )}
-                      <View>
-                        <Text
-                          style={[styles.itemCity, {color: themeColors.text}]}
-                          numberOfLines={1}>
-                          {loc.city || 'Unknown'}
-                        </Text>
-                        {locToday && (
-                          <Text style={[styles.itemSub, {color: themeColors.textSecondary}]}>
-                            H:{formatTempShort(locToday.day?.temperature?.temperature)} · L:{formatTempShort(locToday.night?.temperature?.temperature)}
+              <GlassSurface
+                isDark={isDark}
+                themeColors={themeColors}
+                variant="thick"
+                radius={radius.xl}
+                style={[
+                  styles.dropdown,
+                  {
+                    // Near-opaque surface so location names stay legible
+                    // against the vivid animated background.
+                    backgroundColor: withAlpha(
+                      themeColors.surfaceElevated,
+                      0.96,
+                    ),
+                  },
+                  getShadow(themeColors, 'lg'),
+                ]}>
+                {locations.map((loc, index) => {
+                  const isSelected = index === pageIndex;
+                  const locCurrent = loc.weather?.current;
+                  const locToday = loc.weather?.dailyForecast?.[0];
+                  return (
+                    <TouchableOpacity
+                      key={loc.id}
+                      style={[
+                        styles.dropdownItem,
+                        isSelected && {
+                          backgroundColor: themeColors.fill,
+                        },
+                      ]}
+                      onPress={() => onSelect(index)}
+                      onLongPress={() => onDelete(loc)}>
+                      <View style={styles.itemLeft}>
+                        {loc.isCurrentPosition && (
+                          <Icon
+                            name="crosshairs-gps"
+                            size={13}
+                            color={themeColors.primary}
+                            style={styles.gpsIcon}
+                          />
+                        )}
+                        <View>
+                          <Text
+                            style={[styles.itemCity, {color: themeColors.text}]}
+                            numberOfLines={1}>
+                            {loc.city || 'Unknown'}
                           </Text>
+                          {locToday && (
+                            <Text
+                              style={[
+                                styles.itemSub,
+                                {color: themeColors.textSecondary},
+                              ]}>
+                              H:
+                              {formatTempShort(
+                                locToday.day?.temperature?.temperature,
+                              )}{' '}
+                              · L:
+                              {formatTempShort(
+                                locToday.night?.temperature?.temperature,
+                              )}
+                            </Text>
+                          )}
+                        </View>
+                      </View>
+                      <View style={styles.itemRight}>
+                        {locCurrent && (
+                          <>
+                            <WeatherIcon
+                              code={locCurrent.weatherCode}
+                              isDay={locCurrent.isDaylight}
+                              style={styles.itemIcon}
+                            />
+                            <Text
+                              style={[
+                                styles.itemTemp,
+                                {color: themeColors.text},
+                              ]}>
+                              {formatTempShort(
+                                locCurrent.temperature?.temperature,
+                              )}
+                            </Text>
+                          </>
+                        )}
+                        {isSelected && (
+                          <Icon
+                            name="check"
+                            size={16}
+                            color={themeColors.primary}
+                            style={styles.checkIcon}
+                          />
                         )}
                       </View>
-                    </View>
-                    <View style={styles.itemRight}>
-                      {locCurrent && (
-                        <>
-                          <WeatherIcon
-                            code={locCurrent.weatherCode}
-                            isDay={locCurrent.isDaylight}
-                            style={styles.itemIcon}
-                          />
-                          <Text style={[styles.itemTemp, {color: themeColors.text}]}>
-                            {formatTempShort(locCurrent.temperature?.temperature)}
-                          </Text>
-                        </>
-                      )}
-                      {isSelected && (
-                        <Icon
-                          name="check"
-                          size={16}
-                          color={themeColors.primary}
-                          style={{marginLeft: 6}}
-                        />
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
+                    </TouchableOpacity>
+                  );
+                })}
+              </GlassSurface>
             </Animated.View>
           )}
         </View>
-
-        {/* Settings */}
-        <TouchableOpacity
-          style={[styles.iconPill, getGlassPillStyle(themeColors)]}
-          onPress={onSettingsPress}
-          activeOpacity={0.8}>
-          <Icon name="cog-outline" size={24} color={themeColors.textSecondary} />
-        </TouchableOpacity>
       </View>
     </>
   );
@@ -201,13 +217,6 @@ const styles = StyleSheet.create({
     gap: 10,
     zIndex: 101,
   },
-  iconPill: {
-    width: 46,
-    height: 46,
-    borderRadius: radius.pill,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   center: {flex: 1, alignItems: 'center'},
   pickerPill: {
     flexDirection: 'row',
@@ -219,10 +228,9 @@ const styles = StyleSheet.create({
     width: 220,
   },
   cityText: {fontSize: 15, fontWeight: '600', flex: 1, textAlign: 'center'},
+  dropdownWrap: {marginTop: 8, width: 260},
   dropdown: {
-    marginTop: 8,
     borderRadius: radius.xl,
-    borderWidth: 0,
     overflow: 'hidden',
     width: 260,
   },
@@ -233,10 +241,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
-  itemLeft: {flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 12},
+  itemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
+  },
+  gpsIcon: {marginRight: 4},
   itemCity: {fontSize: 15, fontWeight: '600'},
   itemSub: {fontSize: 12, marginTop: 2},
   itemRight: {flexDirection: 'row', alignItems: 'center'},
   itemIcon: {width: 24, height: 24},
   itemTemp: {fontSize: 15, fontWeight: '600', marginLeft: 8},
+  checkIcon: {marginLeft: 6},
 });

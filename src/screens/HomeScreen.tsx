@@ -1,23 +1,21 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   StyleSheet,
+  FlatList,
   ScrollView,
   RefreshControl,
   Alert,
-  useColorScheme,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {useWeatherStore} from '../store/weatherStore';
 import {RootStackParamList} from '../navigation/RootNavigator';
 import {useResponsiveLayout} from '../utils/platformDetect';
 import {useThemeColors} from '../hooks/useThemeColors';
 import {useWeatherFormatters} from '../hooks/useWeatherFormatters';
-import {useTodayForecast} from '../hooks/useTodayForecast';
 import {useLocationPicker} from '../hooks/useLocationPicker';
 import {useWeatherRefresh} from '../hooks/useWeatherRefresh';
 import {useDefaultLocation} from '../hooks/useDefaultLocation';
@@ -25,70 +23,102 @@ import {useDefaultLocation} from '../hooks/useDefaultLocation';
 import {AtmosphericBackground} from '../components/AtmosphericBackground';
 import {EmptyState} from '../components/EmptyState';
 import {LoadingState} from '../components/LoadingState';
-import {DesktopHeader} from '../components/DesktopHeader';
-import {AlertBanner} from '../components/AlertBanner';
-import {CurrentWeatherCard} from '../components/CurrentWeatherCard';
-import {HourlyForecastCard} from '../components/HourlyForecastCard';
-import {DailyForecastCard} from '../components/DailyForecastCard';
-import {PollenCard} from '../components/PollenCard';
-import {SunMoonCard} from '../components/SunMoonCard';
-import {PrecipitationChartCard} from '../components/PrecipitationChartCard';
-import {PrecipitationCard} from '../components/PrecipitationCard';
-import {WeatherDetailsSection} from '../components/WeatherDetailsSection';
-import {MinutelyPrecipitationCard} from '../components/MinutelyPrecipitationCard';
-import {AttributionFooter} from '../components/AttributionFooter';
-import {LocationPickerFloating} from '../components/LocationPickerFloating';
 import {SkeletonCards} from '../components/SkeletonCards';
+import {LocationPickerFloating} from '../components/LocationPickerFloating';
+import {FloatingGlassButton} from '../components/FloatingGlassButton';
+import {LocationWeatherContent} from '../components/LocationWeatherContent';
 import {Location} from '../types/weather';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+/** A single vertical weather page. One per location in the mobile pager. */
+function HomeContentPage({
+  location,
+  pageWidth,
+}: {
+  location: Location;
+  pageWidth?: number;
+}) {
+  const insets = useSafeAreaInsets();
+  const layout = useResponsiveLayout();
+  const {isDesktop, isWideScreen, contentPadding, maxContentWidth} = layout;
+  const {useDark, themeColors} = useThemeColors();
+  const isLoading = useWeatherStore((s) => s.isLoading);
+  const {refreshing, onRefresh} = useWeatherRefresh(location);
+  const showSkeleton = isLoading && !location.weather;
+
+  return (
+    <ScrollView
+      style={[styles.scrollView, pageWidth != null && {width: pageWidth}]}
+      contentContainerStyle={styles.scrollContent}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={themeColors.primary}
+        />
+      }
+      showsVerticalScrollIndicator={false}>
+      <View
+        style={[
+          styles.contentContainer,
+          {
+            paddingTop: isDesktop || isWideScreen ? 20 : insets.top,
+            paddingHorizontal: contentPadding,
+            maxWidth: maxContentWidth,
+            alignSelf: maxContentWidth ? 'center' : undefined,
+            width: maxContentWidth ? '100%' : undefined,
+          },
+        ]}>
+        {/* Spacer for the floating location picker on mobile */}
+        {!isDesktop && <View style={styles.pickerSpacer} />}
+
+        {showSkeleton ? (
+          <SkeletonCards themeColors={themeColors} isDark={useDark} count={4} />
+        ) : (
+          <>
+            <LocationWeatherContent location={location} isDesktop={isDesktop} />
+            <View style={{height: insets.bottom + 96}} />
+          </>
+        )}
+      </View>
+    </ScrollView>
+  );
+}
 
 export function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const {useDark, themeColors, backgroundKey} = useThemeColors();
+  const layout = useResponsiveLayout();
+  const {isDesktop, windowWidth} = layout;
+  const {formatTempShort} = useWeatherFormatters();
 
   const {
     locations,
     currentLocationIndex,
-    settings,
-    isLoading,
     setCurrentLocationIndex,
     removeLocation,
   } = useWeatherStore();
 
   const [pageIndex, setPageIndex] = useState(currentLocationIndex);
-  const {isDesktop, isWideScreen, contentPadding, maxContentWidth} =
-    useResponsiveLayout();
+  const picker = useLocationPicker();
+  const pagerRef = useRef<FlatList<Location>>(null);
+
+  useDefaultLocation();
   const currentLocation = locations[pageIndex];
 
-  // Sync pageIndex with external changes (e.g. from LocationsScreen)
+  // Sync pageIndex with external changes (e.g. LocationsScreen) and scroll
+  // the pager to match.
   useEffect(() => {
     setPageIndex(currentLocationIndex);
-  }, [currentLocationIndex]);
-
-  // Hooks
-  useDefaultLocation();
-  const {refreshing, onRefresh} = useWeatherRefresh(currentLocation);
-  const picker = useLocationPicker();
-  const {formatTemp, formatTempShort, formatSpeed, formatPressure} =
-    useWeatherFormatters();
-
-  const handleDeleteLocation = useCallback(
-    (loc: Location) => {
-      Alert.alert('Delete Location', `Remove ${loc.city || 'this location'}?`, [
-        {text: 'Cancel', style: 'cancel'},
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => removeLocation(loc.id),
-        },
-      ]);
-    },
-    [removeLocation],
-  );
-
-  // --- Render: states ---
+    if (!isDesktop && locations.length > 0) {
+      pagerRef.current?.scrollToIndex({
+        index: currentLocationIndex,
+        animated: false,
+      });
+    }
+  }, [currentLocationIndex, isDesktop, locations.length]);
 
   if (locations.length === 0) {
     return (
@@ -103,213 +133,66 @@ export function HomeScreen() {
     return <LoadingState themeColors={themeColors} />;
   }
 
-  // --- Derived data ---
+  const selectLocation = (index: number) => {
+    setCurrentLocationIndex(index);
+    setPageIndex(index);
+    picker.closePicker();
+    pagerRef.current?.scrollToIndex({index, animated: true});
+  };
 
-  const weather = currentLocation.weather;
-  const current = weather?.current;
-  const dailyForecast = weather?.dailyForecast ?? [];
-  const hourlyForecast = weather?.hourlyForecast ?? [];
-  const minutelyForecast = weather?.minutelyForecast;
-  const alerts = weather?.alerts ?? [];
-  const today = useTodayForecast(dailyForecast);
-
-  const attributionSource =
-    currentLocation.countryCode === 'US'
-      ? 'Weather data from NOAA National Weather Service'
-      : 'Weather data from Open-Meteo & Met.no (CC BY 4.0)';
-
-  // Daily pollen is not populated by providers — fall back to the nearest
-  // hourly entry that carries CAMS pollen data.
-  const todayPollen =
-    today?.pollen ??
-    hourlyForecast.find(
-      (h) =>
-        h.pollen?.grass?.index !== undefined ||
-        h.pollen?.tree?.index !== undefined ||
-        h.pollen?.ragweed?.index !== undefined,
-    )?.pollen;
-
-  const showSkeleton = isLoading && !weather;
-
-  // --- Render: main content ---
+  const handleDeleteLocation = (location: Location) => {
+    Alert.alert(
+      'Delete Location',
+      `Remove ${location.city || 'this location'}?`,
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => removeLocation(location.id),
+        },
+      ],
+    );
+  };
 
   return (
     <AtmosphericBackground isDark={useDark} backgroundKey={backgroundKey}>
       <View style={styles.container}>
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={themeColors.primary}
-            />
-          }
-          showsVerticalScrollIndicator={false}>
-          <View
-            style={[
-              styles.contentContainer,
-              {
-                paddingTop: isDesktop ? 20 : isWideScreen ? 20 : insets.top,
-                paddingHorizontal: contentPadding,
-                maxWidth: maxContentWidth,
-                alignSelf: maxContentWidth ? 'center' : undefined,
-                width: maxContentWidth ? '100%' : undefined,
-              },
-            ]}>
-            {/* Spacer for floating picker on mobile */}
-            {!isDesktop && <View style={{height: 66}} />}
-
-            {/* Skeleton loading state */}
-            {showSkeleton ? (
-              <SkeletonCards
-                themeColors={themeColors}
-                isDark={useDark}
-                count={4}
-              />
-            ) : (
-              <>
-                {/* Header */}
-                {isDesktop && (
-                  <DesktopHeader
-                    location={currentLocation}
-                    weather={weather}
-                    themeColors={themeColors}
-                    settings={settings}
-                  />
-                )}
-
-                {/* Alerts */}
-                {alerts.length > 0 && (
-                  <AlertBanner
-                    alerts={alerts}
-                    onPress={() => navigation.navigate('Alerts')}
-                    isDark={useDark}
-                  />
-                )}
-
-                {/* Current Weather */}
-                <CurrentWeatherCard
-                  current={current}
-                  today={today}
-                  formatTemp={(t) => formatTemp(t, true)}
-                  formatSpeed={formatSpeed}
-                  isDaylight={current?.isDaylight}
-                  isDark={useDark}
-                  confidence={weather?.confidence}
-                />
-
-                {/* Rain outlook: smart summary + waking-hour sparkbar */}
-                <PrecipitationCard
-                  hourlyForecast={hourlyForecast}
-                  dailyPop={today?.day?.precipitationProbability?.total}
-                  isDark={useDark}
-                />
-
-                {/* Minutely Precipitation (next-hour rain) */}
-                {minutelyForecast && minutelyForecast.length > 0 && (
-                  <MinutelyPrecipitationCard
-                    minutelyForecast={minutelyForecast}
-                    isDark={useDark}
-                  />
-                )}
-
-                {/* Hourly */}
-                <HourlyForecastCard
-                  hourlyForecast={hourlyForecast}
-                  formatTemp={formatTemp}
-                  formatSpeed={formatSpeed}
-                  timeFormat={settings.timeFormat}
-                  isDark={useDark}
-                />
-
-                {/* Precipitation probability chart */}
-                <PrecipitationChartCard
-                  hourlyForecast={hourlyForecast}
-                  timeFormat={settings.timeFormat}
-                  isDark={useDark}
-                />
-
-                {/* Daily + Details */}
-                {isDesktop ? (
-                  <View style={styles.macTwoColumn}>
-                    <View style={styles.macLeftColumn}>
-                      <DailyForecastCard
-                        dailyForecast={dailyForecast}
-                        formatTemp={formatTemp}
-                        formatSpeed={formatSpeed}
-                        isDark={useDark}
-                        onDayPress={(i) =>
-                          navigation.navigate('DailyDetail', {dayIndex: i})
-                        }
-                        verticalLayout
-                        precipitationUnit={settings.precipitationUnit}
-                      />
-                    </View>
-                    <WeatherDetailsSection
-                      current={current}
-                      today={today}
-                      formatSpeed={formatSpeed}
-                      formatPressure={formatPressure}
-                      isDark={useDark}
-                      isDesktop
-                    />
-                  </View>
-                ) : (
-                  <>
-                    <DailyForecastCard
-                      dailyForecast={dailyForecast}
-                      formatTemp={formatTemp}
-                      formatSpeed={formatSpeed}
-                      isDark={useDark}
-                      onDayPress={(i) =>
-                        navigation.navigate('DailyDetail', {dayIndex: i})
-                      }
-                      verticalLayout
-                      precipitationUnit={settings.precipitationUnit}
-                    />
-                    <WeatherDetailsSection
-                      current={current}
-                      today={today}
-                      formatSpeed={formatSpeed}
-                      formatPressure={formatPressure}
-                      isDark={useDark}
-                    />
-                  </>
-                )}
-
-                {/* Sun & Moon (uses daily sun times + computed moon phase) */}
-                <SunMoonCard
-                  sun={today?.sun}
-                  moon={today?.moon}
-                  hoursOfSun={today?.hoursOfSun}
-                  timeFormat={settings.timeFormat}
-                  isDark={useDark}
-                />
-
-                {/* Pollen (CAMS via Open-Meteo hourly; hidden when unavailable) */}
-                <PollenCard pollen={todayPollen} isDark={useDark} />
-
-                {/* Attribution */}
-                <AttributionFooter
-                  themeColors={themeColors}
-                  isDark={useDark}
-                  sourceName={attributionSource}
-                  lastUpdated={
-                    weather?.base?.refreshTime
-                      ? new Date(weather.base.refreshTime)
-                      : undefined
-                  }
-                />
-
-                <View style={{height: insets.bottom + 88}} />
-              </>
+        {isDesktop ? (
+          <HomeContentPage location={currentLocation} />
+        ) : (
+          <FlatList
+            ref={pagerRef}
+            data={locations}
+            keyExtractor={(item) => item.id}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            initialScrollIndex={pageIndex}
+            getItemLayout={(_, index) => ({
+              length: windowWidth,
+              offset: windowWidth * index,
+              index,
+            })}
+            renderItem={({item}) => (
+              <HomeContentPage location={item} pageWidth={windowWidth} />
             )}
-          </View>
-        </ScrollView>
+            onMomentumScrollEnd={(event) => {
+              const index = Math.max(
+                0,
+                Math.min(
+                  locations.length - 1,
+                  Math.round(event.nativeEvent.contentOffset.x / windowWidth),
+                ),
+              );
+              if (index !== pageIndex) {
+                setPageIndex(index);
+                setCurrentLocationIndex(index);
+              }
+            }}
+          />
+        )}
 
-        {/* Floating location picker (mobile only) */}
         {!isDesktop && (
           <LocationPickerFloating
             locations={locations}
@@ -318,16 +201,39 @@ export function HomeScreen() {
             picker={picker}
             formatTempShort={formatTempShort}
             themeColors={themeColors}
-            useDark={useDark}
+            isDark={useDark}
             insets={insets}
-            onSelect={(i) => {
-              setCurrentLocationIndex(i);
-              setPageIndex(i);
-              picker.closePicker();
-            }}
-            onMenuPress={() => navigation.navigate('Locations')}
-            onSettingsPress={() => navigation.navigate('Settings')}
+            onSelect={selectLocation}
+            onDelete={handleDeleteLocation}
           />
+        )}
+
+        {!isDesktop && (
+          <View
+            style={[styles.fabRow, {bottom: insets.bottom + 20}]}
+            pointerEvents="box-none">
+            <FloatingGlassButton
+              icon="magnify"
+              accessibilityLabel="Search locations"
+              onPress={() => navigation.navigate('SearchLocation')}
+              themeColors={themeColors}
+              isDark={useDark}
+            />
+            <FloatingGlassButton
+              icon="radar"
+              accessibilityLabel="Radar"
+              onPress={() => navigation.navigate('Radar')}
+              themeColors={themeColors}
+              isDark={useDark}
+            />
+            <FloatingGlassButton
+              icon="cog-outline"
+              accessibilityLabel="Settings"
+              onPress={() => navigation.navigate('Settings')}
+              themeColors={themeColors}
+              isDark={useDark}
+            />
+          </View>
         )}
       </View>
     </AtmosphericBackground>
@@ -339,6 +245,12 @@ const styles = StyleSheet.create({
   scrollView: {flex: 1},
   scrollContent: {flexGrow: 1},
   contentContainer: {paddingBottom: 8},
-  macTwoColumn: {flexDirection: 'row', gap: 16, marginBottom: 12},
-  macLeftColumn: {flex: 0.55},
+  pickerSpacer: {height: 66},
+  fabRow: {
+    position: 'absolute',
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
 });

@@ -8,6 +8,8 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
@@ -31,6 +33,8 @@ import {
 import {useWeatherStore} from '../store/weatherStore';
 import {useThemeColors} from '../hooks/useThemeColors';
 import {useResponsiveLayout} from '../utils/platformDetect';
+import {RootStackParamList} from '../navigation/RootNavigator';
+import {FloatingGlassButton} from '../components/FloatingGlassButton';
 import {
   findNearestStation,
   getAvailableScans,
@@ -52,6 +56,8 @@ import {t} from '../i18n';
 const TIMELINE_HOURS = 2;
 const PLAYBACK_INTERVAL_MS = 750; // ms per frame
 const MAX_ANIMATION_FRAMES = 20;
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 // OpenFreeMap basemap styles (keyless, open source). Vector tiles are rendered
 // natively by MapLibre.
@@ -84,6 +90,7 @@ function formatTimeLabel(date: Date): string {
 export function RadarScreen() {
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout();
+  const navigation = useNavigation<NavigationProp>();
 
   const {settings, getCurrentLocation} = useWeatherStore();
   const {useDark, themeColors} = useThemeColors();
@@ -675,7 +682,7 @@ export function RadarScreen() {
           {
             backgroundColor: themeColors.surface,
             borderTopColor: themeColors.border,
-            paddingBottom: insets.bottom + 88,
+            paddingBottom: insets.bottom + 16,
           },
         ]}>
         <View style={styles.timeDisplay}>
@@ -793,6 +800,16 @@ export function RadarScreen() {
           </View>
         </View>
       </View>
+
+      {/* Floating close control */}
+      <FloatingGlassButton
+        icon="close"
+        accessibilityLabel="Close radar"
+        onPress={() => navigation.goBack()}
+        themeColors={themeColors}
+        isDark={useDark}
+        style={[styles.closeButton, {top: insets.top + 8}]}
+      />
     </View>
   );
 }
@@ -800,6 +817,11 @@ export function RadarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 16,
+    zIndex: 30,
   },
   header: {
     paddingHorizontal: 16,
