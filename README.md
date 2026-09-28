@@ -13,12 +13,26 @@ Inspired by [Breezy Weather](https://github.com/breezy-weather/breezy-weather).
 
 ## Screenshots
 
+### iPhone
+
 <p align="center">
   <img src="screenshots/screenshot-1.png" width="30%" alt="Screenshot 1" />
   <img src="screenshots/screenshot-2.png" width="30%" alt="Screenshot 2" />
   <img src="screenshots/screenshot-3.png" width="30%" alt="Screenshot 3" />
   <img src="screenshots/screenshot-4.png" width="30%" alt="Screenshot 4" />
 </p>
+
+### iPad (13-inch, 2064×2752)
+
+<p align="center">
+  <img src="screenshots/ipad-13/screenshot-1.png" width="30%" alt="iPad screenshot 1" />
+  <img src="screenshots/ipad-13/screenshot-2.png" width="30%" alt="iPad screenshot 2" />
+  <img src="screenshots/ipad-13/screenshot-3.png" width="30%" alt="iPad screenshot 3" />
+  <img src="screenshots/ipad-13/screenshot-4.png" width="30%" alt="iPad screenshot 4" />
+</p>
+
+Regenerate the iPad set with `python3 scripts/make-ipad-appstore-screenshots.py`
+(see the script for the required simulator captures).
 
 ## Features
 
