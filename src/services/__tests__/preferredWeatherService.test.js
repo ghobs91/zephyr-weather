@@ -90,4 +90,32 @@ describe('fetchPreferredWeather', () => {
     expect(result.current).toEqual(openMeteoWeather.current);
     expect(result.confidence.sourceNames).toEqual(['Open-Meteo']);
   });
+
+  it('weights NWS as the combined weight of the global models (US)', async () => {
+    const date = new Date('2026-09-29T12:00:00.000Z');
+    const member = code => ({
+      current: {weatherCode: code, weatherText: code},
+      hourlyForecast: [{date, weatherCode: code}],
+      dailyForecast: [
+        {date, day: {weatherCode: code}, night: {weatherCode: code}},
+      ],
+    });
+
+    isUSLocation.mockResolvedValue(true);
+    fetchWeather.mockResolvedValue(member('CLOUDY'));
+    fetchMetNoWeather.mockResolvedValue(member('CLOUDY'));
+    fetchNWSWeather.mockResolvedValue(member('CLEAR'));
+    fetchAirQuality.mockResolvedValue(null);
+
+    const result = await fetchPreferredWeather(
+      40.7251,
+      -73.5143,
+      'America/New_York',
+    );
+
+    // 2-2 tie between {Open-Meteo, Met.no} = CLOUDY and NWS = CLEAR;
+    // NWS carries the combined weight, so weather.gov wins.
+    expect(result.dailyForecast[0].day.weatherCode).toBe('CLEAR');
+    expect(result.current.weatherCode).toBe('CLEAR');
+  });
 });

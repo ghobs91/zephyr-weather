@@ -174,16 +174,28 @@ function mergeWinds(winds: (Wind | undefined)[]): Wind | undefined {
   return averageWind(valid);
 }
 
-/** Pick the most commonly occurring weather code; ties broken by severity */
-function mergeWeatherCodes(codes: (WeatherCode | undefined)[]): WeatherCode | undefined {
-  const valid = codes.filter((c): c is WeatherCode => c !== undefined);
-  if (!valid.length) return undefined;
+interface WeightedWeatherCode {
+  code: WeatherCode | undefined;
+  weight: number;
+}
 
-  // Count occurrences
+/**
+ * Pick the weather code with the highest weighted vote. Ties break toward the
+ * code backed by the single heaviest source (a heavily weighted NWS forecast
+ * can't be tied away by lighter global models), then by severity.
+ */
+function mergeWeatherCodes(codes: WeightedWeatherCode[]): WeatherCode | undefined {
   const counts = new Map<WeatherCode, number>();
-  for (const c of valid) {
-    counts.set(c, (counts.get(c) ?? 0) + 1);
+  const maxSourceWeight = new Map<WeatherCode, number>();
+  for (const {code, weight} of codes) {
+    if (code === undefined) continue;
+    counts.set(code, (counts.get(code) ?? 0) + weight);
+    maxSourceWeight.set(
+      code,
+      Math.max(maxSourceWeight.get(code) ?? 0, weight),
+    );
   }
+  if (!counts.size) return undefined;
 
   const severity: Record<WeatherCode, number> = {
     [WeatherCode.CLEAR]: 0,
@@ -203,10 +215,13 @@ function mergeWeatherCodes(codes: (WeatherCode | undefined)[]): WeatherCode | un
     [WeatherCode.THUNDERSTORM]: 14,
   };
 
-  // Sort by count desc, then severity desc for tie-breaking
+  // Sort by weighted total desc, then heaviest single source, then severity.
   return [...counts.entries()].sort((a, b) => {
-    if (b[1] !== a[1]) return b[1] - a[1]; // higher count first
-    return severity[b[0]] - severity[a[0]]; // higher severity first
+    if (b[1] !== a[1]) return b[1] - a[1];
+    const bySource =
+      (maxSourceWeight.get(b[0]) ?? 0) - (maxSourceWeight.get(a[0]) ?? 0);
+    if (bySource !== 0) return bySource;
+    return severity[b[0]] - severity[a[0]];
   })[0][0];
 }
 
@@ -214,18 +229,33 @@ function mergeWeatherCodes(codes: (WeatherCode | undefined)[]): WeatherCode | un
 // Merging Current observations
 // ────────────────────────────────────────
 
-function mergeCurrent(currents: (Current | undefined)[]): Current | undefined {
-  const valid = currents.filter((c): c is Current => c !== undefined);
-  if (!valid.length) return undefined;
+function mergeCurrent(
+  currents: (Current | undefined)[],
+  weights: number[],
+): Current | undefined {
+  const present = currents
+    .map((current, index) => ({current, weight: weights[index] ?? 1}))
+    .filter(
+      (entry): entry is {current: Current; weight: number} =>
+        entry.current !== undefined,
+    );
+  if (!present.length) return undefined;
+
+  const valid = present.map(entry => entry.current);
+  const code = mergeWeatherCodes(
+    present.map(entry => ({
+      code: entry.current.weatherCode,
+      weight: entry.weight,
+    })),
+  );
+  // Re-use text from the heaviest source that matches the merged code
+  const match = present
+    .filter(entry => entry.current.weatherCode === code)
+    .sort((a, b) => b.weight - a.weight)[0];
 
   return {
-    weatherCode: mergeWeatherCodes(valid.map(c => c.weatherCode)),
-    weatherText: (() => {
-      const code = mergeWeatherCodes(valid.map(c => c.weatherCode));
-      // Re-use text from the source that matches the merged code, else first text
-      const match = valid.find(c => c.weatherCode === code);
-      return match?.weatherText ?? valid[0].weatherText;
-    })(),
+    weatherCode: code,
+    weatherText: match?.current.weatherText ?? valid[0].weatherText,
     isDaylight: valid.find(c => c.isDaylight !== undefined)?.isDaylight,
     temperature: mergeTemperatures(valid.map(c => c.temperature)),
     wind: mergeWinds(valid.map(c => c.wind)),
@@ -252,32 +282,40 @@ function hourBucket(date: Date): string {
   return d.toISOString();
 }
 
-function mergeHourlyArrays(hourlyArrays: Hourly[][]): Hourly[] {
-  // Index all hourly entries by their UTC hour bucket
-  const buckets = new Map<string, Hourly[]>();
+function mergeHourlyArrays(
+  hourlyArrays: Hourly[][],
+  weights: number[],
+): Hourly[] {
+  // Index all hourly entries by their UTC hour bucket, keeping source weight
+  const buckets = new Map<string, {entry: Hourly; weight: number}[]>();
 
-  for (const arr of hourlyArrays) {
+  hourlyArrays.forEach((arr, index) => {
+    const weight = weights[index] ?? 1;
     for (const h of arr) {
       const key = hourBucket(h.date);
       if (!buckets.has(key)) buckets.set(key, []);
-      buckets.get(key)!.push(h);
+      buckets.get(key)!.push({entry: h, weight});
     }
-  }
+  });
 
   const merged: Hourly[] = [];
   const sortedKeys = [...buckets.keys()].sort();
 
   for (const key of sortedKeys) {
-    const entries = buckets.get(key)!;
+    const bucket = buckets.get(key)!;
+    const entries = bucket.map(item => item.entry);
+    const code = mergeWeatherCodes(
+      bucket.map(item => ({code: item.entry.weatherCode, weight: item.weight})),
+    );
+    const match = bucket
+      .filter(item => item.entry.weatherCode === code)
+      .sort((a, b) => b.weight - a.weight)[0];
+
     merged.push({
       date: new Date(key),
       isDaylight: entries.find(e => e.isDaylight !== undefined)?.isDaylight,
-      weatherCode: mergeWeatherCodes(entries.map(e => e.weatherCode)),
-      weatherText: (() => {
-        const code = mergeWeatherCodes(entries.map(e => e.weatherCode));
-        const match = entries.find(e => e.weatherCode === code);
-        return match?.weatherText ?? entries[0].weatherText;
-      })(),
+      weatherCode: code,
+      weatherText: match?.entry.weatherText ?? entries[0].weatherText,
       temperature: mergeTemperatures(entries.map(e => e.temperature)),
       precipitation: mergePrecipitation(entries.map(e => e.precipitation)),
       precipitationProbability: mergePrecipProbability(
@@ -302,17 +340,29 @@ function mergeHourlyArrays(hourlyArrays: Hourly[][]): Hourly[] {
 // Merging Daily forecasts
 // ────────────────────────────────────────
 
-function mergeHalfDays(halves: (HalfDay | undefined)[]): HalfDay | undefined {
-  const valid = halves.filter((h): h is HalfDay => h !== undefined);
-  if (!valid.length) return undefined;
+function mergeHalfDays(
+  halves: (HalfDay | undefined)[],
+  weights: number[],
+): HalfDay | undefined {
+  const present = halves
+    .map((half, index) => ({half, weight: weights[index] ?? 1}))
+    .filter(
+      (entry): entry is {half: HalfDay; weight: number} =>
+        entry.half !== undefined,
+    );
+  if (!present.length) return undefined;
+
+  const valid = present.map(entry => entry.half);
+  const code = mergeWeatherCodes(
+    present.map(entry => ({code: entry.half.weatherCode, weight: entry.weight})),
+  );
+  const match = present
+    .filter(entry => entry.half.weatherCode === code)
+    .sort((a, b) => b.weight - a.weight)[0];
 
   return {
-    weatherCode: mergeWeatherCodes(valid.map(h => h.weatherCode)),
-    weatherText: (() => {
-      const code = mergeWeatherCodes(valid.map(h => h.weatherCode));
-      const match = valid.find(h => h.weatherCode === code);
-      return match?.weatherText ?? valid[0].weatherText;
-    })(),
+    weatherCode: code,
+    weatherText: match?.half.weatherText ?? valid[0].weatherText,
     temperature: mergeTemperatures(valid.map(h => h.temperature)),
     precipitation: mergePrecipitation(valid.map(h => h.precipitation)),
     precipitationProbability: mergePrecipProbability(
@@ -327,29 +377,32 @@ function dateKey(date: Date): string {
   return date.toISOString().split('T')[0];
 }
 
-function mergeDailyArrays(dailyArrays: Daily[][]): Daily[] {
-  const buckets = new Map<string, Daily[]>();
+function mergeDailyArrays(dailyArrays: Daily[][], weights: number[]): Daily[] {
+  const buckets = new Map<string, {entry: Daily; weight: number}[]>();
 
-  for (const arr of dailyArrays) {
+  dailyArrays.forEach((arr, index) => {
+    const weight = weights[index] ?? 1;
     for (const d of arr) {
       const key = dateKey(d.date);
       if (!buckets.has(key)) buckets.set(key, []);
-      buckets.get(key)!.push(d);
+      buckets.get(key)!.push({entry: d, weight});
     }
-  }
+  });
 
   const merged: Daily[] = [];
   const sortedKeys = [...buckets.keys()].sort();
 
   for (const key of sortedKeys) {
-    const entries = buckets.get(key)!;
+    const bucket = buckets.get(key)!;
+    const entries = bucket.map(item => item.entry);
     // Use the first source's structural info (sun, moon, etc) as baseline
     const baseline = entries[0];
+    const bucketWeights = bucket.map(item => item.weight);
 
     merged.push({
       date: baseline.date,
-      day: mergeHalfDays(entries.map(e => e.day)),
-      night: mergeHalfDays(entries.map(e => e.night)),
+      day: mergeHalfDays(entries.map(e => e.day), bucketWeights),
+      night: mergeHalfDays(entries.map(e => e.night), bucketWeights),
       sun: baseline.sun,
       moon: baseline.moon,
       uv: entries.find(e => e.uv?.index !== undefined)?.uv,
@@ -430,6 +483,8 @@ function computeConfidence(
 export interface EnsembleSource {
   name: string;
   weather: Weather;
+  /** Relative vote weight for condition merging. Defaults to 1. */
+  weight?: number;
 }
 
 /**
@@ -440,7 +495,7 @@ export interface EnsembleSource {
  *   - Wind: vector average (U/V decomposition)
  *   - Precipitation amounts: mean of sources predicting > 0
  *   - Precipitation probability: arithmetic mean (confidence signal)
- *   - Weather code: majority vote, tie-break by severity
+ *   - Weather code: weighted vote; ties break to the heaviest source, then severity
  *   - Alerts: union from all sources (deduplicated by id)
  *   - Air quality / pollen / UV: first available source
  *   - Confidence: derived from inter-source spread (std dev)
@@ -465,17 +520,22 @@ export function combineEnsemble(sources: EnsembleSource[]): Weather {
 
   const weathers = sources.map(s => s.weather);
   const sourceNames = sources.map(s => s.name);
+  const weights = sources.map(s => s.weight ?? 1);
 
   // Merge current
-  const current = mergeCurrent(weathers.map(w => w.current));
+  const current = mergeCurrent(weathers.map(w => w.current), weights);
 
   // Merge hourly
   const hourlyForecast = mergeHourlyArrays(
     weathers.map(w => w.hourlyForecast),
+    weights,
   );
 
   // Merge daily
-  const dailyForecast = mergeDailyArrays(weathers.map(w => w.dailyForecast));
+  const dailyForecast = mergeDailyArrays(
+    weathers.map(w => w.dailyForecast),
+    weights,
+  );
 
   // Union alerts (deduplicate by headline since ids differ across sources)
   const seenAlerts = new Set<string>();

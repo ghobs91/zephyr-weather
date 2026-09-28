@@ -98,6 +98,21 @@ export async function fetchPreferredWeather(
     return fallback;
   }
 
+  // weather.gov is the most trusted condition source for US locations, but
+  // the global models can outvote it in a flat tally. Give NWS the combined
+  // weight of every other source so it carries at least as much preference.
+  const otherWeight = sources
+    .filter(source => source.name !== 'NWS')
+    .reduce((sum, source) => sum + (source.weight ?? 1), 0);
+  const weightedSources =
+    isUS && sources.some(source => source.name === 'NWS')
+      ? sources.map(source =>
+          source.name === 'NWS'
+            ? {...source, weight: Math.max(otherWeight, 1)}
+            : source,
+        )
+      : sources;
+
   // Combine all successful sources into ensemble forecast
-  return combineEnsemble(sources);
+  return combineEnsemble(weightedSources);
 }
