@@ -22,6 +22,8 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>78</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.zephyr.weather.refresh</string>
