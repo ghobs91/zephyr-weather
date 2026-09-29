@@ -23,7 +23,10 @@ interface Props {
 }
 
 const CHART_MAX_HOURS = 48;
-const CHART_HEIGHT = 64;
+const CHART_HEIGHT = 88;
+// wagmi's LineChart reserves the bottom 40pt of `height` for x-axis labels,
+// so the actual plot area is `height - 40`.
+const CHART_PLOT_HEIGHT = CHART_HEIGHT - 40;
 
 /**
  * Compact precipitation block that lives at the bottom of the current
@@ -224,7 +227,10 @@ export function RainSection({
                     value: h.precipitationProbability?.total ?? 0,
                   }))}
                   yRange={{min: 0, max: 100}}>
-                  <LineChart height={CHART_HEIGHT} width={chartWidth}>
+                  <LineChart
+                    height={CHART_HEIGHT}
+                    width={chartWidth}
+                    yGutter={0}>
                     <LineChart.Path color={themeColors.rain} width={2}>
                       <LineChart.Gradient color={themeColors.rain} />
                     </LineChart.Path>
@@ -290,9 +296,9 @@ const styles = StyleSheet.create({
   },
   peak: {fontSize: 12, marginBottom: 6},
   emptyText: {fontSize: 13},
-  chartRow: {flexDirection: 'row', alignItems: 'stretch'},
+  chartRow: {flexDirection: 'row', alignItems: 'flex-start'},
   yAxis: {
-    height: CHART_HEIGHT,
+    height: CHART_PLOT_HEIGHT,
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     paddingRight: 6,

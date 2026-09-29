@@ -50,7 +50,9 @@ export function WeatherDetailCard({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: 150,
+    maxWidth: 320,
     minWidth: 140,
     padding: 16,
   },

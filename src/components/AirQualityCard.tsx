@@ -102,6 +102,7 @@ export function AirQualityCard({airQuality, isDark}: Props) {
 
 const styles = StyleSheet.create({
   container: {
+    flexBasis: '100%',
     padding: 16,
     marginBottom: 16,
   },
