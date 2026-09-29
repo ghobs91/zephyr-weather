@@ -1,6 +1,11 @@
 # Zephyr Weather
 
-A beautifully simple weather app you can rely on!
+Privacy-first weather for iPhone, iPad, and Mac — live radar, next-hour rain, and native widgets, built on open keyless data. No accounts, no ads, no backend.
+
+- **Private by design** — client-only: no backend, no accounts, no tracking, no ads.
+- **Open data** — forecasts from Open-Meteo and the U.S. National Weather Service; every source is free and keyless.
+- **Native everywhere** — iPhone, iPad, and Mac Catalyst, with Home Screen, Lock Screen, and macOS widgets plus Live Activities.
+- **More than a forecast** — live government radar and NASA satellite, next-hour rain, air quality, pollen, and severe-weather alerts.
 
 Inspired by [Breezy Weather](https://github.com/breezy-weather/breezy-weather).
 
