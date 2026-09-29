@@ -96,10 +96,7 @@ struct DailyForecastWidgetView: View {
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .containerBackground(for: .widget) {
-                WeatherBackgroundView(
-                    weatherCode: entry.weatherData.current?.weatherCode,
-                    isDaylight: entry.weatherData.current?.isDaylight
-                )
+                WeatherBackgroundView()
             }
         } else if family == .systemExtraLarge {
             // Extra large layout for macOS - show full week with details
@@ -110,10 +107,7 @@ struct DailyForecastWidgetView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .containerBackground(for: .widget) {
-                WeatherBackgroundView(
-                    weatherCode: entry.weatherData.current?.weatherCode,
-                    isDaylight: entry.weatherData.current?.isDaylight
-                )
+                WeatherBackgroundView()
             }
         } else {
             largeWidgetView
@@ -210,10 +204,7 @@ struct DailyForecastWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
-            WeatherBackgroundView(
-                weatherCode: entry.weatherData.current?.weatherCode,
-                isDaylight: entry.weatherData.current?.isDaylight
-            )
+            WeatherBackgroundView()
         }
     }
 

@@ -146,10 +146,7 @@ struct CurrentWeatherWidgetView: View {
         .padding(.bottom, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
-            WeatherBackgroundView(
-                weatherCode: entry.weatherData.current?.weatherCode,
-                isDaylight: entry.weatherData.current?.isDaylight
-            )
+            WeatherBackgroundView()
         }
     }
     
@@ -192,10 +189,7 @@ struct CurrentWeatherWidgetView: View {
         .padding(14)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .containerBackground(for: .widget) {
-            WeatherBackgroundView(
-                weatherCode: entry.weatherData.current?.weatherCode,
-                isDaylight: entry.weatherData.current?.isDaylight
-            )
+            WeatherBackgroundView()
         }
     }
     
@@ -292,10 +286,7 @@ struct CurrentWeatherWidgetView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
-            WeatherBackgroundView(
-                weatherCode: entry.weatherData.current?.weatherCode,
-                isDaylight: entry.weatherData.current?.isDaylight
-            )
+            WeatherBackgroundView()
         }
     }
     
