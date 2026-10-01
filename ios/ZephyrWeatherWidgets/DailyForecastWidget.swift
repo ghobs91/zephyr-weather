@@ -132,7 +132,7 @@ struct DailyForecastWidgetView: View {
             HStack(alignment: .top, spacing: 8) {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(formatCurrentTemp(entry.weatherData.current?.temperature))
-                        .font(.system(size: 64, weight: .thin))
+                        .font(.system(size: 56, weight: .thin))
                         .foregroundColor(currentTempColor(entry.weatherData.current?.temperature))
                         .minimumScaleFactor(0.6)
                         .lineLimit(1)
@@ -190,9 +190,10 @@ struct DailyForecastWidgetView: View {
                 .background(Color.white.opacity(0.25))
                 .padding(.bottom, 3)
 
-            // Daily forecast rows (vertical)
+            // Daily forecast rows (starting with tomorrow — today's forecast is
+            // already shown in the current-conditions block above)
             VStack(spacing: 0) {
-                ForEach(Array(todayAndFutureDays.prefix(3).enumerated()), id: \.offset) { _, day in
+                ForEach(Array(todayAndFutureDays.dropFirst().prefix(5).enumerated()), id: \.offset) { _, day in
                     DayRow(
                         day: day,
                         minTemp: minTemp,
@@ -309,7 +310,7 @@ struct DayRow: View {
                 .foregroundColor(.white)
                 .frame(width: 26, alignment: .trailing)
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 1)
     }
     
     func dayName(_ date: Date) -> String {

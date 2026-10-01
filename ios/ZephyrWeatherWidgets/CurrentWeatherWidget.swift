@@ -84,24 +84,35 @@ struct CurrentWeatherWidgetView: View {
     }
     
     var smallWidgetView: some View {
-        let compactRowHeight: CGFloat = 18
+        let compactRowHeight: CGFloat = 17
 
         return VStack(alignment: .leading, spacing: 0) {
+            // Location name, with the current temperature underneath it —
+            // matching Apple Weather's small widget.
+            if let displayLocationName = displayLocationName {
+                Text(displayLocationName)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .padding(.bottom, 1)
+            }
+
             // Top: current temperature (left) + conditions icon & today's high/low (right)
             HStack(alignment: .top, spacing: 8) {
                 Text(formatLargeTempValue(entry.weatherData.current?.temperature))
-                    .font(.system(size: 52, weight: .thin))
+                    .font(.system(size: 46, weight: .thin))
                     .foregroundColor(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
 
                 Spacer(minLength: 4)
 
-                VStack(alignment: .trailing, spacing: 4) {
+                VStack(alignment: .trailing, spacing: 3) {
                     Image(weatherIconAsset(entry.weatherData.current?.weatherCode, isDay: entry.weatherData.current?.isDaylight))
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 26, height: 26)
+                        .frame(width: 24, height: 24)
 
                     if let today = todayAndFutureDays.first {
                         VStack(alignment: .trailing, spacing: 1) {
@@ -109,7 +120,7 @@ struct CurrentWeatherWidgetView: View {
                                 Image(systemName: "arrow.up")
                                     .font(.system(size: 9, weight: .semibold))
                                 Text(formatTempValue(today.dayTemp))
-                                    .font(.system(size: 13, weight: .semibold))
+                                    .font(.system(size: 12, weight: .semibold))
                                     .monospacedDigit()
                             }
                             .foregroundColor(.white)
@@ -118,7 +129,7 @@ struct CurrentWeatherWidgetView: View {
                                 Image(systemName: "arrow.down")
                                     .font(.system(size: 9, weight: .semibold))
                                 Text(formatTempValue(today.nightTemp))
-                                    .font(.system(size: 13, weight: .semibold))
+                                    .font(.system(size: 12, weight: .semibold))
                                     .monospacedDigit()
                             }
                             .foregroundColor(.white.opacity(0.68))
@@ -127,9 +138,9 @@ struct CurrentWeatherWidgetView: View {
                 }
             }
 
-            Spacer(minLength: 6)
+            Spacer(minLength: 2)
 
-            // Bottom: next 4 days — icon only + highs/lows
+            // Bottom: next 4 days — day name + icon + highs/lows
             VStack(spacing: 0) {
                 ForEach(Array(upcomingDailyForecast.enumerated()), id: \.offset) { index, day in
                     SmallForecastRow(
@@ -142,8 +153,8 @@ struct CurrentWeatherWidgetView: View {
             }
         }
         .padding(.horizontal, 14)
-        .padding(.top, 8)
-        .padding(.bottom, 8)
+        .padding(.top, 6)
+        .padding(.bottom, 6)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .containerBackground(for: .widget) {
             WeatherBackgroundView()
@@ -214,7 +225,7 @@ struct CurrentWeatherWidgetView: View {
             HStack(alignment: .top, spacing: 8) {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(formatTemp(entry.weatherData.current?.temperature))
-                        .font(.system(size: 64, weight: .thin))
+                        .font(.system(size: 56, weight: .thin))
                         .foregroundColor(temperatureColor(entry.weatherData.current?.temperature))
                         .minimumScaleFactor(0.6)
                         .lineLimit(1)
@@ -272,9 +283,10 @@ struct CurrentWeatherWidgetView: View {
                 .background(Color.white.opacity(0.25))
                 .padding(.bottom, 3)
 
-            // Daily forecast rows
+            // Daily forecast rows (starting with tomorrow — today's forecast is
+            // already shown in the current-conditions block above)
             VStack(spacing: 0) {
-                ForEach(Array(todayAndFutureDays.prefix(3).enumerated()), id: \.offset) { _, day in
+                ForEach(Array(todayAndFutureDays.dropFirst().prefix(5).enumerated()), id: \.offset) { _, day in
                     DayRow(
                         day: day,
                         minTemp: minTemp,
@@ -392,28 +404,36 @@ struct SmallForecastRow: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                // Weather icon only — no day name
+            HStack(spacing: 6) {
+                // Shorthand day of the week, like Apple Weather's small widget
+                Text(dayName(day.date))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                    .frame(width: 30, alignment: .leading)
+
+                // Weather icon
                 Image(weatherIconAsset(day.dayWeatherCode))
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 22, height: 22)
+                    .frame(width: 20, height: 20)
 
-                Spacer(minLength: 4)
+                Spacer(minLength: 2)
 
                 // Low temp (dimmed)
                 Text(formatTemp(day.nightTemp))
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: 12, weight: .medium))
                     .monospacedDigit()
                     .foregroundColor(.white.opacity(0.55))
-                    .frame(width: 28, alignment: .trailing)
+                    .frame(width: 24, alignment: .trailing)
 
                 // High temp
-                Text(formatTemp(day.dayTemp))
+                Text(formatHighTemp(day.dayTemp))
                     .font(.system(size: 13, weight: .semibold))
                     .monospacedDigit()
                     .foregroundColor(.white)
-                    .frame(width: 28, alignment: .trailing)
+                    .frame(width: 26, alignment: .trailing)
             }
             .frame(height: rowHeight, alignment: .center)
 
@@ -425,9 +445,20 @@ struct SmallForecastRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    func dayName(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE"
+        return formatter.string(from: date)
+    }
+
     func formatTemp(_ temp: Double?) -> String {
         guard let temp = temp else { return "--" }
         return "\(Int(round(temp)))"
+    }
+
+    func formatHighTemp(_ temp: Double?) -> String {
+        guard let temp = temp else { return "--°" }
+        return "\(Int(round(temp)))°"
     }
 
     func weatherIconAsset(_ code: String?) -> String {
