@@ -1,12 +1,11 @@
 import React from 'react';
 import {View, StyleSheet} from 'react-native';
-import {Current, Daily} from '../types/weather';
+import {Current} from '../types/weather';
 import {WeatherDetailCard} from './WeatherDetailCard';
 import {AirQualityCard} from './AirQualityCard';
 
 interface Props {
   current?: Current;
-  today?: Daily;
   formatSpeed: (speedKmh?: number) => string;
   formatPressure: (hPa?: number) => string;
   isDark: boolean;
@@ -14,15 +13,14 @@ interface Props {
 }
 
 /**
- * Renders the detail cards grid (precipitation, wind, pressure, humidity,
- * UV, dew point, visibility) with an optional air quality card.
+ * Renders the detail cards grid (wind, pressure, humidity, UV, dew point,
+ * visibility) with an optional air quality card.
  *
  * On desktop it is used inside a flex column; on mobile/tablet it uses its
  * own wrapping grid.
  */
 export function WeatherDetailsSection({
   current,
-  today,
   formatSpeed,
   formatPressure,
   isDark,
@@ -30,13 +28,6 @@ export function WeatherDetailsSection({
 }: Props) {
   const cards = (
     <>
-      <WeatherDetailCard
-        title="Precipitation"
-        value={`${Math.round(today?.day?.precipitationProbability?.total ?? 0)}%`}
-        subtitle="Chance of rain"
-        icon="water-percent"
-        isDark={isDark}
-      />
       <WeatherDetailCard
         title="Wind"
         value={formatSpeed(current?.wind?.speed)}

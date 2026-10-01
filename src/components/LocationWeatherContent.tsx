@@ -100,7 +100,6 @@ export function LocationWeatherContent({location, isDesktop}: Props) {
     details: (
       <WeatherDetailsSection
         current={current}
-        today={today}
         formatSpeed={formatSpeed}
         formatPressure={formatPressure}
         isDark={useDark}
