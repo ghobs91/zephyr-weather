@@ -86,7 +86,13 @@ function HomeContentPage({
   );
 }
 
-export function HomeScreen() {
+export function HomeScreen({
+  embedded = false,
+}: {
+  /** When true the screen is rendered inside the macOS shell, which already
+   * paints the atmospheric background behind the sidebar and detail pane. */
+  embedded?: boolean;
+} = {}) {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const {useDark, themeColors, backgroundKey} = useThemeColors();
@@ -104,12 +110,19 @@ export function HomeScreen() {
   const [pageIndex, setPageIndex] = useState(currentLocationIndex);
   const picker = useLocationPicker();
   const pagerRef = useRef<FlatList<Location>>(null);
+  // Only pager momentum that follows a user drag may move the selection. A
+  // programmatic scroll (adding a city, picking from the dropdown, or an
+  // external index change) also emits momentum with a stale offset; treating
+  // that as a user swipe would snap the selection back to the previous city.
+  const userScrollingRef = useRef(false);
 
   useDefaultLocation();
   const currentLocation = locations[pageIndex];
 
   // Sync pageIndex with external changes (e.g. LocationsScreen) and scroll
-  // the pager to match.
+  // the pager to match. Also re-run when the window width changes: pager
+  // offsets are derived from the window width, so a resize would otherwise
+  // leave the list parked between pages and expose the backdrop behind it.
   useEffect(() => {
     setPageIndex(currentLocationIndex);
     if (!isDesktop && locations.length > 0) {
@@ -118,7 +131,7 @@ export function HomeScreen() {
         animated: false,
       });
     }
-  }, [currentLocationIndex, isDesktop, locations.length]);
+  }, [currentLocationIndex, isDesktop, locations.length, windowWidth]);
 
   if (locations.length === 0) {
     return (
@@ -137,7 +150,6 @@ export function HomeScreen() {
     setCurrentLocationIndex(index);
     setPageIndex(index);
     picker.closePicker();
-    pagerRef.current?.scrollToIndex({index, animated: true});
   };
 
   const handleDeleteLocation = (location: Location) => {
@@ -155,8 +167,7 @@ export function HomeScreen() {
     );
   };
 
-  return (
-    <AtmosphericBackground isDark={useDark} backgroundKey={backgroundKey}>
+  const content = (
       <View style={styles.container}>
         {isDesktop ? (
           <HomeContentPage location={currentLocation} />
@@ -177,7 +188,14 @@ export function HomeScreen() {
             renderItem={({item}) => (
               <HomeContentPage location={item} pageWidth={windowWidth} />
             )}
+            onScrollBeginDrag={() => {
+              userScrollingRef.current = true;
+            }}
             onMomentumScrollEnd={(event) => {
+              if (!userScrollingRef.current) {
+                return;
+              }
+              userScrollingRef.current = false;
               const index = Math.max(
                 0,
                 Math.min(
@@ -185,10 +203,8 @@ export function HomeScreen() {
                   Math.round(event.nativeEvent.contentOffset.x / windowWidth),
                 ),
               );
-              if (index !== pageIndex) {
-                setPageIndex(index);
-                setCurrentLocationIndex(index);
-              }
+              setPageIndex(index);
+              setCurrentLocationIndex(index);
             }}
           />
         )}
@@ -236,6 +252,15 @@ export function HomeScreen() {
           </View>
         )}
       </View>
+  );
+
+  if (embedded) {
+    return content;
+  }
+
+  return (
+    <AtmosphericBackground isDark={useDark} backgroundKey={backgroundKey}>
+      {content}
     </AtmosphericBackground>
   );
 }
