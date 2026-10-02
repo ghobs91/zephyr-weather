@@ -6,18 +6,19 @@ import {LineChart} from 'react-native-wagmi-charts';
 
 import {Hourly, Minutely} from '../types/weather';
 import {TimeFormat} from '../types/settings';
-import {colors} from '../theme/colors';
+import {ColorTheme, colors} from '../theme/colors';
 import {getInsetPanelStyle} from '../theme/design';
-import {PrecipitationSummary} from './PrecipitationSummary';
-import {PrecipitationSparkbar} from './PrecipitationSparkbar';
-import {selectSparklineHours} from '../utils/precipitationFormatter';
+import {
+  RAIN_START_HORIZON_MINUTES,
+  estimateRainStart,
+  formatRainStart,
+  rainDisruptionProbability,
+} from '../utils/precipitationFormatter';
 import {formatTime} from '../utils/timeFormat';
 
 interface Props {
   hourlyForecast: Hourly[];
   minutelyForecast?: Minutely[];
-  /** Daily probability of precipitation (0–100), used when data is stale. */
-  dailyPop?: number;
   timeFormat: TimeFormat;
   isDark: boolean;
 }
@@ -28,69 +29,72 @@ const CHART_HEIGHT = 88;
 // so the actual plot area is `height - 40`.
 const CHART_PLOT_HEIGHT = CHART_HEIGHT - 40;
 
+/** Colour for the disruption percentage, escalating with severity. */
+function disruptionColorFor(
+  probability: number | null,
+  themeColors: ColorTheme,
+): string {
+  if (probability === null || probability <= 0) return themeColors.textSecondary;
+  if (probability >= 60) return themeColors.error;
+  if (probability >= 30) return themeColors.warning;
+  return themeColors.rain;
+}
+
 /**
- * Compact precipitation block that lives at the bottom of the current
- * conditions card: a "Today" and "Next hour" gauge side by side, over a short
- * 48-hour probability chart with a labelled y-axis.
+ * Compact, rain-scoped block that lives at the bottom of the current
+ * conditions card: a "rain disruption" gauge next to a "next hour" rain-start
+ * gauge, over a short 48-hour probability chart with a labelled y-axis.
  */
 export function RainSection({
   hourlyForecast,
   minutelyForecast,
-  dailyPop,
   timeFormat,
   isDark,
 }: Props) {
   const themeColors = isDark ? colors.dark : colors.light;
   const now = new Date();
 
-  // --- Next hour (minutely) ---
-  const nextHour = useMemo(() => {
-    if (!minutelyForecast?.length) return null;
-    const maxIntensity = Math.max(
-      ...minutelyForecast.map((m) => m.precipitationIntensity ?? 0),
-    );
-    if (maxIntensity === 0) {
-      return {
-        text: 'No rain expected',
-        icon: 'weather-sunny' as const,
-        color: themeColors.success,
-      };
-    }
-    const minutesUntil =
-      minutelyForecast.findIndex((m) => (m.precipitationIntensity ?? 0) > 0) *
-      15;
-    if (minutesUntil === 0) {
-      return {
-        text: 'Rain now',
-        icon: 'weather-rainy' as const,
-        color: themeColors.rain,
-      };
-    }
-    if (minutesUntil <= 15) {
-      return {
-        text: 'Starting soon',
-        icon: 'weather-rainy' as const,
-        color: themeColors.warning,
-      };
-    }
-    return {
-      text: `Starts in ${minutesUntil}m`,
-      icon: 'weather-rainy' as const,
-      color: themeColors.warning,
-    };
-  }, [minutelyForecast, themeColors]);
+  const hasMinutely = Boolean(minutelyForecast?.length);
 
-  const minutelyMax = useMemo(
-    () =>
-      Math.max(
-        ...(minutelyForecast?.map((m) => m.precipitationIntensity ?? 0) ?? []),
-        0.1,
-      ),
-    [minutelyForecast],
+  // --- Next hour (minutely) ---
+  const rainStart = useMemo(
+    () => (hasMinutely ? estimateRainStart(minutelyForecast, now) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [minutelyForecast, hasMinutely],
   );
 
-  const sparkHours = useMemo(
-    () => selectSparklineHours(hourlyForecast, now),
+  const nextHourText = formatRainStart(rainStart);
+  const nextHourColor =
+    rainStart === null
+      ? themeColors.success
+      : rainStart <= 0
+      ? themeColors.rain
+      : themeColors.warning;
+  const nextHourIcon = rainStart === null ? 'weather-sunny' : 'weather-rainy';
+
+  // Only the next 60 minutes belong to the "next hour" gauge.
+  const nextHourMinutes = useMemo(() => {
+    if (!minutelyForecast?.length) return [];
+    const nowMs = now.getTime();
+    const horizonMs = nowMs + RAIN_START_HORIZON_MINUTES * 60000;
+    return minutelyForecast.filter((minute) => {
+      const start = minute.date?.getTime?.();
+      if (!Number.isFinite(start)) return false;
+      const intervalMs =
+        (minute.minuteInterval > 0 ? minute.minuteInterval : 15) * 60000;
+      return start + intervalMs > nowMs && start < horizonMs;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [minutelyForecast]);
+
+  const minutelyMax = Math.max(
+    ...nextHourMinutes.map((minute) => minute.precipitationIntensity ?? 0),
+    0.1,
+  );
+
+  // --- Rain disruption across the waking day ---
+  const disruption = useMemo(
+    () => rainDisruptionProbability(hourlyForecast, now),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [hourlyForecast],
   );
@@ -116,72 +120,80 @@ export function RainSection({
     .map((_, i) => i)
     .filter((i) => i % 12 === 0 || i === hours.length - 1);
 
-  const hasMinutely = Boolean(nextHour && minutelyForecast?.length);
-
   return (
     <View style={styles.section}>
       <View
         style={[styles.divider, {backgroundColor: themeColors.separator}]}
       />
 
+      {/* Section header: everything below is rain for the day */}
+      <View style={styles.sectionHeader}>
+        <Icon name="weather-rainy" size={13} color={themeColors.rain} />
+        <Text
+          style={[styles.sectionHeaderText, {color: themeColors.textSecondary}]}>
+          RAIN
+        </Text>
+      </View>
+
       {/* Side-by-side gauges */}
       <View style={styles.gaugesRow}>
         <View style={[styles.gauge, getInsetPanelStyle(themeColors)]}>
           <Text style={[styles.gaugeLabel, {color: themeColors.textTertiary}]}>
-            TODAY
+            RAIN DISRUPTION
           </Text>
-          <PrecipitationSummary
-            hourlyForecast={hourlyForecast}
-            dailyPop={dailyPop}
-            tier="minimal"
-            isDark={isDark}
-          />
-          <PrecipitationSparkbar
-            hourlyData={sparkHours}
-            height={14}
-            barWidth={3}
-            barGap={2}
-            isDark={isDark}
-          />
+          <Text
+            style={[
+              styles.disruptionValue,
+              {color: disruptionColorFor(disruption, themeColors)},
+            ]}>
+            {disruption === null ? '--' : `${disruption}%`}
+          </Text>
+          <Text
+            style={[styles.disruptionCaption, {color: themeColors.textSecondary}]}
+            numberOfLines={2}>
+            Chance rain affects your day
+          </Text>
         </View>
 
         <View style={[styles.gauge, getInsetPanelStyle(themeColors)]}>
           <Text style={[styles.gaugeLabel, {color: themeColors.textTertiary}]}>
             NEXT HOUR
           </Text>
-          {hasMinutely && nextHour ? (
+          {hasMinutely ? (
             <>
               <View style={styles.nextHourRow}>
-                <Icon name={nextHour.icon} size={14} color={nextHour.color} />
+                <Icon name={nextHourIcon} size={14} color={nextHourColor} />
                 <Text
-                  style={[styles.nextHourText, {color: nextHour.color}]}
+                  style={[styles.nextHourText, {color: nextHourColor}]}
                   numberOfLines={1}>
-                  {nextHour.text}
+                  {nextHourText}
                 </Text>
               </View>
-              <View style={styles.minutelyChart}>
-                {minutelyForecast!.map((minute, index) => {
-                  const intensity = minute.precipitationIntensity ?? 0;
-                  const barHeight =
-                    minutelyMax > 0 ? (intensity / minutelyMax) * 100 : 0;
-                  return (
-                    <View
-                      key={minute.date.toISOString()}
-                      style={styles.barColumn}>
+              {nextHourMinutes.length > 0 && (
+                <View style={styles.minutelyChart}>
+                  {nextHourMinutes.map((minute, index) => {
+                    const intensity = minute.precipitationIntensity ?? 0;
+                    const barHeight =
+                      minutelyMax > 0 ? (intensity / minutelyMax) * 100 : 0;
+                    return (
                       <View
-                        style={[
-                          styles.bar,
-                          {
-                            height: `${Math.max(barHeight, 6)}%`,
-                            backgroundColor: themeColors.rain,
-                            opacity: index === 0 ? 1 : 0.7,
-                          },
-                        ]}
-                      />
-                    </View>
-                  );
-                })}
-              </View>
+                        key={minute.date.toISOString()}
+                        style={styles.barColumn}>
+                        <View
+                          style={[
+                            styles.bar,
+                            {
+                              height: `${Math.max(barHeight, 6)}%`,
+                              backgroundColor: themeColors.rain,
+                              opacity: index === 0 ? 1 : 0.7,
+                            },
+                          ]}
+                        />
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
             </>
           ) : (
             <Text
@@ -262,14 +274,28 @@ export function RainSection({
 const styles = StyleSheet.create({
   section: {marginTop: 16},
   divider: {height: StyleSheet.hairlineWidth, marginBottom: 16},
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 10,
+  },
+  sectionHeaderText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+  },
   gaugesRow: {flexDirection: 'row', gap: 10},
-  gauge: {flex: 1, padding: 12, gap: 8},
+  gauge: {flex: 1, padding: 12, gap: 6},
   gaugeLabel: {
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.7,
     textTransform: 'uppercase',
   },
+  disruptionValue: {fontSize: 28, fontWeight: '700', lineHeight: 32},
+  disruptionCaption: {fontSize: 11, lineHeight: 14},
   nextHourRow: {flexDirection: 'row', alignItems: 'center', gap: 5},
   nextHourText: {fontSize: 13, fontWeight: '600'},
   minutelyChart: {

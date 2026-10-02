@@ -162,7 +162,6 @@ export function CurrentWeatherCard({
         <RainSection
           hourlyForecast={hourlyForecast}
           minutelyForecast={minutelyForecast}
-          dailyPop={precipChance}
           timeFormat={timeFormat}
           isDark={isDark}
         />

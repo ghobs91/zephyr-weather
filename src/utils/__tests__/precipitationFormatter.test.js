@@ -1,11 +1,14 @@
 const {
   classifyRainIntensity,
   detectRainWindows,
+  estimateRainStart,
   formatPrecipitationFallback,
   formatPrecipitationSummary,
+  formatRainStart,
   hourlyPrecipitationSlots,
   hourlyRainRateInchesPerHr,
   mmPerHourToInchesPerHour,
+  rainDisruptionProbability,
   selectSparklineHours,
   sparklineBarHeight,
   sparklineHeightRatio,
@@ -212,6 +215,120 @@ describe('formatPrecipitationFallback', () => {
     expect(formatPrecipitationFallback(undefined)).toBe(
       'Rain data unavailable',
     );
+  });
+});
+
+describe('estimateRainStart', () => {
+  const now = new Date(2026, 3, 14, 10, 0, 0);
+  const slot = (minutesFromNow, intensity) => ({
+    date: new Date(now.getTime() + minutesFromNow * 60000),
+    minuteInterval: 15,
+    precipitationIntensity: intensity,
+  });
+
+  it('returns the minutes until the first rainy slot', () => {
+    const minutely = [slot(0, 0), slot(15, 0), slot(30, 0.4), slot(45, 0.2)];
+    expect(estimateRainStart(minutely, now)).toBe(30);
+  });
+
+  it('reports rain now when the current slot is already raining', () => {
+    const minutely = [slot(-5, 0.6), slot(10, 0.6)];
+    expect(estimateRainStart(minutely, now)).toBe(0);
+  });
+
+  it('ignores rain beyond the next hour', () => {
+    const minutely = [slot(0, 0), slot(15, 0), slot(75, 0.9)];
+    expect(estimateRainStart(minutely, now)).toBe(null);
+  });
+
+  it('ignores slots that have already passed', () => {
+    const minutely = [slot(-40, 0.9), slot(15, 0)];
+    expect(estimateRainStart(minutely, now)).toBe(null);
+  });
+
+  it('returns null for missing or empty data', () => {
+    expect(estimateRainStart(undefined, now)).toBe(null);
+    expect(estimateRainStart([], now)).toBe(null);
+  });
+});
+
+describe('formatRainStart', () => {
+  it('formats null as no rain, zero as rain now, and minutes otherwise', () => {
+    expect(formatRainStart(null)).toBe('No rain');
+    expect(formatRainStart(0)).toBe('Rain now');
+    expect(formatRainStart(25)).toBe('Starts in 25 min');
+  });
+});
+
+describe('rainDisruptionProbability', () => {
+  function wakingHourly(pops = {}) {
+    return Array.from({length: 24}, (_, hour) => ({
+      date: new Date(2026, 3, 14, hour, 0, 0),
+      precipitationProbability: {total: pops[hour] ?? 0},
+    }));
+  }
+
+  it('returns null without hourly data', () => {
+    expect(rainDisruptionProbability(undefined)).toBe(null);
+    expect(rainDisruptionProbability([])).toBe(null);
+  });
+
+  it('is 0 when no waking hour shows any chance', () => {
+    expect(
+      rainDisruptionProbability(wakingHourly(), new Date(2026, 3, 14, 8, 0, 0)),
+    ).toBe(0);
+  });
+
+  it('collapses one contiguous rain event to its peak chance', () => {
+    // A single two-hour shower is one event, so it is not multiplied.
+    const hourly = wakingHourly({10: 50, 11: 50});
+    expect(
+      rainDisruptionProbability(hourly, new Date(2026, 3, 14, 8, 0, 0)),
+    ).toBe(50);
+  });
+
+  it('does not inflate a long single event', () => {
+    const hourly = wakingHourly({10: 50, 11: 50, 12: 50, 13: 50, 14: 50});
+    expect(
+      rainDisruptionProbability(hourly, new Date(2026, 3, 14, 8, 0, 0)),
+    ).toBe(50);
+  });
+
+  it('combines separate rain events by their peaks', () => {
+    // 50% morning event + 40% afternoon event → 1 - 0.5 * 0.6 = 70%
+    const hourly = wakingHourly({10: 50, 11: 50, 14: 40});
+    expect(
+      rainDisruptionProbability(hourly, new Date(2026, 3, 14, 8, 0, 0)),
+    ).toBe(70);
+  });
+
+  it('treats dry hours as event boundaries', () => {
+    // Three isolated 20% hours → 1 - 0.8^3 = 49%
+    const hourly = wakingHourly({9: 20, 11: 20, 13: 20});
+    expect(
+      rainDisruptionProbability(hourly, new Date(2026, 3, 14, 8, 0, 0)),
+    ).toBe(49);
+  });
+
+  it('ignores overnight hours', () => {
+    const hourly = wakingHourly({2: 90, 3: 90});
+    expect(
+      rainDisruptionProbability(hourly, new Date(2026, 3, 14, 1, 0, 0)),
+    ).toBe(0);
+  });
+
+  it('ignores waking hours that already passed', () => {
+    const hourly = wakingHourly({9: 80});
+    expect(
+      rainDisruptionProbability(hourly, new Date(2026, 3, 14, 12, 0, 0)),
+    ).toBe(0);
+  });
+
+  it('is 0 once the waking day is over', () => {
+    const hourly = wakingHourly({14: 80});
+    expect(
+      rainDisruptionProbability(hourly, new Date(2026, 3, 14, 23, 0, 0)),
+    ).toBe(0);
   });
 });
 

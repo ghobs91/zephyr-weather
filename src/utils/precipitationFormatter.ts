@@ -1,5 +1,5 @@
 import {startOfHour} from 'date-fns';
-import {Hourly} from '../types/weather';
+import {Hourly, Minutely} from '../types/weather';
 
 /**
  * Precipitation formatting engine.
@@ -53,6 +53,9 @@ export const BRIEF_MAX_DURATION_MINUTES = 45;
 
 /** Below this many usable slots the forecast is treated as stale/missing. */
 export const MIN_FORECAST_SLOTS = 6;
+
+/** Horizon for the "next hour" rain-start estimate, in minutes. */
+export const RAIN_START_HORIZON_MINUTES = 60;
 
 /** Log scale saturates at this rate (100% bar height). */
 export const SPARKLINE_MAX_RATE = 0.5; // in/hr
@@ -172,6 +175,121 @@ export function selectSparklineHours(
     })
     .sort((a, b) => a.date.getTime() - b.date.getTime())
     .slice(0, SPARKLINE_HOURS);
+}
+
+/**
+ * Minutes until rain begins within the next `horizonMinutes` (default 60),
+ * derived from the 15-minute minutely forecast. Returns:
+ *
+ *   - `null` when no rain starts within the horizon,
+ *   - `0` when rain is already falling,
+ *   - otherwise the number of minutes until the first rainy slot.
+ *
+ * Slots that have already passed and slots beyond the horizon are ignored,
+ * so a rainy slot far in the future never inflates the "next hour" reading.
+ */
+export function estimateRainStart(
+  minutely: Minutely[] | undefined,
+  now: Date = new Date(),
+  horizonMinutes: number = RAIN_START_HORIZON_MINUTES,
+): number | null {
+  if (!minutely?.length) return null;
+  const nowMs = now.getTime();
+  const horizonMs = nowMs + horizonMinutes * 60000;
+
+  for (const minute of minutely) {
+    const start = minute?.date?.getTime?.();
+    if (!Number.isFinite(start)) continue;
+    const intervalMs =
+      (minute.minuteInterval > 0 ? minute.minuteInterval : 15) * 60000;
+    if (start + intervalMs <= nowMs) continue; // slot already passed
+    if (start >= horizonMs) break; // beyond the next hour
+    if ((minute.precipitationIntensity ?? 0) > 0) {
+      return Math.max(0, Math.round((start - nowMs) / 60000));
+    }
+  }
+  return null;
+}
+
+/** Text for the "next hour" gauge: `Rain now` / `Starts in X min` / `No rain`. */
+export function formatRainStart(minutesUntil: number | null): string {
+  if (minutesUntil === null) return 'No rain';
+  if (minutesUntil <= 0) return 'Rain now';
+  return `Starts in ${minutesUntil} min`;
+}
+
+/**
+ * Probability (0–100) that rain disrupts the user's waking day.
+ *
+ * Correlated hours are grouped into distinct rain events — contiguous runs of
+ * waking hours with a non-zero chance — and those events are combined as
+ * independent chances using each event's peak probability:
+ *
+ *   P = 1 − Π (1 − peakPop_event)
+ *
+ * This avoids the over-counting of multiplying every correlated hour (a single
+ * six-hour shower is one event, not six trials) while still letting a genuinely
+ * separate second system raise the number. Hours that have already passed are
+ * ignored, `0` is returned once the waking day is over, and `null` means no
+ * hourly data.
+ */
+export function rainDisruptionProbability(
+  hourly: Hourly[] | undefined,
+  now: Date = new Date(),
+): number | null {
+  if (!hourly?.length) return null;
+
+  const dayStartMs = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  ).getTime();
+  const dayEndMs = dayStartMs + 24 * HOUR_MS;
+  const currentHourMs = startOfHour(now).getTime();
+
+  const wakingHours = hourly
+    .filter((hour) => {
+      const time = hour?.date?.getTime?.();
+      if (!Number.isFinite(time)) return false;
+      const hourOfDay = hour.date.getHours();
+      if (hourOfDay < WAKING_START_HOUR || hourOfDay >= WAKING_END_HOUR) {
+        return false;
+      }
+      return time >= Math.max(dayStartMs, currentHourMs) && time < dayEndMs;
+    })
+    .map((hour) => ({
+      time: hour.date.getTime(),
+      pop: clampFraction((hour.precipitationProbability?.total ?? 0) / 100),
+    }))
+    .sort((a, b) => a.time - b.time);
+
+  if (!wakingHours.length) return 0;
+
+  // Split contiguous rainy hours into events; each event contributes its peak.
+  const eventPeaks: number[] = [];
+  let currentPeak = 0;
+  let previousRainyTime: number | null = null;
+
+  for (const hour of wakingHours) {
+    if (hour.pop <= 0) {
+      previousRainyTime = null; // a dry hour ends the current event
+      continue;
+    }
+    const isContiguous =
+      previousRainyTime !== null && hour.time - previousRainyTime <= HOUR_MS;
+    if (!isContiguous) {
+      if (currentPeak > 0) eventPeaks.push(currentPeak);
+      currentPeak = 0;
+    }
+    currentPeak = Math.max(currentPeak, hour.pop);
+    previousRainyTime = hour.time;
+  }
+  if (currentPeak > 0) eventPeaks.push(currentPeak);
+
+  if (!eventPeaks.length) return 0;
+
+  const chanceOfDry = eventPeaks.reduce((acc, peak) => acc * (1 - peak), 1);
+  return Math.min(100, Math.round((1 - chanceOfDry) * 100));
 }
 
 /**
