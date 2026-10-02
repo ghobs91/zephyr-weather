@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "ios": {
       "bundleIdentifier": "com.zephyr.weather",
-      "buildNumber": "80",
+      "buildNumber": "81",
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Zephyr Weather uses your location to show local weather forecasts.",
