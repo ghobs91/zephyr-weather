@@ -1,13 +1,13 @@
 import React from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
   TextInput,
   Alert,
 } from 'react-native';
+import {Text} from './ScaledText';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {useWeatherStore} from '../store/weatherStore';
@@ -125,14 +125,20 @@ export function LocationSidebar({
   };
 
   return (
-    <View style={[styles.container, {backgroundColor: themeColors.background}]}>
+    <View style={styles.container}>
       {isMacOS() ? (
         // macOS: Floating container style
         <>
           <View style={styles.macOSFloatingContainer}>
             <View style={[
               styles.macOSCard,
-              {backgroundColor: isDark ? withAlpha('#3a3a3c', 0.95) : withAlpha('#ffffff', 0.95)},
+              {
+                backgroundColor: withAlpha(
+                  themeColors.surfaceElevated,
+                  isDark ? 0.66 : 0.72,
+                ),
+                borderColor: withAlpha(themeColors.materialBorder, 0.6),
+              },
             ]}>
               {/* Search Bar */}
               <View style={styles.macOSSearchContainer}>
@@ -229,8 +235,6 @@ export function LocationSidebar({
 const styles = StyleSheet.create({
   container: {
     width: 280,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: withAlpha('#000000', 0.1),
   },
   macOSFloatingContainer: {
     flex: 1,
@@ -241,6 +245,7 @@ const styles = StyleSheet.create({
   macOSCard: {
     flex: 1,
     borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 4},

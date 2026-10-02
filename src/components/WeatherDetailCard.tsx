@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
+import {Text} from './ScaledText';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {colors} from '../theme/colors';
 import {getInsetPanelStyle, withAlpha} from '../theme/design';

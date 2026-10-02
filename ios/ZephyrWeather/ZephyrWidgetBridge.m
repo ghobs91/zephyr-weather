@@ -20,6 +20,19 @@ RCT_EXPORT_MODULE();
   return NO;
 }
 
+// Expose whether this process is an iPhone/iPad app running on a Mac
+// ("Designed for iPad"). Mac Catalyst apps report Platform.isMacCatalyst in
+// JS, but a Designed-for-iPad app does not, so the app asks this native
+// constant to decide when to show the desktop layout.
+- (NSDictionary *)constantsToExport
+{
+  BOOL isIOSAppOnMac = NO;
+  if (@available(iOS 14.0, *)) {
+    isIOSAppOnMac = [NSProcessInfo processInfo].isiOSAppOnMac;
+  }
+  return @{@"isIOSAppOnMac": @(isIOSAppOnMac)};
+}
+
 RCT_EXPORT_METHOD(setItem:(NSString *)key
                   value:(NSString *)value
                   appGroup:(NSString *)appGroup

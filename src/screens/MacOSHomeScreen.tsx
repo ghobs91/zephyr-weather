@@ -10,7 +10,12 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useWeatherStore} from '../store/weatherStore';
 import {useThemeColors} from '../hooks/useThemeColors';
 import {RootStackParamList} from '../navigation/RootNavigator';
+import {AtmosphericBackground} from '../components/AtmosphericBackground';
 import {LocationSidebar} from '../components/LocationSidebar';
+import {
+  DESKTOP_TYPE_SCALE,
+  TypeScaleProvider,
+} from '../components/ScaledText';
 import {HomeScreen} from './HomeScreen';
 import {SettingsScreen} from './SettingsScreen';
 
@@ -26,7 +31,7 @@ export function MacOSHomeScreen() {
     setCurrentLocationIndex,
   } = useWeatherStore();
   
-  const {useDark, themeColors} = useThemeColors();
+  const {useDark, themeColors, backgroundKey} = useThemeColors();
 
   const handleLocationSelect = (index: number) => {
     setCurrentLocationIndex(index);
@@ -41,27 +46,31 @@ export function MacOSHomeScreen() {
   };
 
   return (
-    <View style={[styles.container, {backgroundColor: themeColors.background}]}>
-      <LocationSidebar
-        isDark={useDark}
-        themeColors={themeColors}
-        onLocationSelect={handleLocationSelect}
-        onSearchPress={handleSearchPress}
-        onSettingsPress={handleSettingsPress}
-      />
-      <View style={styles.detailContainer}>
-        <HomeScreen />
-      </View>
+    <AtmosphericBackground isDark={useDark} backgroundKey={backgroundKey}>
+      <TypeScaleProvider scale={DESKTOP_TYPE_SCALE}>
+        <View style={styles.container}>
+          <LocationSidebar
+            isDark={useDark}
+            themeColors={themeColors}
+            onLocationSelect={handleLocationSelect}
+            onSearchPress={handleSearchPress}
+            onSettingsPress={handleSettingsPress}
+          />
+          <View style={styles.detailContainer}>
+            <HomeScreen embedded />
+          </View>
 
-      {/* Settings Modal */}
-      <Modal
-        visible={showSettings}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowSettings(false)}>
-        <SettingsScreen onClose={() => setShowSettings(false)} />
-      </Modal>
-    </View>
+          {/* Settings Modal */}
+          <Modal
+            visible={showSettings}
+            animationType="slide"
+            presentationStyle="pageSheet"
+            onRequestClose={() => setShowSettings(false)}>
+            <SettingsScreen onClose={() => setShowSettings(false)} />
+          </Modal>
+        </View>
+      </TypeScaleProvider>
+    </AtmosphericBackground>
   );
 }
 

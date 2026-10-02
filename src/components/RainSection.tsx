@@ -1,5 +1,6 @@
 import React, {useMemo, useState} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
+import {Text} from './ScaledText';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {startOfHour} from 'date-fns';
 import {LineChart} from 'react-native-wagmi-charts';

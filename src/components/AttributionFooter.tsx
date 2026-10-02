@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
+import {Text} from './ScaledText';
 import {ColorTheme} from '../theme/colors';
 import {radius} from '../theme/design';
 

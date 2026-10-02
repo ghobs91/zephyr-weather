@@ -1,7 +1,17 @@
-import {Platform, useWindowDimensions} from 'react-native';
+import {NativeModules, Platform, useWindowDimensions} from 'react-native';
 
 /**
- * Detect if running on macOS via Mac Catalyst.
+ * Native constant from ZephyrWidgetBridge. A "Designed for iPad" app running
+ * on an Apple Silicon Mac reports this as true, which lets us show the desktop
+ * layout even though Platform.isMacCatalyst is false.
+ */
+const nativeBridge = NativeModules.ZephyrWidgetBridge as
+  | {isIOSAppOnMac?: boolean}
+  | undefined;
+
+/**
+ * Detect if running on macOS, either as a Mac Catalyst app or as an
+ * iPhone/iPad app running on a Mac ("Designed for iPad").
  * This is a device-level check that doesn't change at runtime.
  */
 export function isMacOS(): boolean {
@@ -9,7 +19,10 @@ export function isMacOS(): boolean {
     return false;
   }
   // @ts-ignore - isMacCatalyst is not in TypeScript definitions
-  return Platform.isMacCatalyst === true;
+  if (Platform.isMacCatalyst === true) {
+    return true;
+  }
+  return nativeBridge?.isIOSAppOnMac === true;
 }
 
 /**

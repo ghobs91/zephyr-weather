@@ -1,11 +1,11 @@
 import React from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import {Text} from './ScaledText';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {format, isPast, startOfDay, isToday} from 'date-fns';

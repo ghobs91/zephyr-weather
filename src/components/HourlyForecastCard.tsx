@@ -1,10 +1,10 @@
 import React from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import {Text} from './ScaledText';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {isSameHour, startOfHour} from 'date-fns';
 import {Hourly, WeatherCode} from '../types/weather';
