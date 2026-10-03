@@ -26,6 +26,21 @@ import {
   normalizeHomeCardOrder,
 } from '../types/settings';
 import {HOME_CARD_META} from '../utils/homeCards';
+import {ALL_SOURCES} from '../services/weatherSources';
+import {hasApiKey} from '../config/apiKeys';
+import {SourceFeature} from '../types/weather';
+
+const SOURCE_FEATURE_LABELS: Record<SourceFeature, string> = {
+  [SourceFeature.FORECAST]: 'Forecast',
+  [SourceFeature.CURRENT]: 'Current',
+  [SourceFeature.AIR_QUALITY]: 'Air Quality',
+  [SourceFeature.POLLEN]: 'Pollen',
+  [SourceFeature.MINUTELY]: 'Nowcast',
+  [SourceFeature.ALERT]: 'Alerts',
+  [SourceFeature.NORMALS]: 'Normals',
+  [SourceFeature.LOCATION_SEARCH]: 'Search',
+  [SourceFeature.REVERSE_GEOCODING]: 'Geocoding',
+};
 
 interface SettingsScreenProps {
   onClose?: () => void;
@@ -273,43 +288,53 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
         {/* Weather Sources Section */}
         {renderSectionHeader('Weather Sources', 'cloud-outline')}
         
-        <View style={[styles.sourceCard, getInsetPanelStyle(themeColors)]}>
-          <View style={styles.sourceHeader}>
-            <View style={[styles.sourceIcon, {backgroundColor: '#1E40AF'}]}>
-              <Icon name="flag-variant" size={20} color="#FFFFFF" />
-            </View>
-            <View style={styles.sourceInfo}>
-              <Text style={[styles.sourceName, {color: themeColors.text}]}>
-                NOAA National Weather Service
+        {ALL_SOURCES.map(source => {
+          const keyMissing =
+            source.requiresApiKey !== undefined &&
+            !hasApiKey(source.requiresApiKey);
+          const status = source.requiresApiKey
+            ? keyMissing
+              ? 'API key required'
+              : 'Key configured'
+            : 'No key required';
+          return (
+            <View
+              key={source.id}
+              style={[styles.sourceCard, getInsetPanelStyle(themeColors)]}>
+              <View style={styles.sourceHeader}>
+                <View
+                  style={[styles.sourceIcon, {backgroundColor: source.color}]}>
+                  <Icon
+                    name={source.tier === 'national' ? 'flag-variant' : 'earth'}
+                    size={20}
+                    color="#FFFFFF"
+                  />
+                </View>
+                <View style={styles.sourceInfo}>
+                  <Text style={[styles.sourceName, {color: themeColors.text}]}>
+                    {source.name}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.sourceDescription,
+                      {color: themeColors.textSecondary},
+                    ]}>
+                    {source.tier === 'national'
+                      ? 'National meteorological service'
+                      : 'Augmenting global model'}{' '}
+                    • {status}
+                  </Text>
+                </View>
+              </View>
+              <Text
+                style={[styles.sourceFeatures, {color: themeColors.textTertiary}]}>
+                {source.features
+                  .map(feature => SOURCE_FEATURE_LABELS[feature])
+                  .join(' • ')}
               </Text>
-              <Text style={[styles.sourceDescription, {color: themeColors.textSecondary}]}>
-                Official US weather forecasts and alerts
-              </Text>
             </View>
-          </View>
-          <Text style={[styles.sourceFeatures, {color: themeColors.textTertiary}]}>
-            US Only • Forecast • Alerts • Hourly
-          </Text>
-        </View>
-
-        <View style={[styles.sourceCard, getInsetPanelStyle(themeColors)]}>
-          <View style={styles.sourceHeader}>
-            <View style={[styles.sourceIcon, {backgroundColor: '#FF6B35'}]}>
-              <Icon name="weather-partly-cloudy" size={20} color="#FFFFFF" />
-            </View>
-            <View style={styles.sourceInfo}>
-              <Text style={[styles.sourceName, {color: themeColors.text}]}>
-                Open-Meteo
-              </Text>
-              <Text style={[styles.sourceDescription, {color: themeColors.textSecondary}]}>
-                Free, open source weather API
-              </Text>
-            </View>
-          </View>
-          <Text style={[styles.sourceFeatures, {color: themeColors.textTertiary}]}>
-            Global • Forecast • Current • Air Quality • Pollen • Search
-          </Text>
-        </View>
+          );
+        })}
 
         {/* Lock Screen Section (Live Activities need iOS 16.2+) */}
         {isLiveActivitySupported() && (
