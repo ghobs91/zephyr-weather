@@ -6,6 +6,7 @@ import {getGlassPillStyle, getShadow, radius, withAlpha} from '../theme/design';
 import {Location} from '../types/weather';
 import {WeatherIcon} from './WeatherIcon';
 import {GlassSurface} from './GlassSurface';
+import {selectTodayForecast} from '../utils/dailyForecast';
 
 interface PickerState {
   pickerOpen: boolean;
@@ -117,7 +118,10 @@ export function LocationPickerFloating({
                 {locations.map((loc, index) => {
                   const isSelected = index === pageIndex;
                   const locCurrent = loc.weather?.current;
-                  const locToday = loc.weather?.dailyForecast?.[0];
+                  const locToday = selectTodayForecast(
+                    loc.weather?.dailyForecast,
+                    loc.timezone,
+                  );
                   return (
                     <TouchableOpacity
                       key={loc.id}

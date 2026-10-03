@@ -15,6 +15,7 @@ import {Location} from '../types/weather';
 import {isMacOS} from '../utils/platformDetect';
 import {formatTime} from '../utils/timeFormat';
 import {formatTempShort} from '../utils/formatting';
+import {selectTodayForecast} from '../utils/dailyForecast';
 import {ColorTheme} from '../theme/colors';
 import {withAlpha} from '../theme/design';
 
@@ -68,7 +69,7 @@ export function LocationSidebar({
     const isSelected = index === currentLocationIndex;
     const weather = item.weather;
     const current = weather?.current;
-    const today = weather?.dailyForecast?.[0];
+    const today = selectTodayForecast(weather?.dailyForecast, item.timezone);
 
     return (
       <TouchableOpacity

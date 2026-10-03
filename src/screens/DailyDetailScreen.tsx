@@ -9,7 +9,6 @@ import {
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useRoute, RouteProp} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {format} from 'date-fns';
 import {LineChart} from 'react-native-wagmi-charts';
 
 import {useWeatherStore} from '../store/weatherStore';
@@ -23,6 +22,7 @@ import {WeatherIcon} from '../components/WeatherIcon';
 import {useResponsiveLayout} from '../utils/platformDetect';
 import {formatTime} from '../utils/timeFormat';
 import {formatTemp as fmtTemp, formatSpeed as fmtSpeed} from '../utils/formatting';
+import {dailyDayKey, longDateLabel} from '../utils/dailyForecast';
 
 type DailyDetailRouteProp = RouteProp<RootStackParamList, 'DailyDetail'>;
 
@@ -93,7 +93,7 @@ export function DailyDetailScreen() {
         {/* Date Header */}
         <View style={styles.dateHeader}>
           <Text style={[styles.dateText, {color: themeColors.text}]}>
-            {format(day.date, 'EEEE, MMMM d')}
+            {longDateLabel(dailyDayKey(day.date, currentLocation?.timezone))}
           </Text>
           <Text style={[styles.dateSubtitle, {color: themeColors.textSecondary}]}>Detailed outlook, temperature trend, and sun timing.</Text>
         </View>

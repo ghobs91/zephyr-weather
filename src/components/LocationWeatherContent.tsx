@@ -46,7 +46,7 @@ export function LocationWeatherContent({location, isDesktop}: Props) {
   const hourlyForecast = weather?.hourlyForecast ?? [];
   const minutelyForecast = weather?.minutelyForecast;
   const alerts = weather?.alerts ?? [];
-  const today = useTodayForecast(dailyForecast);
+  const today = useTodayForecast(dailyForecast, location.timezone);
 
   const attributionSource = weather?.base?.attribution
     ? `Weather data from ${weather.base.attribution}`
@@ -98,6 +98,7 @@ export function LocationWeatherContent({location, isDesktop}: Props) {
         onDayPress={(i) => navigation.navigate('DailyDetail', {dayIndex: i})}
         verticalLayout
         precipitationUnit={settings.precipitationUnit}
+        timezone={location.timezone}
       />
     ),
     details: (

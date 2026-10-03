@@ -3,6 +3,7 @@ import {Location, WeatherCode} from '../types/weather';
 import {TemperatureUnit} from '../types/settings';
 import {useWeatherStore} from '../store/weatherStore';
 import {formatTemp} from './formatting';
+import {selectTodayForecast} from './dailyForecast';
 
 /**
  * Live Activity plumbing (iOS Lock Screen + Dynamic Island).
@@ -54,7 +55,10 @@ export function buildLiveActivityPayload(
   const current = location.weather?.current;
   if (!current) return null;
 
-  const today = location.weather?.dailyForecast?.[0];
+  const today = selectTodayForecast(
+    location.weather?.dailyForecast,
+    location.timezone,
+  );
 
   return {
     locationId: location.id,

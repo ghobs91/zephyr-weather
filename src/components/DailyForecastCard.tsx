@@ -8,12 +8,17 @@ import {
 import {Text} from './ScaledText';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {format, isPast, startOfDay, isToday} from 'date-fns';
 import {Daily, WeatherCode} from '../types/weather';
 import {colors} from '../theme/colors';
 import {getCardStyle, getInsetPanelStyle, withAlpha} from '../theme/design';
 import {GlassSurface} from './GlassSurface';
 import {WeatherIcon} from './WeatherIcon';
+import {
+  dailyDayKey,
+  isTodayOrFuture,
+  monthDayLabel,
+  weekdayLabel,
+} from '../utils/dailyForecast';
 
 // Absolute temperature scale in Celsius:
 // -20°C → deep blue, 0°C → cyan, 15°C → green, 25°C → yellow, 35°C → orange, 45°C → red
@@ -57,6 +62,8 @@ interface Props {
   onDayPress?: (index: number) => void;
   verticalLayout?: boolean;
   precipitationUnit?: 'mm' | 'inch';
+  /** Location timezone, used to resolve which daily entry is "today". */
+  timezone?: string;
 }
 
 export function DailyForecastCard({
@@ -67,6 +74,7 @@ export function DailyForecastCard({
   onDayPress,
   verticalLayout = false,
   precipitationUnit = 'inch',
+  timezone,
 }: Props) {
   const themeColors = isDark ? colors.dark : colors.light;
 
@@ -80,11 +88,11 @@ export function DailyForecastCard({
     return `${snowCm < 1 ? snowCm.toFixed(1) : Math.round(snowCm)} cm`;
   };
   const getDayLabel = (date: Date): string => {
-    return format(date, 'EEE');
+    return weekdayLabel(dailyDayKey(date, timezone));
   };
 
   const getDateLabel = (date: Date): string => {
-    return format(date, 'MM-dd');
+    return monthDayLabel(dailyDayKey(date, timezone));
   };
 
   // Get min and max temperatures for the chart
@@ -120,7 +128,7 @@ export function DailyForecastCard({
 
   const visibleDays = dailyForecast
     .map((day, originalIndex) => ({day, originalIndex}))
-    .filter(({day}) => !isPast(startOfDay(day.date)) || isToday(day.date))
+    .filter(({day}) => isTodayOrFuture(day.date, timezone))
     .filter(({day}) => day.night?.temperature?.temperature !== undefined)
     .slice(0, 7);
 

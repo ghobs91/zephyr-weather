@@ -23,6 +23,7 @@ import {RootStackParamList} from '../navigation/RootNavigator';
 import {WeatherIcon} from '../components/WeatherIcon';
 import {useResponsiveLayout} from '../utils/platformDetect';
 import {formatTempShort} from '../utils/formatting';
+import {selectTodayForecast} from '../utils/dailyForecast';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -67,7 +68,7 @@ export function LocationsScreen() {
     const isSelected = index === currentLocationIndex;
     const weather = item.weather;
     const current = weather?.current;
-    const today = weather?.dailyForecast?.[0];
+    const today = selectTodayForecast(weather?.dailyForecast, item.timezone);
 
     const renderRightActions = (progress: Animated.AnimatedInterpolation<number>) => {
       const translateX = progress.interpolate({
