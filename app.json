@@ -2,11 +2,11 @@
   "expo": {
     "name": "Zephyr Weather",
     "slug": "zephyr-weather",
-    "version": "1.6.2",
+    "version": "1.7.0",
     "orientation": "portrait",
     "ios": {
       "bundleIdentifier": "com.zephyr.weather",
-      "buildNumber": "82",
+      "buildNumber": "84",
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Zephyr Weather uses your location to show local weather forecasts.",
