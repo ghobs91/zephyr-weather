@@ -19,6 +19,8 @@ import {DailyForecastCard} from './DailyForecastCard';
 import {WeatherDetailsSection} from './WeatherDetailsSection';
 import {SunMoonCard} from './SunMoonCard';
 import {PollenCard} from './PollenCard';
+import {TideCard} from './TideCard';
+import {AuroraCard} from './AuroraCard';
 import {AttributionFooter} from './AttributionFooter';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -46,8 +48,9 @@ export function LocationWeatherContent({location, isDesktop}: Props) {
   const alerts = weather?.alerts ?? [];
   const today = useTodayForecast(dailyForecast);
 
-  const attributionSource =
-    location.countryCode === 'US'
+  const attributionSource = weather?.base?.attribution
+    ? `Weather data from ${weather.base.attribution}`
+    : location.countryCode === 'US'
       ? 'Weather data from NOAA National Weather Service'
       : 'Weather data from Open-Meteo & Met.no (CC BY 4.0)';
 
@@ -116,6 +119,16 @@ export function LocationWeatherContent({location, isDesktop}: Props) {
       />
     ),
     pollen: <PollenCard pollen={todayPollen} isDark={useDark} />,
+    tides: (
+      <TideCard
+        tides={weather?.tides}
+        isDark={useDark}
+        timeFormat={settings.timeFormat}
+      />
+    ),
+    aurora: (
+      <AuroraCard spaceWeather={weather?.spaceWeather} isDark={useDark} />
+    ),
   };
 
   const alertBanner = alerts.length > 0 && (
@@ -157,6 +170,8 @@ export function LocationWeatherContent({location, isDesktop}: Props) {
         </View>
         {cards.sunmoon}
         {cards.pollen}
+        {cards.tides}
+        {cards.aurora}
         {attribution}
       </>
     );

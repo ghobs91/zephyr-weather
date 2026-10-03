@@ -13,7 +13,9 @@ export type HomeCardId =
   | 'daily'
   | 'details'
   | 'sunmoon'
-  | 'pollen';
+  | 'pollen'
+  | 'tides'
+  | 'aurora';
 
 export const defaultHomeCardOrder: HomeCardId[] = [
   'current',
@@ -22,6 +24,8 @@ export const defaultHomeCardOrder: HomeCardId[] = [
   'details',
   'sunmoon',
   'pollen',
+  'tides',
+  'aurora',
 ];
 
 /**
