@@ -35,8 +35,22 @@ export function useWeatherRefresh(location: Location | undefined) {
       }
 
       // Fetch fresh data from network
-      const {latitude, longitude, timezone} = loc;
-      const weather = await fetchPreferredWeather(latitude, longitude, timezone);
+      const {
+        latitude,
+        longitude,
+        timezone,
+        countryCode,
+        city,
+        district,
+        province,
+      } = loc;
+      const weather = await fetchPreferredWeather(
+        latitude,
+        longitude,
+        timezone,
+        countryCode,
+        city ?? district ?? province,
+      );
       updateLocationWeather(loc.id, weather);
 
       // Cache for offline use

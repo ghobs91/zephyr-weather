@@ -13,6 +13,26 @@ jest.mock('../metnoService', () => ({
   fetchMetNoWeather: jest.fn(),
 }));
 
+// The tiered dispatcher also pulls these in; mocked so unit tests stay offline.
+jest.mock('../brightSkyService', () => ({
+  fetchBrightSkyWeather: jest.fn(),
+}));
+jest.mock('../ecccService', () => ({
+  fetchEcccWeather: jest.fn(),
+}));
+jest.mock('../fmiService', () => ({
+  fetchFmiWeather: jest.fn(),
+}));
+jest.mock('../jmaService', () => ({
+  fetchJmaWeather: jest.fn(),
+}));
+jest.mock('../swpcService', () => ({
+  fetchSpaceWeather: jest.fn(),
+}));
+jest.mock('../noaaCoopsService', () => ({
+  fetchTides: jest.fn(),
+}));
+
 const {fetchPreferredWeather} = require('../preferredWeatherService');
 const {
   fetchWeather,
@@ -21,6 +41,8 @@ const {
 } = require('../openMeteoService');
 const {fetchNWSWeather, isUSLocation} = require('../nwsService');
 const {fetchMetNoWeather} = require('../metnoService');
+const {fetchBrightSkyWeather} = require('../brightSkyService');
+const {fetchSpaceWeather} = require('../swpcService');
 
 function createWeather() {
   return {
@@ -37,6 +59,8 @@ describe('fetchPreferredWeather', () => {
     jest.clearAllMocks();
     fetchMinutelyPrecipitation.mockResolvedValue([]);
     fetchMetNoWeather.mockResolvedValue(null);
+    fetchBrightSkyWeather.mockResolvedValue(null);
+    fetchSpaceWeather.mockResolvedValue(null);
   });
 
   it('uses NWS directly for US locations and only supplements air quality', async () => {
@@ -49,13 +73,27 @@ describe('fetchPreferredWeather', () => {
     // Open-Meteo contributes nothing here so NWS remains the only source.
     fetchWeather.mockResolvedValue(null);
 
-    const result = await fetchPreferredWeather(40.7128, -74.006, 'America/New_York');
+    const result = await fetchPreferredWeather(
+      40.7128,
+      -74.006,
+      'America/New_York',
+    );
 
     expect(isUSLocation).toHaveBeenCalledWith(40.7128, -74.006);
     expect(fetchNWSWeather).toHaveBeenCalledWith(40.7128, -74.006);
-    expect(fetchAirQuality).toHaveBeenCalledWith(40.7128, -74.006, 'America/New_York');
-    expect(fetchWeather).toHaveBeenCalledWith(40.7128, -74.006, 'America/New_York');
+    expect(fetchAirQuality).toHaveBeenCalledWith(
+      40.7128,
+      -74.006,
+      'America/New_York',
+    );
+    expect(fetchWeather).toHaveBeenCalledWith(
+      40.7128,
+      -74.006,
+      'America/New_York',
+      undefined,
+    );
     expect(result.current.airQuality).toEqual(airQuality);
+    expect(result.base.attribution).toContain('NOAA');
   });
 
   it('falls back to Open-Meteo when NWS forecast fetch fails', async () => {
@@ -66,12 +104,22 @@ describe('fetchPreferredWeather', () => {
     fetchNWSWeather.mockRejectedValue(new Error('NWS unavailable'));
     fetchWeather.mockResolvedValue(fallbackWeather);
 
-    const result = await fetchPreferredWeather(40.7128, -74.006, 'America/New_York');
+    const result = await fetchPreferredWeather(
+      40.7128,
+      -74.006,
+      'America/New_York',
+    );
 
-    expect(fetchWeather).toHaveBeenCalledWith(40.7128, -74.006, 'America/New_York');
+    expect(fetchWeather).toHaveBeenCalledWith(
+      40.7128,
+      -74.006,
+      'America/New_York',
+      undefined,
+    );
     expect(fetchAirQuality).not.toHaveBeenCalled();
     expect(result.current).toEqual(fallbackWeather.current);
     expect(result.confidence.sourceNames).toEqual(['Open-Meteo']);
+    expect(result.base.attribution).toContain('Open-Meteo');
 
     warnSpy.mockRestore();
   });
@@ -86,14 +134,19 @@ describe('fetchPreferredWeather', () => {
 
     expect(fetchNWSWeather).not.toHaveBeenCalled();
     expect(fetchAirQuality).not.toHaveBeenCalled();
-    expect(fetchWeather).toHaveBeenCalledWith(48.8566, 2.3522, 'Europe/Paris');
+    expect(fetchWeather).toHaveBeenCalledWith(
+      48.8566,
+      2.3522,
+      'Europe/Paris',
+      undefined,
+    );
     expect(result.current).toEqual(openMeteoWeather.current);
     expect(result.confidence.sourceNames).toEqual(['Open-Meteo']);
   });
 
   it('weights NWS as the combined weight of the global models (US)', async () => {
     const date = new Date('2026-09-29T12:00:00.000Z');
-    const member = code => ({
+    const member = (code) => ({
       current: {weatherCode: code, weatherText: code},
       hourlyForecast: [{date, weatherCode: code}],
       dailyForecast: [
