@@ -3,8 +3,6 @@ import {
   View,
   StyleSheet,
   FlatList,
-  ScrollView,
-  RefreshControl,
   Alert,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -27,6 +25,7 @@ import {SkeletonCards} from '../components/SkeletonCards';
 import {LocationPickerFloating} from '../components/LocationPickerFloating';
 import {FloatingGlassButton} from '../components/FloatingGlassButton';
 import {LocationWeatherContent} from '../components/LocationWeatherContent';
+import {PullToRefresh} from '../components/PullToRefresh';
 import {Location} from '../types/weather';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -48,17 +47,14 @@ function HomeContentPage({
   const showSkeleton = isLoading && !location.weather;
 
   return (
-    <ScrollView
-      style={[styles.scrollView, pageWidth != null && {width: pageWidth}]}
+    <PullToRefresh
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      isDark={useDark}
+      themeColors={themeColors}
+      style={styles.scrollView}
       contentContainerStyle={styles.scrollContent}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={themeColors.primary}
-        />
-      }
-      showsVerticalScrollIndicator={false}>
+      containerStyle={pageWidth != null ? {width: pageWidth} : undefined}>
       <View
         style={[
           styles.contentContainer,
@@ -82,7 +78,7 @@ function HomeContentPage({
           </>
         )}
       </View>
-    </ScrollView>
+    </PullToRefresh>
   );
 }
 
