@@ -62,10 +62,7 @@ struct DailyForecastWidgetView: View {
     
     // Only show today and future days — past days may be present in cached data.
     var todayAndFutureDays: [WeatherData.DailyForecast] {
-        let startOfToday = Calendar.current.startOfDay(for: Date())
-        return entry.weatherData.daily.filter {
-            Calendar.current.startOfDay(for: $0.date) >= startOfToday
-        }
+        entry.weatherData.daily.filter { DailyDayKey.isTodayOrFuture($0.date) }
     }
 
     var allTemps: [Double] {
@@ -314,9 +311,7 @@ struct DayRow: View {
     }
     
     func dayName(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEE"
-        return formatter.string(from: date)
+        DailyDayKey.weekday(for: date)
     }
     
     func formatTempNumber(_ temp: Double?) -> String {
@@ -468,9 +463,7 @@ struct DayColumn: View {
     }
     
     func dayName(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEE"
-        return formatter.string(from: date)
+        DailyDayKey.weekday(for: date)
     }
     
     func formatTemp(_ temp: Double?) -> String {

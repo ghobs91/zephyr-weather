@@ -25,9 +25,23 @@ describe('CurrentWeatherWidget source', () => {
     const source = fs.readFileSync(widgetPath, 'utf8');
 
     expect(source).toContain('displayLocationName');
-    expect(source).toContain('formatter.dateFormat = "EEE"');
+    expect(source).toContain('DailyDayKey.weekday(for: date)');
     expect(source).toContain('func formatHighTemp(_ temp: Double?) -> String');
     expect(source).toContain('return "\\(Int(round(temp)))°"');
+  });
+
+  it('filters daily forecasts by calendar day key, not device start-of-day', () => {
+    const widgetsDir = path.join(process.cwd(), 'ios', 'ZephyrWeatherWidgets');
+
+    for (const file of [
+      'CurrentWeatherWidget.swift',
+      'DailyForecastWidget.swift',
+      'AccessoryWidgets.swift',
+    ]) {
+      const source = fs.readFileSync(path.join(widgetsDir, file), 'utf8');
+      expect(source).toContain('DailyDayKey.isTodayOrFuture(');
+      expect(source).not.toContain('Calendar.current.startOfDay(for: $0.date)');
+    }
   });
 
   it('shows the next 5 days (not today) in the large widget', () => {

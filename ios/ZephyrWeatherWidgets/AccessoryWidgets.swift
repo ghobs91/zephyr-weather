@@ -27,9 +27,7 @@ private func accessorySymbol(_ code: String?) -> String {
 }
 
 private func accessoryDayName(_ date: Date) -> String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "EEE"
-    return formatter.string(from: date)
+    DailyDayKey.weekday(for: date)
 }
 
 // MARK: - Current weather accessory
@@ -42,7 +40,9 @@ struct CurrentWeatherAccessoryView: View {
     private var temp: String { accessoryTemp(data.current?.temperature) }
 
     private var highLow: String {
-        guard let today = data.daily.first else { return "" }
+        guard let today = data.daily.first(where: {
+            DailyDayKey.isTodayOrFuture($0.date)
+        }) else { return "" }
         return "H:\(accessoryTemp(today.dayTemp)) L:\(accessoryTemp(today.nightTemp))"
     }
 
@@ -88,10 +88,9 @@ struct DailyForecastAccessoryView: View {
     @Environment(\.widgetFamily) var family
 
     private var upcomingDays: [WeatherData.DailyForecast] {
-        let startOfToday = Calendar.current.startOfDay(for: Date())
-        return Array(data.daily.filter {
-            Calendar.current.startOfDay(for: $0.date) >= startOfToday
-        }.prefix(3))
+        Array(
+            data.daily.filter { DailyDayKey.isTodayOrFuture($0.date) }.prefix(3)
+        )
     }
 
     var body: some View {

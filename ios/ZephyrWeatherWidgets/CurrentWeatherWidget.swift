@@ -61,10 +61,7 @@ struct CurrentWeatherWidgetView: View {
     }
 
     private var todayAndFutureDays: [WeatherData.DailyForecast] {
-        let startOfToday = Calendar.current.startOfDay(for: Date())
-        return entry.weatherData.daily.filter {
-            Calendar.current.startOfDay(for: $0.date) >= startOfToday
-        }
+        entry.weatherData.daily.filter { DailyDayKey.isTodayOrFuture($0.date) }
     }
 
     private var upcomingDailyForecast: [WeatherData.DailyForecast] {
@@ -171,7 +168,7 @@ struct CurrentWeatherWidgetView: View {
                     .minimumScaleFactor(0.6)
                     .lineLimit(1)
                 
-                if let today = entry.weatherData.daily.first {
+                if let today = todayAndFutureDays.first {
                     Text("\(formatTemp(today.dayTemp)) • \(formatTemp(today.nightTemp))")
                         .font(.system(size: 13, weight: .regular))
                         .foregroundColor(.white.opacity(0.7))
@@ -446,9 +443,7 @@ struct SmallForecastRow: View {
     }
 
     func dayName(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEE"
-        return formatter.string(from: date)
+        DailyDayKey.weekday(for: date)
     }
 
     func formatTemp(_ temp: Double?) -> String {

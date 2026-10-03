@@ -106,6 +106,64 @@ struct WeatherData: Codable {
     }
 }
 
+/// Resolves which calendar day a daily-forecast entry represents.
+///
+/// Daily dates reach the widget two ways: the app writes them as UTC midnight
+/// of the location-local day (see `widgetManager.ts`), while
+/// `ZephyrWeatherFetcher` parses Open-Meteo's wall-clock dates in the device
+/// timezone. Taking the later of the two renderings yields the intended day
+/// for both, so "today" filtering and weekday labels stay correct west of UTC.
+enum DailyDayKey {
+    private static var utc: TimeZone { TimeZone(secondsFromGMT: 0)! }
+
+    private static func formatter(
+        _ timeZone: TimeZone,
+        _ format: String
+    ) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = timeZone
+        formatter.dateFormat = format
+        return formatter
+    }
+
+    /// `yyyy-MM-dd` for the calendar day the entry represents.
+    static func key(for date: Date, timeZone: TimeZone = .current) -> String {
+        let utcKey = formatter(utc, "yyyy-MM-dd").string(from: date)
+        let localKey = formatter(timeZone, "yyyy-MM-dd").string(from: date)
+        return max(utcKey, localKey)
+    }
+
+    /// `yyyy-MM-dd` for "now" in `timeZone`.
+    static func todayKey(
+        timeZone: TimeZone = .current,
+        now: Date = Date()
+    ) -> String {
+        formatter(timeZone, "yyyy-MM-dd").string(from: now)
+    }
+
+    static func isTodayOrFuture(
+        _ date: Date,
+        timeZone: TimeZone = .current,
+        now: Date = Date()
+    ) -> Bool {
+        key(for: date, timeZone: timeZone) >= todayKey(timeZone: timeZone, now: now)
+    }
+
+    /// Weekday abbreviation for a `yyyy-MM-dd` key, independent of device tz.
+    static func weekday(forKey key: String) -> String {
+        guard let date = formatter(utc, "yyyy-MM-dd").date(from: key) else {
+            return ""
+        }
+        return formatter(utc, "EEE").string(from: date)
+    }
+
+    static func weekday(for date: Date, timeZone: TimeZone = .current) -> String {
+        weekday(forKey: key(for: date, timeZone: timeZone))
+    }
+}
+
 class WeatherDataManager {
     static let shared = WeatherDataManager()
     
