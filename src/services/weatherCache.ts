@@ -27,6 +27,8 @@ const DATE_FIELDS = new Set([
   'setTime',
   'startDate',
   'endDate',
+  'time',
+  'updatedAt',
 ]);
 
 /** JSON.parse reviver that restores known date fields to `Date` objects. */

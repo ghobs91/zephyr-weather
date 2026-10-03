@@ -197,6 +197,32 @@ export interface EnsembleConfidence {
   sourceNames?: string[]; // e.g. ['NWS', 'Met.no', 'BrightSky']
 }
 
+export interface SpaceWeather {
+  /** Latest 3-hourly planetary K index (0–9). */
+  kpIndex?: number;
+  /** Observed + forecast Kp series, oldest first. */
+  kpForecast?: Array<{date: Date; kp: number; observed: boolean}>;
+  /** Lowest geomagnetic latitude (degrees) where aurora may be visible. */
+  auroraLatitude?: number;
+  /** Solar wind speed in km/s. */
+  solarWindSpeed?: number;
+  updatedAt?: Date;
+}
+
+export interface TidePrediction {
+  time: Date;
+  height: number;
+  type: 'high' | 'low';
+}
+
+export interface Tides {
+  stationId?: string;
+  stationName?: string;
+  units: 'ft' | 'm';
+  predictions: TidePrediction[];
+  updatedAt?: Date;
+}
+
 export interface Weather {
   base?: {
     refreshTime?: Date;
@@ -206,6 +232,8 @@ export interface Weather {
     minutelyUpdateTime?: Date;
     alertsUpdateTime?: Date;
     normalsUpdateTime?: Date;
+    /** Human-readable attribution for the sources that produced this forecast. */
+    attribution?: string;
   };
   current?: Current;
   dailyForecast: Daily[];
@@ -214,6 +242,8 @@ export interface Weather {
   alerts?: Alert[];
   normals?: Normals[];
   confidence?: EnsembleConfidence;
+  spaceWeather?: SpaceWeather;
+  tides?: Tides;
 }
 
 export interface Location {
