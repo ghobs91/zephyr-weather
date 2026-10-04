@@ -78,6 +78,7 @@ export function LocationWeatherContent({location, isDesktop}: Props) {
         hourlyForecast={hourlyForecast}
         minutelyForecast={minutelyForecast}
         timeFormat={settings.timeFormat}
+        compact={isDesktop}
       />
     ),
     hourly: (
@@ -164,10 +165,12 @@ export function LocationWeatherContent({location, isDesktop}: Props) {
         />
         {alertBanner}
         {cards.current}
-        {cards.hourly}
         <View style={styles.twoColumn}>
-          <View style={styles.leftColumn}>{cards.daily}</View>
-          {cards.details}
+          <View style={styles.leftColumn}>{cards.details}</View>
+          <View style={styles.rightColumn}>
+            {cards.hourly}
+            {cards.daily}
+          </View>
         </View>
         {cards.sunmoon}
         {cards.pollen}
@@ -192,5 +195,8 @@ export function LocationWeatherContent({location, isDesktop}: Props) {
 
 const styles = StyleSheet.create({
   twoColumn: {flexDirection: 'row', gap: 16, marginBottom: 12},
-  leftColumn: {flex: 0.55},
+  // Left column: the small detail squares (wind, pressure, humidity, …).
+  leftColumn: {flex: 1},
+  // Right column: hourly + daily forecasts, each spanning its full width.
+  rightColumn: {flex: 1.75},
 });

@@ -43,6 +43,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
           "shadowOpacity": 0.4,
           "shadowRadius": 20,
         },
+        false,
       ],
     ]
   }
@@ -180,10 +181,13 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
   </Text>
   <View
     style={
-      {
-        "alignItems": "center",
-        "marginTop": 14,
-      }
+      [
+        {
+          "alignItems": "center",
+          "marginTop": 14,
+        },
+        false,
+      ]
     }
   >
     <View
@@ -202,6 +206,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
             "borderRadius": 18,
             "borderWidth": 0.5,
           },
+          false,
         ]
       }
     >
@@ -209,19 +214,25 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
         code="CLEAR"
         isDay={true}
         style={
-          {
-            "height": 138,
-            "width": 138,
-          }
+          [
+            {
+              "height": 138,
+              "width": 138,
+            },
+            false,
+          ]
         }
       />
     </View>
     <View
       style={
-        {
-          "alignItems": "center",
-          "marginTop": 18,
-        }
+        [
+          {
+            "alignItems": "center",
+            "marginTop": 18,
+          },
+          false,
+        ]
       }
     >
       <Text
@@ -248,6 +259,7 @@ exports[`CurrentWeatherCard renders the redesigned hero layout with metrics and 
               "lineHeight": 76,
               "marginTop": 4,
             },
+            false,
             {
               "color": "#FFD60A",
             },

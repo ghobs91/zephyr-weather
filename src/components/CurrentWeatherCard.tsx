@@ -23,6 +23,12 @@ interface Props {
   hourlyForecast?: Hourly[];
   minutelyForecast?: Minutely[];
   timeFormat?: TimeFormat;
+  /**
+   * Desktop two-column layout: shrinks the hero (icon + temperature) and
+   * drops the wind/rain/humidity tiles, which live in the left-column detail
+   * squares instead. The rain chart is kept.
+   */
+  compact?: boolean;
 }
 
 function getConfidenceLabel(overall?: number): {text: string; color: string} {
@@ -43,6 +49,7 @@ export function CurrentWeatherCard({
   hourlyForecast,
   minutelyForecast,
   timeFormat = 'auto',
+  compact = false,
 }: Props) {
   const themeColors = isDark ? colors.dark : colors.light;
   
@@ -79,7 +86,11 @@ export function CurrentWeatherCard({
     <GlassSurface
       isDark={isDark}
       themeColors={themeColors}
-      style={[styles.container, getCardStyle(themeColors)]}>
+      style={[
+        styles.container,
+        getCardStyle(themeColors),
+        compact && styles.containerCompact,
+      ]}>
       <LinearGradient
         colors={[
           withAlpha(themeColors.accent, isDark ? 0.06 : 0.12),
@@ -92,22 +103,32 @@ export function CurrentWeatherCard({
 
       <Text style={[styles.eyebrow, {color: themeColors.textSecondary}]}>Current conditions</Text>
 
-      <View style={styles.heroSection}>
-        <View style={[styles.iconStage, getInsetPanelStyle(themeColors)]}>
+      <View style={[styles.heroSection, compact && styles.heroSectionCompact]}>
+        <View
+          style={[
+            styles.iconStage,
+            getInsetPanelStyle(themeColors),
+            compact && styles.iconStageCompact,
+          ]}>
           <WeatherIcon
             code={weatherCode}
             isDay={isDaylight}
-            style={styles.weatherIcon}
+            style={[styles.weatherIcon, compact && styles.weatherIconCompact]}
           />
         </View>
 
-        <View style={styles.temperatureContainer}>
+        <View
+          style={[
+            styles.temperatureContainer,
+            compact && styles.temperatureContainerCompact,
+          ]}>
           <Text style={[styles.weatherText, {color: themeColors.textSecondary}]}>
             {weatherText || 'Unknown'}
           </Text>
           <Text
             style={[
               styles.temperature,
+              compact && styles.temperatureCompact,
               {
                 color: temperature !== undefined
                   ? getTemperatureColor(temperature, isDark)
@@ -128,22 +149,24 @@ export function CurrentWeatherCard({
         </View>
       </View>
 
-      <View style={styles.metricsRow}>
-        {metrics.map(metric => (
-          <View
-            key={metric.key}
-            style={[
-              styles.metricCard,
-              getInsetPanelStyle(themeColors),
-            ]}>
-            <Icon name={metric.icon} size={16} color={themeColors.textSecondary} />
-            <Text style={[styles.metricValue, {color: themeColors.text}]} numberOfLines={1}>
-              {metric.value}
-            </Text>
-            <Text style={[styles.metricLabel, {color: themeColors.textTertiary}]}>{metric.label}</Text>
-          </View>
-        ))}
-      </View>
+      {!compact && (
+        <View style={styles.metricsRow}>
+          {metrics.map(metric => (
+            <View
+              key={metric.key}
+              style={[
+                styles.metricCard,
+                getInsetPanelStyle(themeColors),
+              ]}>
+              <Icon name={metric.icon} size={16} color={themeColors.textSecondary} />
+              <Text style={[styles.metricValue, {color: themeColors.text}]} numberOfLines={1}>
+                {metric.value}
+              </Text>
+              <Text style={[styles.metricLabel, {color: themeColors.textTertiary}]}>{metric.label}</Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       {confidence && confidence.sourceCount !== undefined && confidence.sourceCount > 1 && (
         <View
@@ -176,6 +199,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     padding: 22,
     marginBottom: 16,
+  },
+  containerCompact: {
+    padding: 18,
   },
   glow: {
     position: 'absolute',
@@ -253,6 +279,29 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 2,
     textAlign: 'center',
+  },
+  // ── Compact (desktop) hero ──────────────────────────────────────────
+  heroSectionCompact: {
+    marginTop: 6,
+  },
+  iconStageCompact: {
+    width: 'auto',
+    alignSelf: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+  },
+  weatherIconCompact: {
+    width: 96,
+    height: 96,
+  },
+  temperatureContainerCompact: {
+    marginTop: 10,
+  },
+  temperatureCompact: {
+    fontSize: 56,
+    lineHeight: 62,
+    marginTop: 6,
   },
   confidenceRow: {
     flexDirection: 'row',

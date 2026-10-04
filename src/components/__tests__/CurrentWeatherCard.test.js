@@ -73,4 +73,45 @@ describe('CurrentWeatherCard', () => {
       testRenderer.unmount();
     });
   });
+
+  it('renders the compact desktop hero without the duplicate wind/rain/humidity tiles', () => {
+    const current = {
+      temperature: {temperature: 22, apparent: 20},
+      weatherCode: 'CLEAR',
+      weatherText: 'Mostly Cloudy',
+      wind: {speed: 11},
+      relativeHumidity: 68,
+    };
+    const today = {
+      day: {temperature: {temperature: 24}, precipitationProbability: {total: 35}},
+      night: {temperature: {temperature: 17}},
+    };
+
+    let testRenderer;
+
+    renderer.act(() => {
+      testRenderer = renderer.create(
+        React.createElement(CurrentWeatherCard, {
+          current,
+          today,
+          formatTemp: value => `${Math.round(value ?? 0)}°`,
+          formatSpeed: value => `${Math.round(value ?? 0)} km/h`,
+          isDaylight: true,
+          isDark: true,
+          compact: true,
+        }),
+      );
+    });
+
+    const serialized = JSON.stringify(testRenderer.toJSON());
+
+    // The hero stays, but the wind/rain/humidity tiles move to the
+    // left-column detail squares on desktop.
+    expect(serialized).toContain('Current conditions');
+    expect(serialized).not.toContain('Rain chance');
+
+    renderer.act(() => {
+      testRenderer.unmount();
+    });
+  });
 });
