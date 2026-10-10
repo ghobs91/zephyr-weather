@@ -2,7 +2,7 @@
   "expo": {
     "name": "Zephyr Weather",
     "slug": "zephyr-weather",
-    "version": "1.7.0",
+    "version": "1.8.0",
     "orientation": "portrait",
     "ios": {
       "bundleIdentifier": "com.zephyr.weather",
