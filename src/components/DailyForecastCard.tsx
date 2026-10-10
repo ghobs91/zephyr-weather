@@ -166,72 +166,93 @@ export function DailyForecastCard({
                   },
                 ]}
                 onPress={() => onDayPress?.(originalIndex)}>
-                {/* Main alignment row: left labels + right content, heights match */}
+                {/* Apple Weather-style single row: day · icon (+precip) · low ·
+                    range bar · high. */}
                 <View style={styles.dayMainRow}>
-                  <View style={styles.dayRowLeft}>
-                    <Text style={[styles.dayLabel, {color: themeColors.text}]} numberOfLines={1}>
-                      {getDayLabel(day.date)}
-                    </Text>
-                    <Text style={[styles.dayLabel, {color: themeColors.textSecondary}]}>
-                      {getDateLabel(day.date)}
-                    </Text>
-                  </View>
+                  <Text
+                    style={[styles.dayName, {color: themeColors.text}]}
+                    numberOfLines={1}>
+                    {getDayLabel(day.date)}
+                  </Text>
 
-                  <View style={styles.dayRowRight}>
-                      <View style={styles.tempRow}>
-                        <WeatherIcon
-                          code={day.day?.weatherCode}
-                          isDay={true}
-                          style={styles.weatherIcon}
-                        />
-                        <Text style={[styles.tempLabel, {color: themeColors.textSecondary}]}>
-                          {formatTemp(nightTemp)}
+                  <View style={styles.iconSlot}>
+                    <WeatherIcon
+                      code={day.day?.weatherCode}
+                      isDay={true}
+                      style={styles.iconSlotIcon}
+                    />
+                    {precipProb !== undefined && precipProb > 0 && (
+                      <View style={styles.precipUnderIcon}>
+                        <Icon name="water" size={9} color={themeColors.rain} />
+                        <Text
+                          style={[
+                            styles.precipUnderIconText,
+                            {color: themeColors.rain},
+                          ]}>
+                          {Math.round(precipProb)}%
                         </Text>
-                        <View style={[styles.tempBarHorizontal, {backgroundColor: themeColors.surfaceVariant}]}>
-                          <LinearGradient
-                            colors={[
-                              getGradientColorForTemp(nightTemp ?? 0),
-                              getGradientColorForTemp(dayTemp ?? 0),
-                            ]}
-                            start={{x: 0, y: 0}}
-                            end={{x: 1, y: 0}}
-                            style={[
-                              styles.tempBarFillHorizontal,
-                              {
-                                left: `${getBarRange(dayTemp, nightTemp)[0]}%`,
-                                width: `${getBarRange(dayTemp, nightTemp)[1]}%`,
-                              },
-                            ]}
+                      </View>
+                    )}
+                    {(() => {
+                      const snowText = formatSnow(day.day?.precipitation?.snow);
+                      return snowText ? (
+                        <View style={styles.precipUnderIcon}>
+                          <Icon
+                            name="snowflake"
+                            size={9}
+                            color={themeColors.snow}
                           />
+                          <Text
+                            style={[
+                              styles.precipUnderIconText,
+                              {color: themeColors.snow},
+                            ]}>
+                            {snowText}
+                          </Text>
                         </View>
-                        <Text style={[styles.tempLabel, {color: themeColors.text}]}>
-                          {formatTemp(dayTemp)}
-                        </Text>
-                      </View>
-                    </View>
+                      ) : null;
+                    })()}
                   </View>
 
-                {/* Precip row sits below the alignment row so it doesn't affect centering */}
-                <View style={styles.precipRow}>
-                  {precipProb !== undefined && precipProb > 0 && (
-                    <View style={styles.precipContainer}>
-                      <Icon name="water" size={12} color={themeColors.rain} />
-                      <Text style={[styles.precipText, {color: themeColors.rain}]}>
-                        {Math.round(precipProb)}%
-                      </Text>
-                    </View>
-                  )}
-                  {(() => {
-                    const snowText = formatSnow(day.day?.precipitation?.snow);
-                    return snowText ? (
-                      <View style={styles.precipContainer}>
-                        <Icon name="snowflake" size={12} color={themeColors.snow} />
-                        <Text style={[styles.precipText, {color: themeColors.snow}]}>
-                          {snowText}
-                        </Text>
-                      </View>
-                    ) : null;
-                  })()}
+                  <Text
+                    style={[
+                      styles.tempValue,
+                      styles.tempLow,
+                      {color: themeColors.textSecondary},
+                    ]}>
+                    {formatTemp(nightTemp)}
+                  </Text>
+
+                  <View
+                    style={[
+                      styles.tempBarHorizontal,
+                      {backgroundColor: themeColors.surfaceVariant},
+                    ]}>
+                    <LinearGradient
+                      colors={[
+                        getGradientColorForTemp(nightTemp ?? 0),
+                        getGradientColorForTemp(dayTemp ?? 0),
+                      ]}
+                      start={{x: 0, y: 0}}
+                      end={{x: 1, y: 0}}
+                      style={[
+                        styles.tempBarFillHorizontal,
+                        {
+                          left: `${getBarRange(dayTemp, nightTemp)[0]}%`,
+                          width: `${getBarRange(dayTemp, nightTemp)[1]}%`,
+                        },
+                      ]}
+                    />
+                  </View>
+
+                  <Text
+                    style={[
+                      styles.tempValue,
+                      styles.tempHigh,
+                      {color: themeColors.text},
+                    ]}>
+                    {formatTemp(dayTemp)}
+                  </Text>
                 </View>
               </TouchableOpacity>
             );
@@ -351,27 +372,55 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   daysContainerVertical: {
-    paddingVertical: 8,
-    gap: 0,
+    paddingVertical: 4,
   },
   dayRow: {
     paddingHorizontal: 0,
-    paddingVertical: 16,
+    paddingVertical: 11,
   },
   dayMainRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
-  dayRowLeft: {
-    width: 72,
+  dayName: {
+    width: 52,
+    fontSize: 15,
+    fontWeight: '600',
   },
-  dayRowRight: {
-    flex: 1,
+  iconSlot: {
+    width: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  tempRow: {
+  iconSlotIcon: {
+    width: 26,
+    height: 26,
+    marginVertical: 0,
+  },
+  precipUnderIcon: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 1,
+    marginTop: 1,
+  },
+  precipUnderIconText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  tempValue: {
+    fontSize: 15,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
+  tempLow: {
+    width: 40,
+    textAlign: 'right',
+    fontWeight: '500',
+  },
+  tempHigh: {
+    width: 42,
+    textAlign: 'right',
   },
   precipRow: {
     flexDirection: 'row',
