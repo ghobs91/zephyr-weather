@@ -1,4 +1,4 @@
-import {TemperatureUnit, SpeedUnit, PressureUnit, PrecipitationUnit} from '../types/settings';
+import {TemperatureUnit, SpeedUnit, PressureUnit, PrecipitationUnit, DistanceUnit} from '../types/settings';
 
 /**
  * Format a temperature value with an optional unit suffix.
@@ -107,4 +107,27 @@ export function formatPrecipitation(
     return inches < 0.1 ? '<0.1 in' : `${inches.toFixed(2)} in`;
   }
   return `${Math.round(mm)} mm`;
+}
+
+/**
+ * Format a distance (e.g. visibility).
+ *
+ * @param meters   Distance in metres (the canonical internal unit).
+ * @param unit      The display unit.
+ * @param fallback  String returned when meters is undefined. Default: '--'.
+ */
+export function formatDistance(
+  meters: number | undefined,
+  unit: DistanceUnit,
+  fallback = '--',
+): string {
+  if (meters === undefined) return fallback;
+  if (unit === 'mi') {
+    const miles = meters / 1609.344;
+    return miles >= 10 ? `${Math.round(miles)} mi` : `${miles.toFixed(1)} mi`;
+  }
+  const km = meters / 1000;
+  if (meters >= 10000) return `${km.toFixed(0)} km`;
+  if (meters >= 1000) return `${km.toFixed(1)} km`;
+  return `${Math.round(meters)} m`;
 }

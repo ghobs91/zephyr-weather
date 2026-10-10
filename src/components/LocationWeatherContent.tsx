@@ -38,7 +38,8 @@ export function LocationWeatherContent({location, isDesktop}: Props) {
   const navigation = useNavigation<NavigationProp>();
   const {settings} = useWeatherStore();
   const {useDark, themeColors} = useThemeColors();
-  const {formatTemp, formatSpeed, formatPressure} = useWeatherFormatters();
+  const {formatTemp, formatSpeed, formatPressure, formatDistance} =
+    useWeatherFormatters();
 
   const weather = location.weather;
   const current = weather?.current;
@@ -107,6 +108,7 @@ export function LocationWeatherContent({location, isDesktop}: Props) {
         current={current}
         formatSpeed={formatSpeed}
         formatPressure={formatPressure}
+        formatDistance={formatDistance}
         isDark={useDark}
         isDesktop={isDesktop}
       />

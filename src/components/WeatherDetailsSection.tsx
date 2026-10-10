@@ -8,6 +8,7 @@ interface Props {
   current?: Current;
   formatSpeed: (speedKmh?: number) => string;
   formatPressure: (hPa?: number) => string;
+  formatDistance: (meters?: number) => string;
   isDark: boolean;
   isDesktop?: boolean;
 }
@@ -23,6 +24,7 @@ export function WeatherDetailsSection({
   current,
   formatSpeed,
   formatPressure,
+  formatDistance,
   isDark,
   isDesktop,
 }: Props) {
@@ -60,19 +62,10 @@ export function WeatherDetailsSection({
           isDark={isDark}
         />
       )}
-      {current?.dewPoint !== undefined && (
-        <WeatherDetailCard
-          title="Dew Point"
-          value={`${Math.round(current.dewPoint)}°`}
-          subtitle="Comfort indicator"
-          icon="thermometer-low"
-          isDark={isDark}
-        />
-      )}
       {current?.visibility !== undefined && (
         <WeatherDetailCard
           title="Visibility"
-          value={formatVisibility(current.visibility)}
+          value={formatDistance(current.visibility)}
           icon="eye-outline"
           isDark={isDark}
         />
@@ -96,13 +89,6 @@ function getUvLevel(index: number): string {
   if (index <= 7) return 'High';
   if (index <= 10) return 'Very High';
   return 'Extreme';
-}
-
-function formatVisibility(meters?: number): string {
-  if (meters === undefined) return '--';
-  if (meters >= 10000) return `${(meters / 1000).toFixed(0)} km`;
-  if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
-  return `${meters} m`;
 }
 
 const styles = StyleSheet.create({

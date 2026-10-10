@@ -6,6 +6,7 @@ import {
   formatSpeed,
   formatPressure,
   formatPrecipitation,
+  formatDistance,
 } from '../utils/formatting';
 
 /**
@@ -27,6 +28,8 @@ export function useWeatherFormatters() {
         formatPressure(p, settings.pressureUnit),
       formatPrecipitation: (mm?: number) =>
         formatPrecipitation(mm, settings.precipitationUnit),
+      formatDistance: (meters?: number) =>
+        formatDistance(meters, settings.distanceUnit),
     }),
     [settings],
   );
