@@ -27,8 +27,10 @@ import {
 } from '../types/settings';
 import {HOME_CARD_META} from '../utils/homeCards';
 import {ALL_SOURCES} from '../services/weatherSources';
-import {hasApiKey} from '../config/apiKeys';
 import {SourceFeature} from '../types/weather';
+import appConfig from '../../app.json';
+
+const APP_VERSION = appConfig.expo.version;
 
 const SOURCE_FEATURE_LABELS: Record<SourceFeature, string> = {
   [SourceFeature.FORECAST]: 'Forecast',
@@ -54,6 +56,13 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
   
   const {useDark, themeColors, backgroundKey} = useThemeColors();
 
+  // Slightly darker card surface in dark mode so cards read as grouped
+  // panels against the atmospheric background.
+  const cardSurface = [
+    getInsetPanelStyle(themeColors),
+    useDark && styles.cardDarkSurface,
+  ];
+
   const renderSectionHeader = (title: string, icon: string) => (
     <View style={styles.sectionHeader}>
       <Icon name={icon} size={20} color={themeColors.primary} />
@@ -70,7 +79,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
     <View
       style={[
         styles.optionRow,
-        getInsetPanelStyle(themeColors),
+        cardSurface,
       ]}>
       <Text style={[styles.optionLabel, {color: themeColors.text}]}>{label}</Text>
       <View style={styles.optionButtons}>
@@ -168,7 +177,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
         {/* Home Screen Section */}
         {renderSectionHeader('Home Screen', 'view-dashboard-outline')}
 
-        <View style={[styles.optionRow, getInsetPanelStyle(themeColors)]}>
+        <View style={[styles.optionRow, cardSurface]}>
           <Text style={[styles.optionLabel, {color: themeColors.text}]}>Card Order</Text>
           <Text style={[styles.cardOrderHint, {color: themeColors.textSecondary}]}>
             Reorder the cards shown on the Weather screen.
@@ -289,18 +298,10 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
         {renderSectionHeader('Weather Sources', 'cloud-outline')}
         
         {ALL_SOURCES.map(source => {
-          const keyMissing =
-            source.requiresApiKey !== undefined &&
-            !hasApiKey(source.requiresApiKey);
-          const status = source.requiresApiKey
-            ? keyMissing
-              ? 'API key required'
-              : 'Key configured'
-            : 'No key required';
           return (
             <View
               key={source.id}
-              style={[styles.sourceCard, getInsetPanelStyle(themeColors)]}>
+              style={[styles.sourceCard, cardSurface]}>
               <View style={styles.sourceHeader}>
                 <View
                   style={[styles.sourceIcon, {backgroundColor: source.color}]}>
@@ -321,8 +322,7 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
                     ]}>
                     {source.tier === 'national'
                       ? 'National meteorological service'
-                      : 'Augmenting global model'}{' '}
-                    • {status}
+                      : 'Augmenting global model'}
                   </Text>
                 </View>
               </View>
@@ -356,15 +356,17 @@ export function SettingsScreen({onClose}: SettingsScreenProps = {}) {
         {/* About Section */}
         {renderSectionHeader('About', 'information-outline')}
         
-        <View style={[styles.aboutCard, getInsetPanelStyle(themeColors)]}>
+        <View style={[styles.aboutCard, cardSurface]}>
           <Text style={[styles.appName, {color: themeColors.text}]}>
             Zephyr Weather
           </Text>
           <Text style={[styles.appVersion, {color: themeColors.textSecondary}]}>
-            Version 1.0.0
+            Version {APP_VERSION}
           </Text>
           <Text style={[styles.appDescription, {color: themeColors.textSecondary}]}>
-            A beautiful weather app inspired by Breezy Weather, built with React Native.
+            Privacy-first weather for iPhone, iPad, and Mac — live radar,
+            next-hour rain, and native widgets, built on open data. No accounts,
+            no ads, no tracking.
           </Text>
           <Text style={[styles.attribution, {color: themeColors.textTertiary}]}>
             Weather data provided by NOAA NWS (US) and Open-Meteo (Global)
@@ -421,6 +423,9 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 16,
     marginBottom: 10,
+  },
+  cardDarkSurface: {
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   optionLabel: {
     fontSize: 15,
