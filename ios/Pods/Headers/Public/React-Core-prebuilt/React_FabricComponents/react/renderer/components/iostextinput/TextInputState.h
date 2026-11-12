@@ -1,1 +1,0 @@
-../../../../../../../../React-Core-prebuilt/React.xcframework/Headers/React_FabricComponents/react/renderer/components/iostextinput/TextInputState.h

@@ -1,1 +1,0 @@
-../../../../../React-Core-prebuilt/React.xcframework/Headers/React_Core/React/RCTRedBox2Controller+Internal.h

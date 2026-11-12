@@ -1,1 +1,0 @@
-../../../../../../../../../node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputProps.h

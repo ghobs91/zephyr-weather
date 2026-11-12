@@ -1,1 +1,0 @@
-../../../../../../../../../node_modules/react-native/ReactCommon/react/renderer/components/scrollview/platform/ios/react/renderer/components/scrollview/RCTComponentViewHelpers.h

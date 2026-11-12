@@ -1,1 +1,0 @@
-../../../../../../../React-Core-prebuilt/React.xcframework/Headers/React_viewtransitionnativemodule/react/nativemodule/viewtransition/NativeViewTransition.h
